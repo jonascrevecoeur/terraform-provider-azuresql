@@ -1,0 +1,66 @@
+package sql
+
+import (
+	"terraform-provider-azuresql/internal/logging"
+	"testing"
+)
+
+func TestParseConnectionId(t *testing.T) {
+	ctx := logging.GetTestContext()
+
+	tests := map[string]struct {
+		expectecOutcome Connection
+		expectError     bool
+	}{
+		"sqlserver::server:150:db": {
+			expectecOutcome: Connection{
+				IsServerConnection: false,
+				Provider:           "sqlserver",
+				ConnectionString:   "sqlserver://server.database.windows.net:150?database=db&fedauth=ActiveDirectoryDefault",
+			},
+			expectError: false,
+		},
+		"sqlserver::server:150": {
+			expectecOutcome: Connection{
+				IsServerConnection: true,
+				Provider:           "sqlserver",
+				ConnectionString:   "sqlserver://server.database.windows.net:150?fedauth=ActiveDirectoryDefault",
+			},
+			expectError: false,
+		},
+		"sqlserver::server": {
+			expectecOutcome: Connection{},
+			expectError:     true,
+		},
+	}
+
+	for connectionId, expected := range tests {
+		actual := parseConnectionId(ctx, connectionId)
+
+		if logging.HasError(ctx) && !expected.expectError {
+			t.Errorf("Parsing connectionId %s should not throw an error", connectionId)
+			continue
+		}
+		if !logging.HasError(ctx) && expected.expectError {
+			t.Errorf("Parsing connectionId %s should throw an error", connectionId)
+			continue
+		}
+
+		if actual.ConnectionString != expected.expectecOutcome.ConnectionString {
+			t.Errorf("Expected connectionString %s does not match actual %s when parsing connectionId %s",
+				expected.expectecOutcome.ConnectionString, actual.ConnectionString, connectionId)
+		}
+
+		if actual.Provider != expected.expectecOutcome.Provider {
+			t.Errorf("Expected provider %s does not match actual %s when parsing connectionId %s",
+				expected.expectecOutcome.Provider, actual.Provider, connectionId)
+		}
+
+		if actual.IsServerConnection != expected.expectecOutcome.IsServerConnection {
+			t.Errorf("Expected type %t does not match actual %t when parsing connectionId %s",
+				expected.expectecOutcome.IsServerConnection, actual.IsServerConnection, connectionId)
+		}
+
+		logging.ClearDiagnostics(ctx)
+	}
+}
