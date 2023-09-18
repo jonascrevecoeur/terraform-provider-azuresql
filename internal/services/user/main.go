@@ -12,7 +12,6 @@ type UserDataSourceModel struct {
 	PrincipalId    types.Int64  `tfsdk:"principal_id"`
 	Authentication types.String `tfsdk:"authentication"`
 	Type           types.String `tfsdk:"type"`
-	Login          types.String `tfsdk:"login"`
 }
 
 type UserResourceModel struct {
