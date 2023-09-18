@@ -58,6 +58,7 @@ func (p *azuresql_provider) DataSources(_ context.Context) []func() datasource.D
 	return []func() datasource.DataSource{
 		sqlserver.NewServerDataSource,
 		synapseserver.NewSynapseServerDataSource,
+		login.NewSQLLoginDataSource,
 	}
 }
 

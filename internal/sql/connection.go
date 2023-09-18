@@ -48,7 +48,7 @@ func NewCache() ConnectionCache {
 // The connectionId is a required parameter of each azuresql terraform resource
 func (cache ConnectionCache) Connect(ctx context.Context, connectionId string, server bool) Connection {
 
-	tflog.Info(ctx, fmt.Sprintf("Fetching connection to database %s", connectionId))
+	tflog.Info(ctx, fmt.Sprintf("Fetching connection to %s", connectionId))
 
 	connection, err, cached := cache.Cache.Memoize(
 		connectionId,

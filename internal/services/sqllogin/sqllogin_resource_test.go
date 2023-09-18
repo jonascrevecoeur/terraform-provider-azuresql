@@ -8,14 +8,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+type SQLLoginResource struct{}
+
 func TestAccSQLServerCreateLogin(t *testing.T) {
 	acceptance.PreCheck(t)
 	data := acceptance.BuildTestData(t)
+	r := SQLLoginResource{}
 	resource.Test(t, resource.TestCase{
 		Steps: []resource.TestStep{
 			{
 				// use a dynamic configuration with the random name from above
-				Config:                   basic(data.SQLServer_connection, "tftest_"+data.RandomString),
+				Config:                   r.basic(data.SQLServer_connection, "tftest_"+data.RandomString),
 				ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("azuresql_login.test", "name", "tftest_"+data.RandomString),
@@ -25,14 +28,15 @@ func TestAccSQLServerCreateLogin(t *testing.T) {
 	})
 }
 
-func TestAccSynapseServerCreateLogin(t *testing.T) {
+func (SQLLoginResource) TestAccSynapseServerCreateLogin(t *testing.T) {
 	acceptance.PreCheck(t)
 	data := acceptance.BuildTestData(t)
+	r := SQLLoginResource{}
 	resource.Test(t, resource.TestCase{
 		Steps: []resource.TestStep{
 			{
 				// use a dynamic configuration with the random name from above
-				Config:                   basic(data.SynapseServer_connection, "tftest_"+data.RandomString),
+				Config:                   r.basic(data.SynapseServer_connection, "tftest_"+data.RandomString),
 				ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("azuresql_login.test", "name", "tftest_"+data.RandomString),
@@ -42,8 +46,8 @@ func TestAccSynapseServerCreateLogin(t *testing.T) {
 	})
 }
 
-func basic(connection string, name string) string {
-	template := template()
+func (r SQLLoginResource) basic(connection string, name string) string {
+	template := r.template()
 
 	return fmt.Sprintf(
 		`
@@ -56,7 +60,7 @@ func basic(connection string, name string) string {
 		`, template, connection, name)
 }
 
-func template() string {
+func (r SQLLoginResource) template() string {
 	return fmt.Sprintf(`
 		provider "azuresql" {
 		}

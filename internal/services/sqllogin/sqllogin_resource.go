@@ -35,7 +35,8 @@ func (r *SQLLoginResource) Metadata(_ context.Context, req resource.MetadataRequ
 
 func (r *SQLLoginResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Register a user in the database. Implemented for `SQL Server` and `Azure SQL Database`.",
+		Description: `Logins are used to authenticate SQL users.
+		Logins can only be created on the server level, but can be used to create database users.`,
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:    true,
