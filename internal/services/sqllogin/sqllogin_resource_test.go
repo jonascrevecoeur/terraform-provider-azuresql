@@ -28,7 +28,7 @@ func TestAccSQLServerCreateLogin(t *testing.T) {
 	})
 }
 
-func (SQLLoginResource) TestAccSynapseServerCreateLogin(t *testing.T) {
+func TestAccSynapseServerCreateLogin(t *testing.T) {
 	acceptance.PreCheck(t)
 	data := acceptance.BuildTestData(t)
 	r := SQLLoginResource{}

@@ -10,14 +10,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+type UserResource struct{}
+
 func TestAccSQLServerCreateADUser(t *testing.T) {
 	acceptance.PreCheck(t)
 	data := acceptance.BuildTestData(t)
+	r := UserResource{}
 	resource.Test(t, resource.TestCase{
 		Steps: []resource.TestStep{
 			{
 				// use a dynamic configuration with the random name from above
-				Config:                   basic_server(data.SQLServer_connection, os.Getenv("AZURE_AD_USER"), "AzureAD"),
+				Config:                   r.basic_server(data.SQLServer_connection, os.Getenv("AZURE_AD_USER"), "AzureAD"),
 				ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("azuresql_user.test", "type", "AD user"),
@@ -30,11 +33,12 @@ func TestAccSQLServerCreateADUser(t *testing.T) {
 func TestAccSQLServerCreateUserWithoutLogin(t *testing.T) {
 	acceptance.PreCheck(t)
 	data := acceptance.BuildTestData(t)
+	r := UserResource{}
 	resource.Test(t, resource.TestCase{
 		Steps: []resource.TestStep{
 			{
 				// use a dynamic configuration with the random name from above
-				Config:                   basic_server(data.SQLServer_connection, data.RandomString, "WithoutLogin"),
+				Config:                   r.basic_server(data.SQLServer_connection, data.RandomString, "WithoutLogin"),
 				ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("azuresql_user.test", "type", "SQL user"),
@@ -47,11 +51,12 @@ func TestAccSQLServerCreateUserWithoutLogin(t *testing.T) {
 func TestAccSQLServerCreateUserWithLogin(t *testing.T) {
 	acceptance.PreCheck(t)
 	data := acceptance.BuildTestData(t)
+	r := UserResource{}
 	resource.Test(t, resource.TestCase{
 		Steps: []resource.TestStep{
 			{
 				// use a dynamic configuration with the random name from above
-				Config:                   server_with_login(data.SQLServer_connection, data.RandomString),
+				Config:                   r.server_with_login(data.SQLServer_connection, data.RandomString),
 				ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("azuresql_user.test", "type", "SQL user"),
@@ -64,11 +69,12 @@ func TestAccSQLServerCreateUserWithLogin(t *testing.T) {
 func TestAccSynapseServerCreateUserWithLogin(t *testing.T) {
 	acceptance.PreCheck(t)
 	data := acceptance.BuildTestData(t)
+	r := UserResource{}
 	resource.Test(t, resource.TestCase{
 		Steps: []resource.TestStep{
 			{
 				// use a dynamic configuration with the random name from above
-				Config:                   database_with_login(data.SQLServer_connection, data.SQLDatabase_connection, data.RandomString),
+				Config:                   r.database_with_login(data.SQLServer_connection, data.SQLDatabase_connection, data.RandomString),
 				ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("azuresql_user.test", "type", "SQL user"),
@@ -81,10 +87,11 @@ func TestAccSynapseServerCreateUserWithLogin(t *testing.T) {
 func TestAccSQLServerCreateADGroup(t *testing.T) {
 	acceptance.PreCheck(t)
 	data := acceptance.BuildTestData(t)
+	r := UserResource{}
 	resource.Test(t, resource.TestCase{
 		Steps: []resource.TestStep{
 			{
-				Config:                   basic_server(data.SQLServer_connection, os.Getenv("AZURE_AD_GROUP"), "AzureAD"),
+				Config:                   r.basic_server(data.SQLServer_connection, os.Getenv("AZURE_AD_GROUP"), "AzureAD"),
 				ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("azuresql_user.test", "type", "AD group"),
@@ -97,10 +104,11 @@ func TestAccSQLServerCreateADGroup(t *testing.T) {
 func TestAccSQLDatabaseCreateADGroup(t *testing.T) {
 	acceptance.PreCheck(t)
 	data := acceptance.BuildTestData(t)
+	r := UserResource{}
 	resource.Test(t, resource.TestCase{
 		Steps: []resource.TestStep{
 			{
-				Config:                   basic_database(data.SQLDatabase_connection, os.Getenv("AZURE_AD_GROUP"), "AzureAD"),
+				Config:                   r.basic_database(data.SQLDatabase_connection, os.Getenv("AZURE_AD_GROUP"), "AzureAD"),
 				ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("azuresql_user.test", "type", "AD group"),
@@ -113,10 +121,11 @@ func TestAccSQLDatabaseCreateADGroup(t *testing.T) {
 func TestAccSynapseServerCreateADGroup(t *testing.T) {
 	acceptance.PreCheck(t)
 	data := acceptance.BuildTestData(t)
+	r := UserResource{}
 	resource.Test(t, resource.TestCase{
 		Steps: []resource.TestStep{
 			{
-				Config:                   basic_server(data.SynapseServer_connection, os.Getenv("AZURE_AD_GROUP"), "AzureAD"),
+				Config:                   r.basic_server(data.SynapseServer_connection, os.Getenv("AZURE_AD_GROUP"), "AzureAD"),
 				ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
 				ExpectError:              regexp.MustCompile("In Synapse users cannot be created at server level"),
 			},
@@ -127,10 +136,11 @@ func TestAccSynapseServerCreateADGroup(t *testing.T) {
 func TestAccSynapseDatabaseCreateADGroup(t *testing.T) {
 	acceptance.PreCheck(t)
 	data := acceptance.BuildTestData(t)
+	r := UserResource{}
 	resource.Test(t, resource.TestCase{
 		Steps: []resource.TestStep{
 			{
-				Config:                   basic_database(data.SynapseDatabase_connection, os.Getenv("AZURE_AD_GROUP"), "AzureAD"),
+				Config:                   r.basic_database(data.SynapseDatabase_connection, os.Getenv("AZURE_AD_GROUP"), "AzureAD"),
 				ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("azuresql_user.test", "type", "AD group"),
@@ -143,10 +153,11 @@ func TestAccSynapseDatabaseCreateADGroup(t *testing.T) {
 func TestAccSQLServerCannotCreateDuplicateUser(t *testing.T) {
 	acceptance.PreCheck(t)
 	data := acceptance.BuildTestData(t)
+	r := UserResource{}
 	resource.Test(t, resource.TestCase{
 		Steps: []resource.TestStep{
 			{
-				Config:                   basic_server_duplicate(data.SQLServer_connection, os.Getenv("AZURE_AD_GROUP"), "AzureAD"),
+				Config:                   r.basic_server_duplicate(data.SQLServer_connection, os.Getenv("AZURE_AD_GROUP"), "AzureAD"),
 				ExpectError:              regexp.MustCompile("already exists"),
 				ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
 			},
@@ -154,8 +165,23 @@ func TestAccSQLServerCannotCreateDuplicateUser(t *testing.T) {
 	})
 }
 
-func basic_server(connection string, username string, authentication string) string {
-	template := template()
+func TestUseLoginFromWrongServer(t *testing.T) {
+	acceptance.PreCheck(t)
+	data := acceptance.BuildTestData(t)
+	r := UserResource{}
+	resource.Test(t, resource.TestCase{
+		Steps: []resource.TestStep{
+			{
+				Config:                   r.login_server_mismatch(data.SynapseServer_connection, data.SQLServer_connection, data.RandomString),
+				ExpectError:              regexp.MustCompile("Login from .* is incompatible"),
+				ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+			},
+		},
+	})
+}
+
+func (r UserResource) basic_server(connection string, username string, authentication string) string {
+	template := r.template()
 
 	return fmt.Sprintf(
 		`
@@ -169,8 +195,8 @@ func basic_server(connection string, username string, authentication string) str
 		`, template, connection, username, authentication)
 }
 
-func basic_database(connection string, username string, authentication string) string {
-	template := template()
+func (r UserResource) basic_database(connection string, username string, authentication string) string {
+	template := r.template()
 
 	return fmt.Sprintf(
 		`
@@ -184,8 +210,8 @@ func basic_database(connection string, username string, authentication string) s
 		`, template, connection, username, authentication)
 }
 
-func basic_server_duplicate(connection string, username string, authentication string) string {
-	template := template()
+func (r UserResource) basic_server_duplicate(connection string, username string, authentication string) string {
+	template := r.template()
 
 	return fmt.Sprintf(
 		`
@@ -205,8 +231,8 @@ func basic_server_duplicate(connection string, username string, authentication s
 		`, template, connection, username, authentication)
 }
 
-func server_with_login(connection string, random string) string {
-	template := template()
+func (r UserResource) server_with_login(connection string, random string) string {
+	template := r.template()
 
 	return fmt.Sprintf(
 		`
@@ -227,8 +253,8 @@ func server_with_login(connection string, random string) string {
 		`, template, connection, random)
 }
 
-func database_with_login(server string, database string, random string) string {
-	template := template()
+func (r UserResource) database_with_login(server string, database string, random string) string {
+	template := r.template()
 
 	return fmt.Sprintf(
 		`
@@ -249,7 +275,28 @@ func database_with_login(server string, database string, random string) string {
 		`, template, server, random, database)
 }
 
-func template() string {
+func (r UserResource) login_server_mismatch(server1 string, server2 string, user string) string {
+	template := r.template()
+	return fmt.Sprintf(
+		`
+		%[1]s
+
+		resource "azuresql_login" "test" {
+			server = "%[2]s"
+			name   = "login_%[4]s"
+		}
+
+		resource "azuresql_user" "test" {
+			server        = "%[3]s"
+			name           	= "user_%[4]s"
+			authentication 	= "SQLLogin"
+			login		   	= azuresql_login.test.id
+		}
+
+		`, template, server1, server2, user)
+}
+
+func (r UserResource) template() string {
 	return fmt.Sprintf(`
 		provider "azuresql" {
 		}
