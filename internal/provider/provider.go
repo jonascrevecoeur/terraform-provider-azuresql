@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"terraform-provider-azuresql/internal/services/database"
 	"terraform-provider-azuresql/internal/services/role"
 	dbschema "terraform-provider-azuresql/internal/services/schema"
 	login "terraform-provider-azuresql/internal/services/sqllogin"
@@ -64,6 +65,7 @@ func (p *azuresql_provider) DataSources(_ context.Context) []func() datasource.D
 		user.NewUserDataSource,
 		role.NewRoleDataSource,
 		dbschema.NewSchemaDataSource,
+		database.NewDatabaseDataSource,
 	}
 }
 
