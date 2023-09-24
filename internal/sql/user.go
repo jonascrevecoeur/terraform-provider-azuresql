@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strconv"
+	"strings"
 	"terraform-provider-azuresql/internal/logging"
 )
 
@@ -19,6 +21,36 @@ type User struct {
 
 func userFormatId(connectionId string, userPrincipalId int64) string {
 	return fmt.Sprintf("%s/user/%d", connectionId, userPrincipalId)
+}
+
+func isUserId(id string) (isRole bool) {
+	//isRole, _ = regexp.MatchString("^[^/]*/role/[^/]*$", "/role/")
+	return strings.Contains(id, "/user/")
+}
+
+func parseUserId(ctx context.Context, id string) (user User) {
+	s := strings.Split(id, "/user/")
+
+	if len(s) != 2 {
+		logging.AddError(ctx, "ID format error", "id doesn't contain /user/ exactly once")
+		return
+	}
+
+	user.Connection = s[0]
+
+	if logging.HasError(ctx) {
+		return
+	}
+
+	principal_id, err := strconv.ParseInt(s[1], 10, 64)
+	if err != nil {
+		logging.AddError(ctx, "Invalid id", "Unable to parse user id")
+		return
+	}
+
+	user.PrincipalId = principal_id
+
+	return
 }
 
 func describeUserType(ctx context.Context, userType string) (userTypeLong string) {
@@ -115,6 +147,29 @@ func GetUserFromName(ctx context.Context, connection Connection, name string) (u
 		Authentication: describeAuthentication(ctx, authentication_type),
 	}
 
+}
+
+// Get user from the azuresql terraform id
+// requiresExist: Raise an error when the user doesn't exist
+func GetUserFromId(ctx context.Context, connection Connection, id string, requiresExist bool) (user User) {
+	user = parseUserId(ctx, id)
+	if logging.HasError(ctx) {
+		return
+	}
+
+	if user.Connection != connection.ConnectionId {
+		logging.AddError(ctx, "Connection mismatch", fmt.Sprintf("Id %s doesn't belong to connection %s", id, connection.ConnectionId))
+		return
+	}
+
+	user = GetUserFromPrincipalId(ctx, connection, user.PrincipalId)
+
+	if requiresExist && user.Id == "" {
+		logging.AddError(ctx, "User not found", fmt.Sprintf("User with id %s doesn't exist", id))
+		return
+	}
+
+	return user
 }
 
 func GetUserFromPrincipalId(ctx context.Context, connection Connection, principalId int64) (user User) {

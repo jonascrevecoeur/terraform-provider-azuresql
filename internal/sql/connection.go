@@ -56,6 +56,9 @@ func (cache ConnectionCache) Connect(ctx context.Context, connectionId string, s
 			connection := parseConnectionId(ctx, connectionId)
 			con, err := sql.Open("azuresql", connection.ConnectionString)
 			connection.Connection = con
+			if err == nil {
+				err = connection.Connection.PingContext(ctx)
+			}
 			return connection, err
 		},
 	)

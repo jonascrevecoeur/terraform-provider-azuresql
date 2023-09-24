@@ -10,22 +10,29 @@ import (
 
 type SQLLoginResource struct{}
 
-func TestAccSQLServerCreateLogin(t *testing.T) {
+func TestAccCreateLogin(t *testing.T) {
 	acceptance.PreCheck(t)
 	data := acceptance.BuildTestData(t)
 	r := SQLLoginResource{}
-	resource.Test(t, resource.TestCase{
-		Steps: []resource.TestStep{
-			{
-				// use a dynamic configuration with the random name from above
-				Config:                   r.basic(data.SQLServer_connection, "tftest_"+data.RandomString),
-				ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("azuresql_login.test", "name", "tftest_"+data.RandomString),
-				),
+
+	connections := []string{
+		data.SQLServer_connection,
+		data.SynapseServer_connection,
+	}
+
+	for _, connection := range connections {
+		resource.Test(t, resource.TestCase{
+			Steps: []resource.TestStep{
+				{
+					Config:                   r.basic(connection, "tftest_"+data.RandomString),
+					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+					Check: resource.ComposeTestCheckFunc(
+						resource.TestCheckResourceAttr("azuresql_login.test", "name", "tftest_"+data.RandomString),
+					),
+				},
 			},
-		},
-	})
+		})
+	}
 }
 
 func TestAccSynapseServerCreateLogin(t *testing.T) {

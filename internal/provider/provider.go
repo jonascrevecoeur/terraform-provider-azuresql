@@ -2,6 +2,8 @@ package provider
 
 import (
 	"context"
+	"terraform-provider-azuresql/internal/services/role"
+	dbschema "terraform-provider-azuresql/internal/services/schema"
 	login "terraform-provider-azuresql/internal/services/sqllogin"
 	"terraform-provider-azuresql/internal/services/sqlserver"
 	"terraform-provider-azuresql/internal/services/synapseserver"
@@ -60,6 +62,8 @@ func (p *azuresql_provider) DataSources(_ context.Context) []func() datasource.D
 		synapseserver.NewSynapseServerDataSource,
 		login.NewSQLLoginDataSource,
 		user.NewUserDataSource,
+		role.NewRoleDataSource,
+		dbschema.NewSchemaDataSource,
 	}
 }
 
@@ -68,5 +72,7 @@ func (p *azuresql_provider) Resources(_ context.Context) []func() resource.Resou
 	return []func() resource.Resource{
 		user.NewUserResource,
 		login.NewSQLLoginResource,
+		role.NewRoleResource,
+		dbschema.NewSchemaResource,
 	}
 }
