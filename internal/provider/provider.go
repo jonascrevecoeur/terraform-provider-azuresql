@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"terraform-provider-azuresql/internal/services/database"
+	"terraform-provider-azuresql/internal/services/permission"
 	"terraform-provider-azuresql/internal/services/role"
 	dbschema "terraform-provider-azuresql/internal/services/schema"
 	login "terraform-provider-azuresql/internal/services/sqllogin"
@@ -66,6 +67,7 @@ func (p *azuresql_provider) DataSources(_ context.Context) []func() datasource.D
 		role.NewRoleDataSource,
 		dbschema.NewSchemaDataSource,
 		database.NewDatabaseDataSource,
+		permission.NewPermissionDataSource,
 	}
 }
 
@@ -76,5 +78,6 @@ func (p *azuresql_provider) Resources(_ context.Context) []func() resource.Resou
 		login.NewSQLLoginResource,
 		role.NewRoleResource,
 		dbschema.NewSchemaResource,
+		permission.NewPermissionResource,
 	}
 }

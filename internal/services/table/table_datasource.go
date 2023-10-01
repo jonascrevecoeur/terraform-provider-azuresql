@@ -1,4 +1,4 @@
-package schema
+package table
 
 import (
 	"context"
@@ -25,12 +25,12 @@ type providerConfig struct {
 }
 
 func (d *providerConfig) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_schema"
+	resp.TypeName = req.ProviderTypeName + "_table"
 }
 
 func (d *providerConfig) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "SQL database schema.",
+		Description: "SQL database table.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:    true,
@@ -38,19 +38,20 @@ func (d *providerConfig) Schema(_ context.Context, _ datasource.SchemaRequest, r
 			},
 			"database": schema.StringAttribute{
 				Required:    true,
-				Description: "Id of the database where the schema exists.",
+				Description: "Id of the database where the table exists.",
 			},
 			"name": schema.StringAttribute{
 				Required:    true,
-				Description: "Name of the schema.",
+				Description: "Name of the table.",
 			},
-			"schema_id": schema.Int64Attribute{
+			"schema": schema.Int64Attribute{
+				Optional:    true,
 				Computed:    true,
-				Description: "Schema ID of the schema in the database.",
+				Description: "Id of the azuresql schema resource.",
 			},
-			"owner": schema.StringAttribute{
+			"object_id": schema.StringAttribute{
 				Computed:    true,
-				Description: "Principal owning the schema.",
+				Description: "Id of the table in the sql database.",
 			},
 		},
 	}
@@ -59,7 +60,7 @@ func (d *providerConfig) Schema(_ context.Context, _ datasource.SchemaRequest, r
 func (r *providerConfig) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	ctx = logging.WithDiagnostics(ctx, &resp.Diagnostics)
 
-	var state SchemaDataSourceModel
+	var state TableDataSourceModel
 
 	// Read input configured in data block
 	resp.Diagnostics.Append(
@@ -73,15 +74,14 @@ func (r *providerConfig) Read(ctx context.Context, req datasource.ReadRequest, r
 		return
 	}
 
-	schema := sql.GetSchemaFromName(ctx, connection, state.Name.ValueString(), true)
+	table := sql.GetTableFromNameAndSchema(ctx, connection, state.Name.ValueString(), state.Schema.ValueString(), true)
 
 	if logging.HasError(ctx) {
 		return
 	}
 
-	state.SchemaId = types.Int64Value(schema.SchemaId)
-	state.Owner = types.StringValue(schema.Owner)
-	state.Id = types.StringValue(schema.Id)
+	state.ObjectId = types.Int64Value(table.ObjectId)
+	state.Id = types.StringValue(table.Id)
 
 	diags := resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)

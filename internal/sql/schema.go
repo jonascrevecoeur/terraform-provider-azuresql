@@ -17,8 +17,12 @@ type Schema struct {
 	Owner      string
 }
 
-func schemaFormatId(connectionId string, objectId int64) string {
-	return fmt.Sprintf("%s/schema/%d", connectionId, objectId)
+func schemaFormatId(connectionId string, schemaId int64) string {
+	return fmt.Sprintf("%s/schema/%d", connectionId, schemaId)
+}
+
+func isSchemaId(id string) bool {
+	return strings.Contains(id, "/schema/")
 }
 
 func parseSchemaId(ctx context.Context, id string) (schema Schema) {
@@ -51,7 +55,7 @@ func CreateSchema(ctx context.Context, connection Connection, name string, owner
 	query := fmt.Sprintf("create schema [%s]", name)
 
 	if owner != "" {
-		ownerPrincipal := GetPrincipalFromId(ctx, connection, owner)
+		ownerPrincipal := GetPrincipalFromId(ctx, connection, owner, true)
 
 		if logging.HasError(ctx) {
 			return
@@ -166,7 +170,7 @@ func UpdateSchemaOwner(ctx context.Context, connection Connection, id string, ow
 		return
 	}
 
-	ownerPrincipal := GetPrincipalFromId(ctx, connection, owner)
+	ownerPrincipal := GetPrincipalFromId(ctx, connection, owner, true)
 
 	if logging.HasError(ctx) {
 		return

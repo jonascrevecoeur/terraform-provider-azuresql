@@ -22,7 +22,6 @@ func roleFormatId(connectionId string, rolePrincipalId int64) string {
 }
 
 func isRoleId(id string) (isRole bool) {
-	//isRole, _ = regexp.MatchString("^[^/]*/role/[^/]*$", "/role/")
 	return strings.Contains(id, "/role/")
 }
 

@@ -43,7 +43,7 @@ func (r *SchemaResource) Schema(_ context.Context, _ resource.SchemaRequest, res
 				Description: "Unique identifier for terraform used to import the resource.",
 			},
 			"database": schema.StringAttribute{
-				Optional:    true,
+				Required:    true,
 				Description: "Id of the database where the schema exists.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),

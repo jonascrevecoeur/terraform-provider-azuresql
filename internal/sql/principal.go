@@ -22,9 +22,9 @@ func principalFormatId(connectionId string, id int64, principalType string) stri
 	}
 }
 
-func GetPrincipalFromId(ctx context.Context, connection Connection, id string) (principal Principal) {
+func GetPrincipalFromId(ctx context.Context, connection Connection, id string, requiresExist bool) (principal Principal) {
 	if isRoleId(id) {
-		role := GetRoleFromId(ctx, connection, id, true)
+		role := GetRoleFromId(ctx, connection, id, requiresExist)
 		if logging.HasError(ctx) {
 			return
 		}
@@ -36,7 +36,7 @@ func GetPrincipalFromId(ctx context.Context, connection Connection, id string) (
 			Type:        "R",
 		}
 	} else if isUserId(id) {
-		user := GetUserFromId(ctx, connection, id, true)
+		user := GetUserFromId(ctx, connection, id, requiresExist)
 		if logging.HasError(ctx) {
 			return
 		}

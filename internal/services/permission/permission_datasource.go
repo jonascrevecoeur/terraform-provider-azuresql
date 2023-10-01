@@ -1,4 +1,4 @@
-package schema
+package permission
 
 import (
 	"context"
@@ -6,8 +6,11 @@ import (
 	"terraform-provider-azuresql/internal/logging"
 	"terraform-provider-azuresql/internal/sql"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -16,7 +19,7 @@ var (
 	_ datasource.DataSourceWithConfigure = &providerConfig{}
 )
 
-func NewSchemaDataSource() datasource.DataSource {
+func NewPermissionDataSource() datasource.DataSource {
 	return &providerConfig{}
 }
 
@@ -25,32 +28,42 @@ type providerConfig struct {
 }
 
 func (d *providerConfig) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_schema"
+	resp.TypeName = req.ProviderTypeName + "_permission"
 }
 
 func (d *providerConfig) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "SQL database schema.",
+		Description: "SQL database or server permission.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:    true,
-				Description: "Unique identifier for terraform used to import the resource.",
+				Description: "Id used for testing the provider, this id cannot be used to import resources.",
 			},
 			"database": schema.StringAttribute{
+				Optional:    true,
+				Description: "Id of the database where the permission should be created. database or server should be specified.",
+				Validators: []validator.String{
+					stringvalidator.ExactlyOneOf(path.Expressions{
+						path.MatchRoot("server"),
+					}...),
+				},
+			},
+			"server": schema.StringAttribute{
+				Optional:    true,
+				Description: "Id of the server where the permission should be created. database or server should be specified.",
+			},
+			"scope": schema.StringAttribute{
 				Required:    true,
-				Description: "Id of the database where the schema exists.",
+				Description: "Azuresql resource id determining the scope of the permission (table, view, schema, database, server)",
 			},
-			"name": schema.StringAttribute{
+			"principal": schema.StringAttribute{
 				Required:    true,
-				Description: "Name of the schema.",
+				Description: "Azuresql resource id having the permission (user, role)",
 			},
-			"schema_id": schema.Int64Attribute{
+			"permissions": schema.ListAttribute{
 				Computed:    true,
-				Description: "Schema ID of the schema in the database.",
-			},
-			"owner": schema.StringAttribute{
-				Computed:    true,
-				Description: "Principal owning the schema.",
+				Description: "List of granted permissions.",
+				ElementType: types.StringType,
 			},
 		},
 	}
@@ -59,29 +72,34 @@ func (d *providerConfig) Schema(_ context.Context, _ datasource.SchemaRequest, r
 func (r *providerConfig) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	ctx = logging.WithDiagnostics(ctx, &resp.Diagnostics)
 
-	var state SchemaDataSourceModel
+	var state PermissionDataSourceModel
 
 	// Read input configured in data block
 	resp.Diagnostics.Append(
 		req.Config.Get(ctx, &state)...,
 	)
 
+	server := state.Server.ValueString()
 	database := state.Database.ValueString()
-	connection := r.ConnectionCache.Connect(ctx, database, false)
+	connection := r.ConnectionCache.Connect_server_or_database(ctx, server, database)
 
 	if logging.HasError(ctx) {
 		return
 	}
 
-	schema := sql.GetSchemaFromName(ctx, connection, state.Name.ValueString(), true)
+	var permissions = sql.GetAllPermissions(ctx, connection, state.Scope.ValueString(), state.Principal.ValueString())
 
 	if logging.HasError(ctx) {
 		return
 	}
 
-	state.SchemaId = types.Int64Value(schema.SchemaId)
-	state.Owner = types.StringValue(schema.Owner)
-	state.Id = types.StringValue(schema.Id)
+	state.Permissions = []types.String{}
+	state.Id = types.StringValue(
+		fmt.Sprintf("%s/permissions/scope:%s/principal:%s", connection.ConnectionId, state.Scope.ValueString(), state.Principal.ValueString()))
+
+	for _, permission := range permissions {
+		state.Permissions = append(state.Permissions, types.StringValue(permission))
+	}
 
 	diags := resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
