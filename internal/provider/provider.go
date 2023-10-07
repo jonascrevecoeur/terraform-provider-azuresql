@@ -3,12 +3,17 @@ package provider
 import (
 	"context"
 	"terraform-provider-azuresql/internal/services/database"
+	"terraform-provider-azuresql/internal/services/function"
 	"terraform-provider-azuresql/internal/services/permission"
 	"terraform-provider-azuresql/internal/services/role"
+	"terraform-provider-azuresql/internal/services/role_assignment"
 	dbschema "terraform-provider-azuresql/internal/services/schema"
+	"terraform-provider-azuresql/internal/services/securitypolicy"
+	"terraform-provider-azuresql/internal/services/securitypredicate"
 	login "terraform-provider-azuresql/internal/services/sqllogin"
 	"terraform-provider-azuresql/internal/services/sqlserver"
 	"terraform-provider-azuresql/internal/services/synapseserver"
+	"terraform-provider-azuresql/internal/services/table"
 	"terraform-provider-azuresql/internal/services/user"
 	"terraform-provider-azuresql/internal/sql"
 
@@ -68,6 +73,8 @@ func (p *azuresql_provider) DataSources(_ context.Context) []func() datasource.D
 		dbschema.NewSchemaDataSource,
 		database.NewDatabaseDataSource,
 		permission.NewPermissionDataSource,
+		function.NewFunctionDataSource,
+		table.NewTableDataSource,
 	}
 }
 
@@ -79,5 +86,9 @@ func (p *azuresql_provider) Resources(_ context.Context) []func() resource.Resou
 		role.NewRoleResource,
 		dbschema.NewSchemaResource,
 		permission.NewPermissionResource,
+		function.NewFunctionResource,
+		securitypolicy.NewSecurityPolicyResource,
+		securitypredicate.NewSecurityPredicateResource,
+		role_assignment.NewRoleAssignmentResource,
 	}
 }

@@ -1,4 +1,4 @@
-package permission
+package role_assignment
 
 import (
 	"context"
@@ -18,26 +18,26 @@ import (
 )
 
 var (
-	_ resource.Resource                = &PermissionResource{}
-	_ resource.ResourceWithConfigure   = &PermissionResource{}
-	_ resource.ResourceWithImportState = &PermissionResource{}
+	_ resource.Resource                = &RoleAssignmentResource{}
+	_ resource.ResourceWithConfigure   = &RoleAssignmentResource{}
+	_ resource.ResourceWithImportState = &RoleAssignmentResource{}
 )
 
-func NewPermissionResource() resource.Resource {
-	return &PermissionResource{}
+func NewRoleAssignmentResource() resource.Resource {
+	return &RoleAssignmentResource{}
 }
 
-type PermissionResource struct {
+type RoleAssignmentResource struct {
 	ConnectionCache *sql.ConnectionCache
 }
 
-func (r *PermissionResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_permission"
+func (r *RoleAssignmentResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_role_assignment"
 }
 
-func (r *PermissionResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *RoleAssignmentResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "SQL database or server permission.",
+		Description: "SQL database or server role assignment.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:    true,
@@ -45,7 +45,7 @@ func (r *PermissionResource) Schema(_ context.Context, _ resource.SchemaRequest,
 			},
 			"database": schema.StringAttribute{
 				Optional:    true,
-				Description: "Id of the database where the permission should be created. database or server should be specified.",
+				Description: "Id of the database where the roleAssignment should be created. database or server should be specified.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
@@ -57,28 +57,21 @@ func (r *PermissionResource) Schema(_ context.Context, _ resource.SchemaRequest,
 			},
 			"server": schema.StringAttribute{
 				Optional:    true,
-				Description: "Id of the server where the permission should be created. database or server should be specified.",
+				Description: "Id of the server where the roleAssignment should be created. database or server should be specified.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
-			"scope": schema.StringAttribute{
+			"role": schema.StringAttribute{
 				Required:    true,
-				Description: "Azuresql resource id determining the scope of the permission (table, view, schema, database, server)",
+				Description: "Azuresql resource id of the role to be used",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			"principal": schema.StringAttribute{
 				Required:    true,
-				Description: "Azuresql resource id having the permission (user, role)",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
-			"permission": schema.StringAttribute{
-				Required:    true,
-				Description: "Permission to be granted.",
+				Description: "Azuresql resource id identifying the principal (user, role) who obtains the role",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
@@ -87,10 +80,10 @@ func (r *PermissionResource) Schema(_ context.Context, _ resource.SchemaRequest,
 	}
 }
 
-func (r *PermissionResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *RoleAssignmentResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	ctx = logging.WithDiagnostics(ctx, &resp.Diagnostics)
 
-	var plan PermissionResourceModel
+	var plan RoleAssignmentResourceModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -105,13 +98,13 @@ func (r *PermissionResource) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	permission := sql.CreatePermission(ctx, connection, plan.Scope.ValueString(), plan.Principal.ValueString(), plan.Permission.ValueString())
+	roleAssignment := sql.CreateRoleAssignment(ctx, connection, plan.Role.ValueString(), plan.Principal.ValueString())
 
 	if logging.HasError(ctx) {
 		return
 	}
 
-	plan.Id = types.StringValue(permission.Id)
+	plan.Id = types.StringValue(roleAssignment.Id)
 
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
@@ -120,10 +113,10 @@ func (r *PermissionResource) Create(ctx context.Context, req resource.CreateRequ
 	}
 }
 
-func (r *PermissionResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (r *RoleAssignmentResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	ctx = logging.WithDiagnostics(ctx, &resp.Diagnostics)
 
-	var state PermissionResourceModel
+	var state RoleAssignmentResourceModel
 
 	// Read input configured in data block
 	resp.Diagnostics.Append(
@@ -138,14 +131,14 @@ func (r *PermissionResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	var permission = sql.GetPermissionFromId(ctx, connection, state.Id.ValueString(), false)
+	var roleAssignment = sql.GetRoleAssignmentFromId(ctx, connection, state.Id.ValueString(), false)
 
-	if logging.HasError(ctx) || permission.Id == "" {
+	if logging.HasError(ctx) || roleAssignment.Id == "" {
 		return
 	}
 
-	state.Principal = types.StringValue(permission.Principal)
-	state.Scope = types.StringValue(permission.Scope)
+	state.Principal = types.StringValue(roleAssignment.Principal)
+	state.Role = types.StringValue(roleAssignment.Role)
 
 	diags := resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -154,7 +147,7 @@ func (r *PermissionResource) Read(ctx context.Context, req resource.ReadRequest,
 	}
 }
 
-func (r *PermissionResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *RoleAssignmentResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 
 	if req.ProviderData == nil {
 		return
@@ -174,15 +167,15 @@ func (r *PermissionResource) Configure(_ context.Context, req resource.Configure
 	r.ConnectionCache = cache
 }
 
-func (r *PermissionResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *RoleAssignmentResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	ctx = logging.WithDiagnostics(ctx, &resp.Diagnostics)
-	logging.AddError(ctx, "Update not implemented", "Update should never be called for permission resources as any change requires a delete and recreate.")
+	logging.AddError(ctx, "Update not implemented", "Update should never be called for roleAssignment resources as any change requires a delete and recreate.")
 }
 
-func (r *PermissionResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *RoleAssignmentResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	ctx = logging.WithDiagnostics(ctx, &resp.Diagnostics)
 
-	var state PermissionResourceModel
+	var state RoleAssignmentResourceModel
 
 	// Read input configured in data block
 	resp.Diagnostics.Append(
@@ -197,14 +190,14 @@ func (r *PermissionResource) Delete(ctx context.Context, req resource.DeleteRequ
 		return
 	}
 
-	sql.DropPermission(ctx, connection, state.Scope.ValueString(), state.Principal.ValueString(), state.Permission.ValueString())
+	sql.DropRoleAssignment(ctx, connection, state.Id.ValueString())
 
 	if logging.HasError(ctx) {
-		resp.Diagnostics.AddError("Dropping permission failed", fmt.Sprintf("Dropping permission %s failed", state.Permission.ValueString()))
+		resp.Diagnostics.AddError("Dropping roleAssignment failed", fmt.Sprintf("Dropping roleAssignment %s failed", state.Id.ValueString()))
 	}
 }
 
-func (r *PermissionResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *RoleAssignmentResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 
 	/*ctx = utils.WithDiagnostics(ctx, &resp.Diagnostics)
 

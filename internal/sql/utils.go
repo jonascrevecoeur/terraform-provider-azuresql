@@ -1,6 +1,7 @@
 package sql
 
 import (
+	"database/sql"
 	"math/rand"
 	"strings"
 )
@@ -44,4 +45,22 @@ func generatePassword(passwordLength, minSpecialChar, minNum, minUpperCase int) 
 		inRune[i], inRune[j] = inRune[j], inRune[i]
 	})
 	return string(inRune)
+}
+
+func NewNullString(s string) sql.NullString {
+	if len(s) == 0 {
+		return sql.NullString{}
+	}
+	return sql.NullString{
+		String: s,
+		Valid:  true,
+	}
+}
+
+func parseNullString(s sql.NullString) string {
+	if s.Valid {
+		return s.String
+	} else {
+		return ""
+	}
 }

@@ -48,6 +48,7 @@ func parseTableId(ctx context.Context, id string) (table Table) {
 	}
 
 	table.ObjectId = object_id
+	table.Id = id
 
 	return
 }
@@ -93,9 +94,17 @@ func GetTableFromId(ctx context.Context, connection Connection, id string, requi
 	var name, schemaName string
 	var schemaId int64
 
-	if err := connection.Connection.QueryRowContext(ctx, "SELECT name, schema_id, schema_name(schema_id) FROM sys.tables where object_id = @id",
-		sql.Named("name", name), sql.Named("id", table.ObjectId)).Scan(&name, &schemaId, &schemaName); err != nil {
-		logging.AddError(ctx, fmt.Sprintf("Reading of table with resource id %s failed", id), err)
+	query := "SELECT name, schema_id, schema_name(schema_id) FROM sys.tables where object_id = @id"
+	err := connection.Connection.QueryRowContext(ctx, query, sql.Named("id", table.ObjectId)).Scan(&name, &schemaId, &schemaName)
+
+	switch {
+	case err == sql.ErrNoRows:
+		if requiresExist {
+			logging.AddError(ctx, "Table not found", fmt.Sprintf("Table %s doesn't exist", id))
+		}
+		return
+	case err != nil:
+		logging.AddError(ctx, fmt.Sprintf("Reading table with %s failed", id), err)
 		return
 	}
 

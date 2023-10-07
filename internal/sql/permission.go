@@ -69,6 +69,7 @@ func parsePermissionId(ctx context.Context, id string) (permission Permission) {
 }
 
 func objectFormatId(ctx context.Context, connectionId string, objectId int64, objectType string) string {
+	objectType = strings.TrimSpace(objectType)
 	if objectType == "U" {
 		return tableFormatId(connectionId, objectId)
 	}
@@ -78,6 +79,9 @@ func objectFormatId(ctx context.Context, connectionId string, objectId int64, ob
 }
 
 func scopeFormatId(ctx context.Context, connection Connection, scopeId int64, scopeType string) string {
+	if scopeType == "database" {
+		return connection.ConnectionId
+	}
 	if scopeType == "schema" {
 		return schemaFormatId(connection.ConnectionId, scopeId)
 	}
@@ -111,6 +115,13 @@ func scopeFormatId(ctx context.Context, connection Connection, scopeId int64, sc
 }
 
 func GetScopeFromId(ctx context.Context, connection Connection, scopeResourceId string, requiresExist bool) (scope Scope) {
+	if scopeResourceId == connection.ConnectionId && connection.IsServerConnection == false {
+		return Scope{
+			ResourceType: "database",
+			Name:         "database",
+			Id:           0,
+		}
+	}
 	if isSchemaId(scopeResourceId) {
 		schema := GetSchemaFromId(ctx, connection, scopeResourceId, requiresExist)
 		if schema.Id == "" {
@@ -154,6 +165,11 @@ func CreatePermission(ctx context.Context, connection Connection, scopeResourceI
 		query = fmt.Sprintf("grant %s on schema::%s to [%s]", permissionName, scope.Name, principal.Name)
 	} else if scope.ResourceType == "object" {
 		query = fmt.Sprintf("grant %s on object::%s to [%s]", permissionName, scope.Name, principal.Name)
+	} else if scope.ResourceType == "database" {
+		query = fmt.Sprintf("grant %s to [%s]", permissionName, principal.Name)
+	} else {
+		logging.AddError(ctx, "Unrecognized scope", fmt.Sprintf("Unrecognized scope.resourceType %s", scope.ResourceType))
+		return
 	}
 
 	_, err := connection.Connection.ExecContext(ctx, query)
@@ -281,6 +297,8 @@ func DropPermission(ctx context.Context, connection Connection, scopeResourceId 
 		query = fmt.Sprintf("revoke %s on schema::%s to [%s]", permissionName, scope.Name, principal.Name)
 	} else if scope.ResourceType == "object" {
 		query = fmt.Sprintf("revoke %s on object::%s to [%s]", permissionName, scope.Name, principal.Name)
+	} else if scope.ResourceType == "database" {
+		query = fmt.Sprintf("revoke %s to [%s]", permissionName, principal.Name)
 	}
 
 	_, err := connection.Connection.ExecContext(ctx, query)
