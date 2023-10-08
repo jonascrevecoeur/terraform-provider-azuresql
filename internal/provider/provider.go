@@ -50,8 +50,11 @@ func (p *azuresql_provider) Metadata(_ context.Context, _ provider.MetadataReque
 // Schema defines the provider-level schema for configuration data.
 func (p *azuresql_provider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "azuresql enables you to simultaneously connect to multiple Azure sql servers, Azure sql databases and Azure Synapse resources. " +
-			"No arguments are passed when setting up the provider, instead the provider uses AzureDefaultCredential passthrough to connect to any Azure sql resource specified."}
+		Description: "The azuresql provider can be used to configure SQL resources in `Azure SQL server`, `Azure SQL database` and in `AzureSynapse serverless pool`." +
+			" azuresql authenticates using the [Azure default credential chain](https://learn.microsoft.com/en-us/dotnet/api/azure.identity.defaultazurecredential)." +
+			" By authentiation to Azure instead of a specific database/server instance, the provider can be used to manage multiple SQL databases/servers at once." +
+			"\\\n\\\n" +
+			"The identitiy using this providers requires full control on the database/server to be configured."}
 }
 
 func (p *azuresql_provider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {

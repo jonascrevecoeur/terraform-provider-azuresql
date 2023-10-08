@@ -3,17 +3,43 @@
 page_title: "azuresql Provider"
 subcategory: ""
 description: |-
-  azuresql enables you to simultaneously connect to multiple Azure sql servers, Azure sql databases and Azure Synapse resources. No arguments are passed when setting up the provider, instead the provider uses AzureDefaultCredential passthrough to connect to any Azure sql resource specified.
+  The azuresql provider can be used to configure SQL resources in Azure SQL server, Azure SQL database and in AzureSynapse serverless pool. azuresql authenticates using the Azure default credential chain https://learn.microsoft.com/en-us/dotnet/api/azure.identity.defaultazurecredential. By authentiation to Azure instead of a specific database/server instance, the provider can be used to manage multiple SQL databases/servers at once.\
+  \
+  The identitiy using this providers requires full control on the database/server to be configured.
 ---
 
 # azuresql Provider
 
-azuresql enables you to simultaneously connect to multiple Azure sql servers, Azure sql databases and Azure Synapse resources. No arguments are passed when setting up the provider, instead the provider uses AzureDefaultCredential passthrough to connect to any Azure sql resource specified.
+The azuresql provider can be used to configure SQL resources in `Azure SQL server`, `Azure SQL database` and in `AzureSynapse serverless pool`. azuresql authenticates using the [Azure default credential chain](https://learn.microsoft.com/en-us/dotnet/api/azure.identity.defaultazurecredential). By authentiation to Azure instead of a specific database/server instance, the provider can be used to manage multiple SQL databases/servers at once.\
+\
+The identitiy using this providers requires full control on the database/server to be configured. \
+
+~> This provider at the moment does not prevent SQL injections. Be cautious when using this provider with dynamically generated input.
 
 ## Example Usage
 
 ```terraform
 provider "azuresql" {
+}
+
+
+# Use data statements to load the server and database to be managed using the provider
+data "azuresql_sqlserver" "server" {
+  server = "mysqlserver"
+  port   = 1433
+}
+
+data "azuresql_database" "database" {
+  server = data.azuresql_sqlserver.server.id
+  name   = "mydatabase"
+}
+
+# create a user in the database
+resource "azuresql_user" "test" {
+  # every resource/datasource uses the database/server argument to determine where to create the resource
+  database       = azuresql_database.database.id
+  name           = "myuser"
+  authentication = "WithoutLogin"
 }
 ```
 

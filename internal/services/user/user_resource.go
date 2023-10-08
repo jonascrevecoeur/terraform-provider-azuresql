@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"terraform-provider-azuresql/internal/docu"
 	"terraform-provider-azuresql/internal/logging"
 	"terraform-provider-azuresql/internal/sql"
 
@@ -38,7 +39,7 @@ func (r *UserResource) Metadata(_ context.Context, req resource.MetadataRequest,
 
 func (r *UserResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "SQL database or server user.",
+		Description: fmt.Sprintf("SQL database or server user. %s", docu.Supported(true, true, true, true)),
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:    true,
@@ -46,7 +47,7 @@ func (r *UserResource) Schema(_ context.Context, _ resource.SchemaRequest, resp 
 			},
 			"database": schema.StringAttribute{
 				Optional:    true,
-				Description: "Id of the database where the user should be created. database or server should be specified.",
+				Description: docu.FieldDatabase("user", true, true),
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
@@ -58,7 +59,7 @@ func (r *UserResource) Schema(_ context.Context, _ resource.SchemaRequest, resp 
 			},
 			"server": schema.StringAttribute{
 				Optional:    true,
-				Description: "Id of the server where the user should be created. database or server should be specified.",
+				Description: "Id of the server where the user should be created test. `database` or server should be specified.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},

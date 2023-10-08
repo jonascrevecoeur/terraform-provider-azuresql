@@ -44,7 +44,7 @@ func (r *SecurityPredicateResource) Schema(_ context.Context, _ resource.SchemaR
 				Description: "Unique identifier for terraform used to import the resource.",
 			},
 			"database": schema.StringAttribute{
-				Optional:    true,
+				Required:    true,
 				Description: "Id of the database where the user should be created. database or server should be specified.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
