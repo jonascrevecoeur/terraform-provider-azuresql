@@ -242,7 +242,8 @@ func (r *RoleResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	}
 
 	// update owner
-	if !state.Owner.Equal(plan.Owner) {
+	if !state.Owner.Equal(plan.Owner) && plan.Owner.ValueString() != "" {
+
 		sql.UpdateRoleOwner(ctx, connection, id, plan.Owner.ValueString())
 
 		if logging.HasError(ctx) {

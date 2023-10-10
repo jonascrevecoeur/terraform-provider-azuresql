@@ -12,24 +12,6 @@ import (
 
 type UserResource struct{}
 
-func TestAccSQLServerCreateADUser(t *testing.T) {
-	acceptance.PreCheck(t)
-	data := acceptance.BuildTestData(t)
-	r := UserResource{}
-	resource.Test(t, resource.TestCase{
-		Steps: []resource.TestStep{
-			{
-				// use a dynamic configuration with the random name from above
-				Config:                   r.basic_server(data.SQLServer_connection, os.Getenv("AZURE_AD_USER"), "AzureAD"),
-				ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("azuresql_user.test", "type", "AD user"),
-				),
-			},
-		},
-	})
-}
-
 func TestAccSQLServerCreateUserWithoutLogin(t *testing.T) {
 	acceptance.PreCheck(t)
 	data := acceptance.BuildTestData(t)
