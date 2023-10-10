@@ -41,7 +41,7 @@ func parseRoleId(ctx context.Context, id string) (role Role) {
 
 	principal_id, err := strconv.ParseInt(s[1], 10, 64)
 	if err != nil {
-		logging.AddError(ctx, "Invalid id", "Unable to parse role id")
+		logging.AddError(ctx, "Invalid id", fmt.Sprintf("Unable to parse role id %s", id))
 		return
 	}
 

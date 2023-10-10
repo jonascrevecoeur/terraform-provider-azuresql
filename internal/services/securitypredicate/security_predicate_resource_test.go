@@ -2,7 +2,6 @@ package securitypredicate_test
 
 import (
 	"fmt"
-	"regexp"
 	"terraform-provider-azuresql/internal/acceptance"
 	"testing"
 
@@ -32,29 +31,6 @@ func TestAccCreateSecurityPredicateBasic(t *testing.T) {
 				{
 					Config:                   r.basic(connection, data.RandomString),
 					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
-				},
-			},
-		})
-	}
-}
-
-func TestAccCreateSecurityPredicateSynapse(t *testing.T) {
-	acceptance.PreCheck(t)
-	data := acceptance.BuildTestData(t)
-	r := SecurityPredicateResource{}
-
-	connections := []string{
-		data.SynapseDatabase_connection,
-	}
-
-	for _, connection := range connections {
-		print(fmt.Sprintf("\n\nRunning test for connection %s\n\n", connection))
-		resource.Test(t, resource.TestCase{
-			Steps: []resource.TestStep{
-				{
-					Config:                   r.basic(connection, data.RandomString),
-					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
-					ExpectError:              regexp.MustCompile("Security policies are not supported on Synapse"),
 				},
 			},
 		})

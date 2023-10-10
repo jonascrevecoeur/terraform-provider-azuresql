@@ -80,6 +80,32 @@ func (r *RoleResource) Schema(_ context.Context, _ resource.SchemaRequest, resp 
 	}
 }
 
+func (r RoleResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	ctx = logging.WithDiagnostics(ctx, &resp.Diagnostics)
+
+	// no modification required on create or delete
+	if req.State.Raw.IsNull() || req.Plan.Raw.IsNull() {
+		return
+	}
+
+	var state RoleResourceModel
+	diags := req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	server := state.Server.ValueString()
+	database := state.Database.ValueString()
+	connection := r.ConnectionCache.Connect_server_or_database(ctx, server, database)
+
+	// in Synapse serverless alter authorization cannot be used
+	// -> a replace is required when owner changes
+	if connection.Provider == "synapse" {
+		resp.RequiresReplace.Append(path.Root("owner"))
+	}
+}
+
 func (r *RoleResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	ctx = logging.WithDiagnostics(ctx, &resp.Diagnostics)
 
@@ -119,6 +145,7 @@ func (r *RoleResource) Create(ctx context.Context, req resource.CreateRequest, r
 
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -126,7 +153,6 @@ func (r *RoleResource) Create(ctx context.Context, req resource.CreateRequest, r
 
 func (r *RoleResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	ctx = logging.WithDiagnostics(ctx, &resp.Diagnostics)
-
 	var state RoleResourceModel
 
 	// Read input configured in data block
@@ -136,22 +162,14 @@ func (r *RoleResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 
 	server := state.Server.ValueString()
 	database := state.Database.ValueString()
+
 	connection := r.ConnectionCache.Connect_server_or_database(ctx, server, database)
 
 	if logging.HasError(ctx) {
 		return
 	}
 
-	var role sql.Role
-	if state.PrincipalId.IsNull() && state.Name.IsNull() {
-		logging.AddError(ctx, "Unable to read azuresql_user", "Cannot read user when both id and name are unknown")
-		return
-	} else if state.PrincipalId.IsNull() {
-		// if both name and principalId are available prefer principalId
-		role = sql.GetRoleFromName(ctx, connection, state.Name.ValueString(), false)
-	} else {
-		role = sql.GetRoleFromPrincipalId(ctx, connection, state.PrincipalId.ValueInt64(), false)
-	}
+	role := sql.GetRoleFromId(ctx, connection, state.Id.ValueString(), false)
 
 	if logging.HasError(ctx) || role.Id == "" {
 		return

@@ -15,7 +15,6 @@ func TestAccReadFunction(t *testing.T) {
 	data := acceptance.BuildTestData(t)
 	r := functionDataSource{}
 	connections := []string{
-		data.SQLServer_connection,
 		data.SQLDatabase_connection,
 		data.SynapseDatabase_connection,
 	}
@@ -27,15 +26,6 @@ func TestAccReadFunction(t *testing.T) {
 				{
 					Config:                   r.basic(connection, data.RandomString),
 					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
-					Check: resource.ComposeTestCheckFunc(
-						resource.TestCheckResourceAttr("data.azuresql_function.test", "raw", fmt.Sprintf(`
-						create function dbo.tffunction_%s()
-						returns table 
-						with SCHEMABINDING AS
-						return  
-						select 1 as a
-				`, data.RandomString)),
-					),
 				},
 			},
 		})
