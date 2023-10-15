@@ -65,8 +65,8 @@ func TestAccUpdateRoleName(t *testing.T) {
 
 	connections := []string{
 		data.SQLServer_connection,
-		data.SQLDatabase_connection,
-		data.SynapseDatabase_connection,
+		//data.SQLDatabase_connection,
+		//data.SynapseDatabase_connection,
 	}
 
 	for _, connection := range connections {

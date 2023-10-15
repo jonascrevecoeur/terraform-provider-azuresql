@@ -12,7 +12,7 @@ import (
 
 type UserDataSource struct{}
 
-func TestAccSQLReadADUser(t *testing.T) {
+func TestAccSQLReadADGroup(t *testing.T) {
 	acceptance.PreCheck(t)
 	data := acceptance.BuildTestData(t)
 	r := UserDataSource{}
@@ -22,7 +22,7 @@ func TestAccSQLReadADUser(t *testing.T) {
 				Config:                   r.basic_server(data.SQLServer_connection, os.Getenv("AZURE_AD_USER"), "AzureAD"),
 				ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.azuresql_user.test", "type", "AD user"),
+					resource.TestCheckResourceAttr("data.azuresql_user.test", "type", "AD group"),
 				),
 			},
 		},

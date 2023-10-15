@@ -110,13 +110,13 @@ func GetRoleAssignmentFromId(ctx context.Context, connection Connection, roleAss
 	var query string
 	if connection.IsServerConnection {
 		query = `
-			select principals.type from sys.database_role_members role
+			select principals.type from sys.server_role_members role
 			left join sys.database_principals principals on role.member_principal_id = principals.principal_id
 			where role.role_principal_id = @role_id and role.member_principal_id = @principal_id
 			`
 	} else {
 		query = `
-			select principals.type from sys.server_role_members role
+			select principals.type from sys.database_role_members role
 			left join sys.database_principals principals on role.member_principal_id = principals.principal_id
 			where role.role_principal_id = @role_id and role.member_principal_id = @principal_id
 			`
@@ -154,7 +154,7 @@ func GetRoleAssignmentFromId(ctx context.Context, connection Connection, roleAss
 
 func DropRoleAssignment(ctx context.Context, connection Connection, roleAssignmentResourceId string) {
 
-	assignment := GetRoleAssignmentFromId(ctx, connection, roleAssignmentResourceId, false)
+	assignment := GetRoleAssignmentFromId(ctx, connection, roleAssignmentResourceId, true)
 	if logging.HasError(ctx) || assignment.Id == "" {
 		return
 	}
