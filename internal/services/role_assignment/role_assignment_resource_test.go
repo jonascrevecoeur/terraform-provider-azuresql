@@ -35,6 +35,7 @@ func TestAccAssignRoletoUser(t *testing.T) {
 }
 
 func (r RoleAssignmentResource) assignRoleToUser(connection string, name string) string {
+
 	return fmt.Sprintf(`
 	%[1]s
 
