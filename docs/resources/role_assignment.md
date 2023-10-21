@@ -10,7 +10,8 @@ description: |-
 
 Manage SQL database and server role assignments.
 
-**Supported**: `SQL Server`, `SQL Database`, `Synapse serverless server`, `Synapse serverless database` \
+**Supported**: `SQL Server`, `SQL Database`, `Synapse serverless server`, `Synapse serverless database` 
+
 **Not supported**: `Synapse dedicated server`, `Synapse dedicated database`
 
 ## Example Usage

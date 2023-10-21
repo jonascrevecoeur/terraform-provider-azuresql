@@ -10,7 +10,8 @@ description: |-
 
 Read SQL database table.
 
-**Supported**: `SQL Database` \
+**Supported**: `SQL Database` 
+
 **Not supported**: `Synapse serverless database`, `Synapse dedicated database`
 
 
@@ -34,7 +35,7 @@ data "azuresql_schema" "myschema" {
 
 data "azuresql_table" "mytable" {
     database 	= data.azuresql_database.database.id
-    schema      = data.azuresql_schema.myschema.id
+    schema    = data.azuresql_schema.myschema.id
     name     	= "mytable"
 }
 

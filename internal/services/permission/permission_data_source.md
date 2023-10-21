@@ -10,7 +10,8 @@ description: |-
 
 Read database and server permissions. This reads all permissions of a given principal on a given scope.
 
-**Supported**: `SQL Server`, `SQL Database`, `Synapse serverless server`, `Synapse serverless database` \
+**Supported**: `SQL Server`, `SQL Database`, `Synapse serverless server`, `Synapse serverless database` 
+
 **Not supported**: `Synapse dedicated server`, `Synapse dedicated database`
 
 ## Example Usage
@@ -34,13 +35,13 @@ data "azuresql_table" "mytable" {
 }
 
 resource "azuresql_role" "myrole" {
-    database 	= data.azuresql_database.database.id
-    name        = "myrole"
+    database  = data.azuresql_database.database.id
+    name      = "myrole"
 }
 
 resource "azuresql_permission" "test" {
-    database 	= data.azuresql_database.database.id
-    scope 		= data.azuresql_table.mytable.id
+    database 	  = data.azuresql_database.database.id
+    scope 		  = data.azuresql_table.mytable.id
     principal   = azuresql_role.myrole.id
 }
 ```

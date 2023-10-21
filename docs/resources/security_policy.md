@@ -10,7 +10,8 @@ description: |-
 
 Manage a database security policy.
 
-**Supported**: `SQL database` \
+**Supported**: `SQL database` 
+
 **Not supported**: `Synapse dedicated database`, `Synapse serverless database`
 
 
@@ -31,14 +32,14 @@ data "azuresql_database" "database" {
 
 data "azuresql_schema" "dbo" {
     database 	= data.azuresql_database.database.id
-    name 		= "dbo"
+    name 		  = "dbo"
 }
 
 resource "azuresql_function" "filter" {
     database 	= data.azuresql_database.database.id
-    name        = "filter"
+    name      = "filter"
     schema		= data.azuresql_schema.dbo.id
-    raw         = <<-EOT
+    raw       = <<-EOT
         create function dbo.filter(@user as varchar(50))
         returns table 
         with SCHEMABINDING AS
@@ -54,9 +55,9 @@ resource "azuresql_security_policy" "filter" {
 }
 
 data "azuresql_table" "mytable" {
-    database 	= data.azuresql_database.database.id
+    database 	  = data.azuresql_database.database.id
     schema      =  data.azuresql_schema.dbo.id
-    name     	= "mytable"
+    name     	  = "mytable"
 }
 
 resource "azuresql_security_predicate" "filter_select" {

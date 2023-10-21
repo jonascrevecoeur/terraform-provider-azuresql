@@ -10,8 +10,9 @@ description: |-
 
 Defines a connection to the synapse server. Creating the data source does not yet open/test the connection. Opening the connection happens when it is used for reading/provisioning other `azuresql` resources.
 
-**Supported**: `Synapse serverless server`, `Synapse serverless database` \
-**Not supported**: `Synapse dedicated server`, `Synapse dedicated database`
+**Supported**: `Synapse serverless server`
+
+**Not supported**: `Synapse dedicated server`
 
 ## Example Usage
 

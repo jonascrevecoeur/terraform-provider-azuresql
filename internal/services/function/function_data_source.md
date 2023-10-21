@@ -10,7 +10,8 @@ description: |-
 
 Read database user defined functions.
 
-**Supported**: `SQL Database`, `Synapse serverless database` \
+**Supported**: `SQL Database`, `Synapse serverless database` 
+
 **Not supported**: `Synapse dedicated database`
 
 
@@ -32,13 +33,13 @@ data "azuresql_database" "database" {
 
 data "azuresql_schema" "dbo" {
     database 	= data.azuresql_database.database.id
-    name 		= "dbo"
+    name 		  = "dbo"
 }
 
 data "azuresql_function" "myfunction" {
-    database 	= data.azuresql_database.database.id
+    database 	  = data.azuresql_database.database.id
     name        = "myfunction"
-    schema		= data.azuresql_schema.dbo.id
+    schema		  = data.azuresql_schema.dbo.id
 }
 
 ```

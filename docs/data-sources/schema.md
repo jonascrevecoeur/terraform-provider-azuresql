@@ -10,7 +10,8 @@ description: |-
 
 Read database schemas.
 
-**Supported**: `SQL Database`, `Synapse serverless database` \
+**Supported**: `SQL Database`, `Synapse serverless database` 
+
 **Not supported**: `Synapse dedicated database`
 
 ## Example Usage

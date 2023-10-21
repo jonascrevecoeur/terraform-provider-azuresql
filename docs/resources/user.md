@@ -11,7 +11,8 @@ description: |-
 
 Manage SQL database or server users. 
 
-**Supported**: `SQL Server`, `SQL Database`, `Synapse serverless server`, `Synapse serverless database` \
+**Supported**: `SQL Server`, `SQL Database`, `Synapse serverless server`, `Synapse serverless database` 
+
 **Not supported**: `Synapse dedicated server`, `Synapse dedicated database`
 
 ## Example Usage

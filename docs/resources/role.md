@@ -10,7 +10,8 @@ description: |-
 
 Manage sql server and database roles.
 
-**Supported**: `SQL Server`, `SQL Database`, `Synapse serverless server`, `Synapse serverless database` \
+**Supported**: `SQL Server`, `SQL Database`, `Synapse serverless server`, `Synapse serverless database` 
+
 **Not supported**: `Synapse dedicated server`, `Synapse dedicated database`
 
 ## Example Usage
@@ -29,8 +30,8 @@ data "azuresql_database" "database" {
 }
 
 resource "azuresql_role" "myrole" {
-    database       = azuresql_database.database.id
-    name           = "myrole"
+    database  = azuresql_database.database.id
+    name      = "myrole"
 }
 ```
 

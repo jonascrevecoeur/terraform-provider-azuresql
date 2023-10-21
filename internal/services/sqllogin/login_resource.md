@@ -10,7 +10,8 @@ description: |-
 
 Manage SQL server logins.
 
-**Supported**: `SQL Server`, `Synapse serverless server` \
+**Supported**: `SQL Server`, `Synapse serverless server` 
+
 **Not supported**: `Synapse dedicated server`
 
 
