@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"terraform-provider-azuresql/internal/services/database"
+	"terraform-provider-azuresql/internal/services/execute_sql"
 	"terraform-provider-azuresql/internal/services/function"
 	"terraform-provider-azuresql/internal/services/permission"
 	"terraform-provider-azuresql/internal/services/role"
@@ -78,6 +79,7 @@ func (p *azuresql_provider) DataSources(_ context.Context) []func() datasource.D
 		permission.NewPermissionDataSource,
 		function.NewFunctionDataSource,
 		table.NewTableDataSource,
+		execute_sql.NewExecuteSQLDataSource,
 	}
 }
 
