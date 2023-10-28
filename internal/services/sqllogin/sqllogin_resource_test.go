@@ -30,6 +30,13 @@ func TestAccCreateLogin(t *testing.T) {
 						resource.TestCheckResourceAttr("azuresql_login.test", "name", "tftest_"+data.RandomString),
 					),
 				},
+				{
+					Config:                   r.basic(connection, "tftest_"+data.RandomString),
+					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+					ResourceName:             "azuresql_login.test",
+					ImportState:              true,
+					// No ImportStateVerify since password cannot be imported
+				},
 			},
 		})
 	}

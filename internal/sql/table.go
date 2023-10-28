@@ -59,7 +59,7 @@ func GetTableFromNameAndSchema(ctx context.Context, connection Connection, name 
 	if schema == "" {
 		schemaId = 1
 	} else {
-		schemaObj := parseSchemaId(ctx, schema)
+		schemaObj := ParseSchemaId(ctx, schema)
 		if schemaObj.Connection != connection.ConnectionId {
 			logging.AddError(ctx, "Connection mismatch", fmt.Sprintf("Id %s doesn't belong to connection %s", schema, connection.ConnectionId))
 			return

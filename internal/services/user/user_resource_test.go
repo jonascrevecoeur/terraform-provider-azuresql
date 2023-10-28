@@ -26,6 +26,13 @@ func TestAccSQLServerCreateUserWithoutLogin(t *testing.T) {
 					resource.TestCheckResourceAttr("azuresql_user.test", "type", "SQL user"),
 				),
 			},
+			{
+				Config:                   r.basic_server(data.SQLServer_connection, data.RandomString, "WithoutLogin"),
+				ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+				ResourceName:             "azuresql_user.test",
+				ImportState:              true,
+				ImportStateVerify:        true,
+			},
 		},
 	})
 }

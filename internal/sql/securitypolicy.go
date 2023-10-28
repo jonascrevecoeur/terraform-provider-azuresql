@@ -21,7 +21,7 @@ func securityPolicyFormatId(connectionId string, objectId int64) string {
 	return fmt.Sprintf("%s/securitypolicy/%d", connectionId, objectId)
 }
 
-func parseSecurityPolicyId(ctx context.Context, id string) (securityPolicy SecurityPolicy) {
+func ParseSecurityPolicyId(ctx context.Context, id string) (securityPolicy SecurityPolicy) {
 	s := strings.Split(id, "/securitypolicy/")
 
 	if len(s) != 2 {
@@ -72,7 +72,7 @@ func CreateSecurityPolicy(ctx context.Context, connection Connection, name strin
 }
 
 func GetSecurityPolicyFromNameAndSchema(ctx context.Context, connection Connection, name string, schemaResourceId string, requiresExist bool) (securityPolicy SecurityPolicy) {
-	schema := parseSchemaId(ctx, schemaResourceId)
+	schema := ParseSchemaId(ctx, schemaResourceId)
 
 	query := "SELECT object_id FROM sys.security_policies where name = @name and schema_id = @schema_id"
 
@@ -126,7 +126,7 @@ func GetSecurityPolicyFromObjectId(ctx context.Context, connection Connection, o
 }
 
 func GetSecurityPolicyFromId(ctx context.Context, connection Connection, id string, requiresExist bool) (securityPolicy SecurityPolicy) {
-	securityPolicy = parseSecurityPolicyId(ctx, id)
+	securityPolicy = ParseSecurityPolicyId(ctx, id)
 	if logging.HasError(ctx) {
 		return
 	}

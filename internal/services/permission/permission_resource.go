@@ -141,6 +141,12 @@ func (r *PermissionResource) Read(ctx context.Context, req resource.ReadRequest,
 	var permission = sql.GetPermissionFromId(ctx, connection, state.Id.ValueString(), false)
 
 	if logging.HasError(ctx) || permission.Id == "" {
+		if permission.Id != "" {
+			logging.AddError(
+				ctx,
+				"Permission already exists",
+				fmt.Sprintf("You can import this resource using `terraform import azuresql_permission.<name> %s", permission.Id))
+		}
 		return
 	}
 
@@ -206,14 +212,49 @@ func (r *PermissionResource) Delete(ctx context.Context, req resource.DeleteRequ
 
 func (r *PermissionResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 
-	/*ctx = utils.WithDiagnostics(ctx, &resp.Diagnostics)
+	ctx = logging.WithDiagnostics(ctx, &resp.Diagnostics)
 
-	user := sql._user_parse_id(ctx, req.ID)
+	permission := sql.ParsePermissionId(ctx, req.ID)
 
-	if utils.HasError(ctx) {
+	if logging.HasError(ctx) {
 		return
 	}
 
-	resp.State.SetAttribute(ctx, path.Root("connection_string"), user.ConnectionString)
-	resp.State.SetAttribute(ctx, path.Root("principal_id"), user.PrincipalId)*/
+	connection := sql.ParseConnectionId(ctx, permission.Connection)
+
+	if logging.HasError(ctx) {
+		return
+	}
+
+	connection = r.ConnectionCache.Connect(ctx, connection.ConnectionId, connection.IsServerConnection)
+
+	if logging.HasError(ctx) {
+		return
+	}
+
+	permission = sql.GetPermissionFromId(ctx, connection, req.ID, true)
+
+	if logging.HasError(ctx) {
+		return
+	}
+
+	state := PermissionResourceModel{
+		Id:         types.StringValue(permission.Id),
+		Scope:      types.StringValue(permission.Scope),
+		Principal:  types.StringValue(permission.Principal),
+		Permission: types.StringValue(permission.Permission),
+	}
+
+	if connection.IsServerConnection {
+		state.Server = types.StringValue(permission.Connection)
+	} else {
+		state.Database = types.StringValue(permission.Connection)
+	}
+
+	diags := resp.State.Set(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 }

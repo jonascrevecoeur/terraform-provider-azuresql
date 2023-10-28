@@ -29,6 +29,13 @@ func TestAccCreateRoleBasic(t *testing.T) {
 					Config:                   r.basic(connection, data.RandomString),
 					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
 				},
+				{
+					Config:                   r.basic(connection, data.RandomString),
+					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+					ResourceName:             "azuresql_role.test",
+					ImportState:              true,
+					ImportStateVerify:        true,
+				},
 			},
 		})
 	}

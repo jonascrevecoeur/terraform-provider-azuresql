@@ -30,7 +30,7 @@ func permissionFormatId(connectionId string, principalId int64, permission strin
 	return fmt.Sprintf("%s/permission/%d/%s/%s/%d", connectionId, principalId, permission, permissionType, targetId)
 }
 
-func parsePermissionId(ctx context.Context, id string) (permission Permission) {
+func ParsePermissionId(ctx context.Context, id string) (permission Permission) {
 	s := strings.Split(id, "/permission/")
 
 	if len(s) != 2 {
@@ -229,7 +229,7 @@ func GetAllPermissions(ctx context.Context, connection Connection, scopeResource
 
 func GetPermissionFromId(ctx context.Context, connection Connection, permissionResourceId string, requiresExist bool) (permission Permission) {
 
-	permission = parsePermissionId(ctx, permissionResourceId)
+	permission = ParsePermissionId(ctx, permissionResourceId)
 
 	if logging.HasError(ctx) {
 		return

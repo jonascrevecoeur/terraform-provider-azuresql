@@ -28,7 +28,7 @@ func isUserId(id string) (isRole bool) {
 	return strings.Contains(id, "/user/")
 }
 
-func parseUserId(ctx context.Context, id string) (user User) {
+func ParseUserId(ctx context.Context, id string) (user User) {
 	s := strings.Split(id, "/user/")
 
 	if len(s) != 2 {
@@ -88,8 +88,8 @@ func CreateUser(ctx context.Context, connection Connection, name string, authent
 	if authentication == "AzureAD" {
 		query += " from external provider"
 	} else if authentication == "SQLLogin" {
-		login := parseLoginId(ctx, loginId)
-		login_connection := parseConnectionId(ctx, login.Connection)
+		login := ParseLoginId(ctx, loginId)
+		login_connection := ParseConnectionId(ctx, login.Connection)
 
 		if login_connection.Provider != connection.Provider || login_connection.Server != connection.Server {
 			logging.AddError(ctx, "Login/user incompatible",
@@ -103,6 +103,7 @@ func CreateUser(ctx context.Context, connection Connection, name string, authent
 	}
 
 	_, err := connection.Connection.ExecContext(ctx, query)
+
 	logging.AddError(ctx, fmt.Sprintf("User creation failed for user %s", name), err)
 
 	user = GetUserFromName(ctx, connection, name)
@@ -152,7 +153,7 @@ func GetUserFromName(ctx context.Context, connection Connection, name string) (u
 // Get user from the azuresql terraform id
 // requiresExist: Raise an error when the user doesn't exist
 func GetUserFromId(ctx context.Context, connection Connection, id string, requiresExist bool) (user User) {
-	user = parseUserId(ctx, id)
+	user = ParseUserId(ctx, id)
 	if logging.HasError(ctx) {
 		return
 	}

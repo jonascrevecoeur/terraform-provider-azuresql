@@ -35,7 +35,7 @@ func TestParseConnectionId(t *testing.T) {
 	}
 
 	for connectionId, expected := range tests {
-		actual := parseConnectionId(ctx, connectionId)
+		actual := ParseConnectionId(ctx, connectionId)
 
 		if logging.HasError(ctx) && !expected.expectError {
 			t.Errorf("Parsing connectionId %s should not throw an error", connectionId)
