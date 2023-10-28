@@ -32,6 +32,14 @@ func TestAccCreateSecurityPredicateBasic(t *testing.T) {
 					Config:                   r.basic(connection, data.RandomString),
 					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
 				},
+				{
+					Config:                   r.basic(connection, data.RandomString),
+					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+					ResourceName:             "azuresql_security_predicate.test",
+					ImportState:              true,
+					// no verification as the rule specified in the database might differ (additional []())
+					//ImportStateVerify:        true,
+				},
 			},
 		})
 	}
@@ -48,7 +56,7 @@ func (r SecurityPredicateResource) basic(connection string, name string) string 
 			database 			= "%[2]s"
 			security_policy   	= azuresql_security_policy.test.id
 			table			   	= data.azuresql_table.test.id
-			rule				= "dbo.tffunction_%[3]s(col1)"
+			rule				= "[dbo].[tffunction_%[3]s]([col1])"
 			type				= "filter"
 			depends_on          = [azuresql_function.test]
 		}

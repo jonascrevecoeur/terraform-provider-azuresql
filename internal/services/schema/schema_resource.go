@@ -117,6 +117,12 @@ func (r *SchemaResource) Create(ctx context.Context, req resource.CreateRequest,
 	schema := sql.CreateSchema(ctx, connection, name, owner)
 
 	if logging.HasError(ctx) {
+		if schema.Id != "" {
+			logging.AddError(
+				ctx,
+				"Schema already exists",
+				fmt.Sprintf("You can import this resource using `terraform import azuresql_schema.<name> %s", schema.Id))
+		}
 		return
 	}
 
@@ -252,14 +258,37 @@ func (r *SchemaResource) Delete(ctx context.Context, req resource.DeleteRequest,
 
 func (r *SchemaResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 
-	/*ctx = utils.WithDiagnostics(ctx, &resp.Diagnostics)
+	ctx = logging.WithDiagnostics(ctx, &resp.Diagnostics)
 
-	user := sql._user_parse_id(ctx, req.ID)
+	schema := sql.ParseSchemaId(ctx, req.ID)
 
-	if utils.HasError(ctx) {
+	if logging.HasError(ctx) {
 		return
 	}
 
-	resp.State.SetAttribute(ctx, path.Root("connection_string"), user.ConnectionString)
-	resp.State.SetAttribute(ctx, path.Root("principal_id"), user.PrincipalId)*/
+	connection := r.ConnectionCache.Connect(ctx, schema.Connection, false)
+
+	if logging.HasError(ctx) {
+		return
+	}
+
+	schema = sql.GetSchemaFromId(ctx, connection, req.ID, true)
+
+	if logging.HasError(ctx) {
+		return
+	}
+
+	state := SchemaResourceModel{
+		Id:       types.StringValue(schema.Id),
+		Database: types.StringValue(schema.Connection),
+		Name:     types.StringValue(schema.Name),
+		Owner:    types.StringValue(schema.Owner),
+		SchemaId: types.Int64Value(schema.SchemaId),
+	}
+
+	diags := resp.State.Set(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 }

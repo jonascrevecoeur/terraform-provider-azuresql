@@ -136,6 +136,12 @@ func (r *RoleResource) Create(ctx context.Context, req resource.CreateRequest, r
 	role := sql.CreateRole(ctx, connection, name, owner)
 
 	if logging.HasError(ctx) {
+		if role.Id != "" {
+			logging.AddError(
+				ctx,
+				"Role already exists",
+				fmt.Sprintf("You can import this resource using `terraform import azuresql_role.<name> %s", role.Id))
+		}
 		return
 	}
 
@@ -286,14 +292,48 @@ func (r *RoleResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 
 func (r *RoleResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 
-	/*ctx = utils.WithDiagnostics(ctx, &resp.Diagnostics)
+	ctx = logging.WithDiagnostics(ctx, &resp.Diagnostics)
 
-	user := sql._user_parse_id(ctx, req.ID)
+	role := sql.ParseRoleId(ctx, req.ID)
 
-	if utils.HasError(ctx) {
+	if logging.HasError(ctx) {
 		return
 	}
 
-	resp.State.SetAttribute(ctx, path.Root("connection_string"), user.ConnectionString)
-	resp.State.SetAttribute(ctx, path.Root("principal_id"), user.PrincipalId)*/
+	connection := sql.ParseConnectionId(ctx, role.Connection)
+
+	if logging.HasError(ctx) {
+		return
+	}
+
+	connection = r.ConnectionCache.Connect(ctx, connection.ConnectionId, connection.IsServerConnection)
+
+	if logging.HasError(ctx) {
+		return
+	}
+
+	role = sql.GetRoleFromId(ctx, connection, req.ID, true)
+
+	if logging.HasError(ctx) {
+		return
+	}
+
+	state := RoleResourceModel{
+		Id:          types.StringValue(role.Id),
+		Name:        types.StringValue(role.Name),
+		PrincipalId: types.Int64Value(role.PrincipalId),
+		Owner:       types.StringValue(role.Owner),
+	}
+
+	if connection.IsServerConnection {
+		state.Server = types.StringValue(role.Connection)
+	} else {
+		state.Database = types.StringValue(role.Connection)
+	}
+
+	diags := resp.State.Set(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 }

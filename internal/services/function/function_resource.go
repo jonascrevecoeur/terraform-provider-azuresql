@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -131,6 +132,12 @@ func (r *FunctionResource) Read(ctx context.Context, req resource.ReadRequest, r
 	function := sql.GetFunctionFromId(ctx, connection, state.Id.ValueString(), false)
 
 	if logging.HasError(ctx) || function.Id == "" {
+		if function.Id != "" {
+			logging.AddError(
+				ctx,
+				"Function already exists",
+				fmt.Sprintf("You can import this resource using `terraform import azuresql_function.<name> %s", function.Id))
+		}
 		return
 	}
 
@@ -196,14 +203,39 @@ func (r *FunctionResource) Delete(ctx context.Context, req resource.DeleteReques
 
 func (r *FunctionResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 
-	/*ctx = utils.WithDiagnostics(ctx, &resp.Diagnostics)
+	ctx = logging.WithDiagnostics(ctx, &resp.Diagnostics)
+	tflog.Info(ctx, fmt.Sprintf("Importing function %s", req.ID))
 
-	user := sql._user_parse_id(ctx, req.ID)
+	function := sql.ParseFunctionId(ctx, req.ID)
 
-	if utils.HasError(ctx) {
+	if logging.HasError(ctx) {
 		return
 	}
 
-	resp.State.SetAttribute(ctx, path.Root("connection_string"), user.ConnectionString)
-	resp.State.SetAttribute(ctx, path.Root("principal_id"), user.PrincipalId)*/
+	connection := r.ConnectionCache.Connect(ctx, function.Connection, false)
+
+	if logging.HasError(ctx) {
+		return
+	}
+
+	function = sql.GetFunctionFromId(ctx, connection, req.ID, true)
+
+	if logging.HasError(ctx) {
+		return
+	}
+
+	state := FunctionResourceModel{
+		Id:       types.StringValue(function.Id),
+		Database: types.StringValue(function.Connection),
+		ObjectId: types.Int64Value(function.ObjectId),
+		Name:     types.StringValue(function.Name),
+		Schema:   types.StringValue(function.Schema),
+		Raw:      types.StringValue(function.Raw),
+	}
+
+	diags := resp.State.Set(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 }

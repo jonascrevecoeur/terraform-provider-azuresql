@@ -53,7 +53,7 @@ func (cache ConnectionCache) Connect(ctx context.Context, connectionId string, s
 	connection, err, cached := cache.Cache.Memoize(
 		connectionId,
 		func() (interface{}, error) {
-			connection := parseConnectionId(ctx, connectionId)
+			connection := ParseConnectionId(ctx, connectionId)
 			con, err := sql.Open("azuresql", connection.ConnectionString)
 			connection.Connection = con
 			if err == nil {
@@ -109,7 +109,7 @@ func (cache ConnectionCache) Connect_server_or_database(ctx context.Context, ser
 
 // Convert a connection id into a valid connection string
 // ConnectionId format: {provider}::{servername}:{port}:{database}
-func parseConnectionId(ctx context.Context, connectionId string) (connection Connection) {
+func ParseConnectionId(ctx context.Context, connectionId string) (connection Connection) {
 	parts := strings.Split(connectionId, ":")
 
 	if len(parts) < 4 || len(parts) > 5 || parts[1] != "" {

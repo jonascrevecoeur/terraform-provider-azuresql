@@ -22,7 +22,7 @@ func functionFormatId(connectionId string, objectId int64) string {
 	return fmt.Sprintf("%s/function/%d", connectionId, objectId)
 }
 
-func parseFunctionId(ctx context.Context, id string) (function Function) {
+func ParseFunctionId(ctx context.Context, id string) (function Function) {
 	s := strings.Split(id, "/function/")
 
 	if len(s) != 2 {
@@ -77,7 +77,7 @@ func CreateFunctionFromDefinition(ctx context.Context, connection Connection, na
 }
 
 func GetFunctionFromNameAndSchema(ctx context.Context, connection Connection, name string, schemaResourceId string, requiresExist bool) (function Function) {
-	schema := parseSchemaId(ctx, schemaResourceId)
+	schema := ParseSchemaId(ctx, schemaResourceId)
 
 	query := `
 		select obj.object_id, mod.definition from sys.objects obj 
@@ -126,15 +126,16 @@ func GetFunctionFromObjectId(ctx context.Context, connection Connection, objectI
 		return
 	}
 
-	function.Id = functionFormatId(connection.ConnectionId, function.ObjectId)
+	function.Id = functionFormatId(connection.ConnectionId, objectId)
 	function.ObjectId = objectId
 	function.Schema = schemaFormatId(connection.ConnectionId, schemaId)
+	function.Connection = connection.ConnectionId
 
 	return
 }
 
 func GetFunctionFromId(ctx context.Context, connection Connection, id string, requiresExist bool) (function Function) {
-	function = parseFunctionId(ctx, id)
+	function = ParseFunctionId(ctx, id)
 	if logging.HasError(ctx) {
 		return
 	}

@@ -3,6 +3,7 @@ package securitypredicate
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"terraform-provider-azuresql/internal/logging"
 	"terraform-provider-azuresql/internal/sql"
@@ -124,6 +125,12 @@ func (r *SecurityPredicateResource) Create(ctx context.Context, req resource.Cre
 	securityPredicate := sql.CreateSecurityPredicate(ctx, connection, policy, table, predicateType, rule, blockRestriction)
 
 	if logging.HasError(ctx) {
+		if securityPredicate.Id != "" {
+			logging.AddError(
+				ctx,
+				"Security predicate already exists",
+				fmt.Sprintf("You can import this resource using `terraform import azuresql_security_predicate.<name> %s", securityPredicate.Id))
+		}
 		return
 	}
 
@@ -157,16 +164,37 @@ func (r *SecurityPredicateResource) Read(ctx context.Context, req resource.ReadR
 	securityPredicate := sql.GetSecurityPredicateFromId(ctx, connection, state.Id.ValueString(), false)
 
 	if logging.HasError(ctx) || securityPredicate.Id == "" {
+		if securityPredicate.Id != "" {
+			logging.AddError(
+				ctx,
+				"Security predicate already exists",
+				fmt.Sprintf("You can import this resource using `terraform import azuresql_security_predicate.<name> %s", securityPredicate.Id))
+		}
 		return
 	}
 
-	state.PredicateId = types.Int64Value(securityPredicate.PredicateId)
-	state.Rule = types.StringValue(securityPredicate.Rule)
 	state.SecurityPolicy = types.StringValue(securityPredicate.SecurityPolicy)
 	state.Table = types.StringValue(securityPredicate.Table)
 	state.Type = types.StringValue(securityPredicate.PredicateType)
-	state.BlockRestriction = types.StringValue(securityPredicate.BlockRestriction)
-	state.Id = types.StringValue(securityPredicate.Id)
+
+	if securityPredicate.BlockRestriction != "" {
+		state.BlockRestriction = types.StringValue(securityPredicate.BlockRestriction)
+	}
+
+	if !state.Rule.IsNull() {
+
+		// if the only change consists of adding (,[,],) characters than keep the old value
+		stringReplacer := strings.NewReplacer(
+			"(", "",
+			")", "",
+			"[", "",
+			"]", "",
+		)
+
+		if stringReplacer.Replace(state.Rule.ValueString()) != stringReplacer.Replace(securityPredicate.Rule) {
+			state.Rule = types.StringValue(securityPredicate.Rule)
+		}
+	}
 
 	diags := resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -225,14 +253,43 @@ func (r *SecurityPredicateResource) Delete(ctx context.Context, req resource.Del
 
 func (r *SecurityPredicateResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 
-	/*ctx = utils.WithDiagnostics(ctx, &resp.Diagnostics)
+	ctx = logging.WithDiagnostics(ctx, &resp.Diagnostics)
 
-	user := sql._user_parse_id(ctx, req.ID)
+	predicate := sql.ParseSecurityPredicateId(ctx, req.ID)
 
-	if utils.HasError(ctx) {
+	if logging.HasError(ctx) {
 		return
 	}
 
-	resp.State.SetAttribute(ctx, path.Root("connection_string"), user.ConnectionString)
-	resp.State.SetAttribute(ctx, path.Root("principal_id"), user.PrincipalId)*/
+	connection := r.ConnectionCache.Connect(ctx, predicate.Connection, false)
+
+	if logging.HasError(ctx) {
+		return
+	}
+
+	predicate = sql.GetSecurityPredicateFromId(ctx, connection, req.ID, true)
+
+	if logging.HasError(ctx) {
+		return
+	}
+
+	state := SecurityPredicateResourceModel{
+		Id:             types.StringValue(predicate.Id),
+		Database:       types.StringValue(predicate.Connection),
+		SecurityPolicy: types.StringValue(predicate.SecurityPolicy),
+		Table:          types.StringValue(predicate.Table),
+		PredicateId:    types.Int64Value(predicate.PredicateId),
+		Rule:           types.StringValue(predicate.Rule),
+		Type:           types.StringValue(predicate.PredicateType),
+	}
+
+	if predicate.BlockRestriction != "" {
+		state.BlockRestriction = types.StringValue(predicate.BlockRestriction)
+	}
+
+	diags := resp.State.Set(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 }

@@ -21,7 +21,7 @@ func loginFormatId(connectionId string, name string, sid string) string {
 }
 
 // retrieve name and sid from a tf login id
-func parseLoginId(ctx context.Context, id string) (login Login) {
+func ParseLoginId(ctx context.Context, id string) (login Login) {
 	s := strings.Split(id, "/login/")
 
 	if len(s) != 2 {

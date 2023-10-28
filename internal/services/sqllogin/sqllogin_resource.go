@@ -69,6 +69,7 @@ func (r *SQLLoginResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
+				Sensitive: true,
 			},
 		},
 	}
@@ -95,6 +96,12 @@ func (r *SQLLoginResource) Create(ctx context.Context, req resource.CreateReques
 	login := sql.CreateLogin(ctx, connection, name)
 
 	if logging.HasError(ctx) {
+		if login.Id != "" {
+			logging.AddError(
+				ctx,
+				"Login already exists",
+				fmt.Sprintf("You can import this resource using `terraform import azuresql_login.<name> %s", login.Id))
+		}
 		return
 	}
 
@@ -193,14 +200,36 @@ func (r *SQLLoginResource) Delete(ctx context.Context, req resource.DeleteReques
 
 func (r *SQLLoginResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 
-	/*ctx = utils.WithDiagnostics(ctx, &resp.Diagnostics)
+	ctx = logging.WithDiagnostics(ctx, &resp.Diagnostics)
 
-	user := sql._user_parse_id(ctx, req.ID)
+	login := sql.ParseLoginId(ctx, req.ID)
 
-	if utils.HasError(ctx) {
+	if logging.HasError(ctx) {
 		return
 	}
 
-	resp.State.SetAttribute(ctx, path.Root("connection_string"), user.ConnectionString)
-	resp.State.SetAttribute(ctx, path.Root("principal_id"), user.PrincipalId)*/
+	connection := r.ConnectionCache.Connect(ctx, login.Connection, true)
+
+	if logging.HasError(ctx) {
+		return
+	}
+
+	login = sql.GetLoginFromSid(ctx, connection, login.Sid)
+
+	if logging.HasError(ctx) {
+		return
+	}
+
+	state := SQLLoginResourceModel{
+		Id:     types.StringValue(login.Id),
+		Server: types.StringValue(login.Connection),
+		Name:   types.StringValue(login.Name),
+		Sid:    types.StringValue(login.Sid),
+	}
+
+	diags := resp.State.Set(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 }

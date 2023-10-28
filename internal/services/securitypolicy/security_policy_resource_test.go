@@ -28,6 +28,13 @@ func TestAccCreateSecurityPolicyBasic(t *testing.T) {
 					Config:                   r.basic(connection, data.RandomString),
 					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
 				},
+				{
+					Config:                   r.basic(connection, data.RandomString),
+					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+					ResourceName:             "azuresql_security_policy.test",
+					ImportState:              true,
+					ImportStateVerify:        true,
+				},
 			},
 		})
 	}

@@ -25,7 +25,7 @@ func isSchemaId(id string) bool {
 	return strings.Contains(id, "/schema/")
 }
 
-func parseSchemaId(ctx context.Context, id string) (schema Schema) {
+func ParseSchemaId(ctx context.Context, id string) (schema Schema) {
 	s := strings.Split(id, "/schema/")
 
 	if len(s) != 2 {
@@ -151,7 +151,7 @@ func GetSchemaFromSchemaId(ctx context.Context, connection Connection, schemaId 
 // Get user from the azuresql terraform id
 // requiresExist: Raise an error when the user doesn't exist
 func GetSchemaFromId(ctx context.Context, connection Connection, id string, requiresExist bool) (schema Schema) {
-	schema = parseSchemaId(ctx, id)
+	schema = ParseSchemaId(ctx, id)
 	if logging.HasError(ctx) {
 		return
 	}

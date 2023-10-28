@@ -91,6 +91,12 @@ func (r *SecurityPolicyResource) Create(ctx context.Context, req resource.Create
 	securityPolicy := sql.CreateSecurityPolicy(ctx, connection, name, schema)
 
 	if logging.HasError(ctx) {
+		if securityPolicy.Id != "" {
+			logging.AddError(
+				ctx,
+				"Security policy already exists",
+				fmt.Sprintf("You can import this resource using `terraform import azuresql_security_policy.<name> %s", securityPolicy.Id))
+		}
 		return
 	}
 
@@ -189,14 +195,37 @@ func (r *SecurityPolicyResource) Delete(ctx context.Context, req resource.Delete
 
 func (r *SecurityPolicyResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 
-	/*ctx = utils.WithDiagnostics(ctx, &resp.Diagnostics)
+	ctx = logging.WithDiagnostics(ctx, &resp.Diagnostics)
 
-	user := sql._user_parse_id(ctx, req.ID)
+	policy := sql.ParseSecurityPolicyId(ctx, req.ID)
 
-	if utils.HasError(ctx) {
+	if logging.HasError(ctx) {
 		return
 	}
 
-	resp.State.SetAttribute(ctx, path.Root("connection_string"), user.ConnectionString)
-	resp.State.SetAttribute(ctx, path.Root("principal_id"), user.PrincipalId)*/
+	connection := r.ConnectionCache.Connect(ctx, policy.Connection, false)
+
+	if logging.HasError(ctx) {
+		return
+	}
+
+	policy = sql.GetSecurityPolicyFromId(ctx, connection, req.ID, true)
+
+	if logging.HasError(ctx) {
+		return
+	}
+
+	state := SecurityPolicyResourceModel{
+		Id:       types.StringValue(policy.Id),
+		Database: types.StringValue(policy.Connection),
+		Name:     types.StringValue(policy.Name),
+		Schema:   types.StringValue(policy.Schema),
+		ObjectId: types.Int64Value(policy.ObjectId),
+	}
+
+	diags := resp.State.Set(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 }

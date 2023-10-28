@@ -25,7 +25,7 @@ func isRoleId(id string) (isRole bool) {
 	return strings.Contains(id, "/role/")
 }
 
-func parseRoleId(ctx context.Context, id string) (role Role) {
+func ParseRoleId(ctx context.Context, id string) (role Role) {
 	s := strings.Split(id, "/role/")
 
 	if len(s) != 2 {
@@ -84,6 +84,7 @@ func CreateRole(ctx context.Context, connection Connection, name string, owner s
 	}
 
 	_, err := connection.Connection.ExecContext(ctx, query)
+
 	logging.AddError(ctx, fmt.Sprintf("Role creation failed for role %s", name), err)
 
 	// set requiresExist to false in order to specify a custom error message
@@ -171,7 +172,7 @@ func GetRoleFromPrincipalId(ctx context.Context, connection Connection, principa
 // Get user from the azuresql terraform id
 // requiresExist: Raise an error when the user doesn't exist
 func GetRoleFromId(ctx context.Context, connection Connection, id string, requiresExist bool) (role Role) {
-	role = parseRoleId(ctx, id)
+	role = ParseRoleId(ctx, id)
 	if logging.HasError(ctx) {
 		return
 	}

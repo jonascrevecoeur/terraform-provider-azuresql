@@ -24,7 +24,7 @@ func securityPredicateFormatId(connectionId string, policyObjectId int64, predic
 	return fmt.Sprintf("%s/securitypredicate/%d/%d", connectionId, policyObjectId, predicateId)
 }
 
-func parseSecurityPredicateId(ctx context.Context, id string) (securityPredicate SecurityPredicate) {
+func ParseSecurityPredicateId(ctx context.Context, id string) (securityPredicate SecurityPredicate) {
 	s := strings.Split(id, "/securitypredicate/")
 
 	if len(s) != 2 {
@@ -45,7 +45,7 @@ func parseSecurityPredicateId(ctx context.Context, id string) (securityPredicate
 		logging.AddError(ctx, "Invalid id", "Unable to parse function id")
 		return
 	}
-	policyObjectId, err := strconv.ParseInt(s[1], 10, 64)
+	policyObjectId, err := strconv.ParseInt(s[0], 10, 64)
 	if err != nil {
 		logging.AddError(ctx, "Invalid id", "Unable to parse function id")
 		return
@@ -99,7 +99,7 @@ func CreateSecurityPredicate(ctx context.Context, connection Connection, securit
 func GetSecurityPredicateFromSpec(ctx context.Context, connection Connection, securityPolicyResourceId string, tableResourceId string,
 	predicateType string, requiresExist bool) (securityPredicate SecurityPredicate) {
 
-	policy := parseSecurityPolicyId(ctx, securityPolicyResourceId)
+	policy := ParseSecurityPolicyId(ctx, securityPolicyResourceId)
 	table := parseTableId(ctx, tableResourceId)
 
 	query := `
@@ -151,7 +151,7 @@ func GetSecurityPredicateFromPolicyAndPredicateId(ctx context.Context, connectio
 	switch {
 	case err == sql.ErrNoRows:
 		if requiresExist {
-			logging.AddError(ctx, "Security predicate not found", fmt.Sprintf("Security policy with policy/predicateId %d/%d doesn't exist", policyId, predicateId))
+			logging.AddError(ctx, "Security predicate not found", fmt.Sprintf("Security predicate with policy/predicateId %d/%d doesn't exist", policyId, predicateId))
 		}
 		return
 	case err != nil:
@@ -172,11 +172,11 @@ func GetSecurityPredicateFromPolicyAndPredicateId(ctx context.Context, connectio
 }
 
 func GetSecurityPredicateFromId(ctx context.Context, connection Connection, id string, requiresExist bool) (securityPredicate SecurityPredicate) {
-	securityPredicate = parseSecurityPredicateId(ctx, id)
+	securityPredicate = ParseSecurityPredicateId(ctx, id)
 	if logging.HasError(ctx) {
 		return
 	}
-	policy := parseSecurityPolicyId(ctx, securityPredicate.SecurityPolicy)
+	policy := ParseSecurityPolicyId(ctx, securityPredicate.SecurityPolicy)
 
 	if securityPredicate.Connection != connection.ConnectionId {
 		logging.AddError(ctx, "Connection mismatch", fmt.Sprintf("Id %s doesn't belong to connection %s", id, connection.ConnectionId))

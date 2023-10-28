@@ -22,7 +22,7 @@ func roleAssignmentFormatId(connectionId string, rolePrincipalId int64, principa
 	return fmt.Sprintf("%s/roleassignment/%d/%d", connectionId, rolePrincipalId, principalId)
 }
 
-func parseRoleAssignmentId(ctx context.Context, id string) (assignment RoleAssignment) {
+func ParseRoleAssignmentId(ctx context.Context, id string) (assignment RoleAssignment) {
 	s := strings.Split(id, "/roleassignment/")
 
 	if len(s) != 2 {
@@ -95,7 +95,7 @@ func CreateRoleAssignment(ctx context.Context, connection Connection, roleResour
 
 func GetRoleAssignmentFromId(ctx context.Context, connection Connection, roleAssignmentResourceId string, requiresExist bool) (roleAssignment RoleAssignment) {
 
-	roleAssignment = parseRoleAssignmentId(ctx, roleAssignmentResourceId)
+	roleAssignment = ParseRoleAssignmentId(ctx, roleAssignmentResourceId)
 
 	if logging.HasError(ctx) {
 		return

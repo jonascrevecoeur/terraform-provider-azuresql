@@ -152,6 +152,12 @@ func (r *UserResource) Create(ctx context.Context, req resource.CreateRequest, r
 	user := sql.CreateUser(ctx, connection, name, authentication, login)
 
 	if logging.HasError(ctx) {
+		if user.Id != "" {
+			logging.AddError(
+				ctx,
+				"User assignment already exists",
+				fmt.Sprintf("You can import this resource using `terraform import azuresql_user.<name> %s", user.Id))
+		}
 		return
 	}
 
@@ -264,14 +270,53 @@ func (r *UserResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 
 func (r *UserResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 
-	/*ctx = utils.WithDiagnostics(ctx, &resp.Diagnostics)
+	ctx = logging.WithDiagnostics(ctx, &resp.Diagnostics)
 
-	user := sql._user_parse_id(ctx, req.ID)
+	user := sql.ParseUserId(ctx, req.ID)
 
-	if utils.HasError(ctx) {
+	if logging.HasError(ctx) {
 		return
 	}
 
-	resp.State.SetAttribute(ctx, path.Root("connection_string"), user.ConnectionString)
-	resp.State.SetAttribute(ctx, path.Root("principal_id"), user.PrincipalId)*/
+	connection := sql.ParseConnectionId(ctx, user.Connection)
+
+	if logging.HasError(ctx) {
+		return
+	}
+
+	connection = r.ConnectionCache.Connect(ctx, connection.ConnectionId, connection.IsServerConnection)
+
+	if logging.HasError(ctx) {
+		return
+	}
+
+	user = sql.GetUserFromId(ctx, connection, req.ID, true)
+
+	if logging.HasError(ctx) {
+		return
+	}
+
+	state := UserResourceModel{
+		Id:             types.StringValue(user.Id),
+		Name:           types.StringValue(user.Name),
+		PrincipalId:    types.Int64Value(user.PrincipalId),
+		Authentication: types.StringValue(user.Authentication),
+		Type:           types.StringValue(user.Type),
+	}
+
+	if user.Login != "" {
+		state.Login = types.StringValue(user.Login)
+	}
+
+	if connection.IsServerConnection {
+		state.Server = types.StringValue(user.Connection)
+	} else {
+		state.Database = types.StringValue(user.Connection)
+	}
+
+	diags := resp.State.Set(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 }

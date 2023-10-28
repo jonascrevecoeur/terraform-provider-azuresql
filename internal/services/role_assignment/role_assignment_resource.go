@@ -101,6 +101,12 @@ func (r *RoleAssignmentResource) Create(ctx context.Context, req resource.Create
 	roleAssignment := sql.CreateRoleAssignment(ctx, connection, plan.Role.ValueString(), plan.Principal.ValueString())
 
 	if logging.HasError(ctx) {
+		if roleAssignment.Id != "" {
+			logging.AddError(
+				ctx,
+				"Role assignment already exists",
+				fmt.Sprintf("You can import this resource using `terraform import azuresql_role_assignment.<name> %s", roleAssignment.Id))
+		}
 		return
 	}
 
@@ -199,14 +205,47 @@ func (r *RoleAssignmentResource) Delete(ctx context.Context, req resource.Delete
 
 func (r *RoleAssignmentResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 
-	/*ctx = utils.WithDiagnostics(ctx, &resp.Diagnostics)
+	ctx = logging.WithDiagnostics(ctx, &resp.Diagnostics)
 
-	user := sql._user_parse_id(ctx, req.ID)
+	roleAssignment := sql.ParseRoleAssignmentId(ctx, req.ID)
 
-	if utils.HasError(ctx) {
+	if logging.HasError(ctx) {
 		return
 	}
 
-	resp.State.SetAttribute(ctx, path.Root("connection_string"), user.ConnectionString)
-	resp.State.SetAttribute(ctx, path.Root("principal_id"), user.PrincipalId)*/
+	connection := sql.ParseConnectionId(ctx, roleAssignment.Connection)
+
+	if logging.HasError(ctx) {
+		return
+	}
+
+	connection = r.ConnectionCache.Connect(ctx, connection.ConnectionId, connection.IsServerConnection)
+
+	if logging.HasError(ctx) {
+		return
+	}
+
+	roleAssignment = sql.GetRoleAssignmentFromId(ctx, connection, req.ID, true)
+
+	if logging.HasError(ctx) {
+		return
+	}
+
+	state := RoleAssignmentResourceModel{
+		Id:        types.StringValue(roleAssignment.Id),
+		Role:      types.StringValue(roleAssignment.Role),
+		Principal: types.StringValue(roleAssignment.Principal),
+	}
+
+	if connection.IsServerConnection {
+		state.Server = types.StringValue(roleAssignment.Connection)
+	} else {
+		state.Database = types.StringValue(roleAssignment.Connection)
+	}
+
+	diags := resp.State.Set(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 }

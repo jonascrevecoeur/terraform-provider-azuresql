@@ -21,7 +21,7 @@ func TestParseRoleId(t *testing.T) {
 	}
 
 	for roleId, expected := range tests {
-		actual := parseRoleId(ctx, roleId)
+		actual := ParseRoleId(ctx, roleId)
 
 		if logging.HasError(ctx) && !expected.expectError {
 			t.Errorf("Parsing roleId %s should not throw an error", roleId)

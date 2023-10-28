@@ -30,6 +30,13 @@ func TestAccCreatePermissionDatabaseRole(t *testing.T) {
 					Config:                   r.databaseRole(connection, data.RandomString, "create table"),
 					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
 				},
+				{
+					Config:                   r.databaseRole(connection, data.RandomString, "create table"),
+					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+					ResourceName:             "azuresql_permission.test",
+					ImportState:              true,
+					ImportStateVerify:        true,
+				},
 			},
 		})
 	}
