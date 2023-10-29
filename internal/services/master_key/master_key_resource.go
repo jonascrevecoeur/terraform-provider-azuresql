@@ -108,12 +108,9 @@ func (r *MasterKeyResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	if sql.MasterKeyExists(ctx, connection) {
+	if !sql.MasterKeyExists(ctx, connection) {
+		resp.State.RemoveResource(ctx)
 		return
-	} else {
-		resp.State.Set(ctx, &MasterKeyResourceModel{})
-		diags := resp.State.Set(ctx, &state)
-		resp.Diagnostics.Append(diags...)
 	}
 }
 

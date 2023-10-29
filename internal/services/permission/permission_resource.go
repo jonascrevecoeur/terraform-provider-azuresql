@@ -146,7 +146,12 @@ func (r *PermissionResource) Read(ctx context.Context, req resource.ReadRequest,
 
 	var permission = sql.GetPermissionFromId(ctx, connection, state.Id.ValueString(), false)
 
-	if logging.HasError(ctx) || permission.Id == "" {
+	if logging.HasError(ctx) {
+		return
+	}
+
+	if permission.Id == "" {
+		resp.State.RemoveResource(ctx)
 		return
 	}
 

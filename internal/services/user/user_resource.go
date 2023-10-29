@@ -201,7 +201,12 @@ func (r *UserResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 		user = sql.GetUserFromPrincipalId(ctx, connection, state.PrincipalId.ValueInt64())
 	}
 
-	if logging.HasError(ctx) || user.Id == "" {
+	if logging.HasError(ctx) {
+		return
+	}
+
+	if user.Id == "" {
+		resp.State.RemoveResource(ctx)
 		return
 	}
 

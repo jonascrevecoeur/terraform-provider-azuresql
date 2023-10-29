@@ -177,7 +177,12 @@ func (r *RoleResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 
 	role := sql.GetRoleFromId(ctx, connection, state.Id.ValueString(), false)
 
-	if logging.HasError(ctx) || role.Id == "" {
+	if logging.HasError(ctx) {
+		return
+	}
+
+	if role.Id == "" {
+		resp.State.RemoveResource(ctx)
 		return
 	}
 

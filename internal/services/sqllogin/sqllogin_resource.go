@@ -140,7 +140,12 @@ func (r *SQLLoginResource) Read(ctx context.Context, req resource.ReadRequest, r
 		login = sql.GetLoginFromSid(ctx, connection, state.Sid.ValueString())
 	}
 
-	if logging.HasError(ctx) || login.Id == "" {
+	if logging.HasError(ctx) {
+		return
+	}
+
+	if login.Id == "" {
+		resp.State.RemoveResource(ctx)
 		return
 	}
 

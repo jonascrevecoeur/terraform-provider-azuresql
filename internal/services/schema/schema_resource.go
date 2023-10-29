@@ -156,7 +156,12 @@ func (r *SchemaResource) Read(ctx context.Context, req resource.ReadRequest, res
 
 	schema := sql.GetSchemaFromId(ctx, connection, state.Id.ValueString(), false)
 
-	if logging.HasError(ctx) || schema.Id == "" {
+	if logging.HasError(ctx) {
+		return
+	}
+
+	if schema.Id == "" {
+		resp.State.RemoveResource(ctx)
 		return
 	}
 

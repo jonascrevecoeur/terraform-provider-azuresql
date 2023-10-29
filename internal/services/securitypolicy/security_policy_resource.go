@@ -129,7 +129,12 @@ func (r *SecurityPolicyResource) Read(ctx context.Context, req resource.ReadRequ
 
 	securityPolicy := sql.GetSecurityPolicyFromId(ctx, connection, state.Id.ValueString(), false)
 
-	if logging.HasError(ctx) || securityPolicy.Id == "" {
+	if logging.HasError(ctx) {
+		return
+	}
+
+	if securityPolicy.Id == "" {
+		resp.State.RemoveResource(ctx)
 		return
 	}
 

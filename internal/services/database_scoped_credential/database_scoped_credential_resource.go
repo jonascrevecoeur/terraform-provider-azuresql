@@ -145,9 +145,7 @@ func (r *DatabaseScopedCredentialResource) Read(ctx context.Context, req resourc
 	}
 
 	if databaseScopedCredential.Id == "" {
-		resp.State.Set(ctx, &DatabaseScopedCredentialResourceModel{})
-		diags := resp.State.Set(ctx, &state)
-		resp.Diagnostics.Append(diags...)
+		resp.State.RemoveResource(ctx)
 		return
 	}
 

@@ -163,13 +163,12 @@ func (r *SecurityPredicateResource) Read(ctx context.Context, req resource.ReadR
 
 	securityPredicate := sql.GetSecurityPredicateFromId(ctx, connection, state.Id.ValueString(), false)
 
-	if logging.HasError(ctx) || securityPredicate.Id == "" {
-		if securityPredicate.Id != "" {
-			logging.AddError(
-				ctx,
-				"Security predicate already exists",
-				fmt.Sprintf("You can import this resource using `terraform import azuresql_security_predicate.<name> %s", securityPredicate.Id))
-		}
+	if logging.HasError(ctx) {
+		return
+	}
+
+	if securityPredicate.Id == "" {
+		resp.State.RemoveResource(ctx)
 		return
 	}
 

@@ -139,7 +139,12 @@ func (r *RoleAssignmentResource) Read(ctx context.Context, req resource.ReadRequ
 
 	var roleAssignment = sql.GetRoleAssignmentFromId(ctx, connection, state.Id.ValueString(), false)
 
-	if logging.HasError(ctx) || roleAssignment.Id == "" {
+	if logging.HasError(ctx) {
+		return
+	}
+
+	if roleAssignment.Id == "" {
+		resp.State.RemoveResource(ctx)
 		return
 	}
 

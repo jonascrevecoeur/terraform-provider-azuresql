@@ -99,6 +99,12 @@ func (r *FunctionResource) Create(ctx context.Context, req resource.CreateReques
 	function := sql.CreateFunctionFromDefinition(ctx, connection, name, plan.Schema.ValueString(), plan.Raw.ValueString())
 
 	if logging.HasError(ctx) {
+		if function.Id != "" {
+			logging.AddError(
+				ctx,
+				"Function already exists",
+				fmt.Sprintf("You can import this resource using `terraform import azuresql_function.<name> %s", function.Id))
+		}
 		return
 	}
 
@@ -131,13 +137,12 @@ func (r *FunctionResource) Read(ctx context.Context, req resource.ReadRequest, r
 
 	function := sql.GetFunctionFromId(ctx, connection, state.Id.ValueString(), false)
 
-	if logging.HasError(ctx) || function.Id == "" {
-		if function.Id != "" {
-			logging.AddError(
-				ctx,
-				"Function already exists",
-				fmt.Sprintf("You can import this resource using `terraform import azuresql_function.<name> %s", function.Id))
-		}
+	if logging.HasError(ctx) {
+		return
+	}
+
+	if function.Id == "" {
+		resp.State.RemoveResource(ctx)
 		return
 	}
 
