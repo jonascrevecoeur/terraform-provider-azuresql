@@ -107,7 +107,7 @@ func CreateUser(ctx context.Context, connection Connection, name string, authent
 	logging.AddError(ctx, fmt.Sprintf("User creation failed for user %s", name), err)
 
 	user = GetUserFromName(ctx, connection, name)
-	if user.Id == "" {
+	if user.Id == "" && !logging.HasError(ctx) {
 		logging.AddError(ctx, "Unable to read newly created user", fmt.Sprintf("Unable to read user %s after creation.", name))
 	}
 

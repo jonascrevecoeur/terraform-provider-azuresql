@@ -79,7 +79,7 @@ func objectFormatId(ctx context.Context, connectionId string, objectId int64, ob
 }
 
 func scopeFormatId(ctx context.Context, connection Connection, scopeId int64, scopeType string) string {
-	if scopeType == "database" {
+	if scopeType == "database" || scopeType == "server" {
 		return connection.ConnectionId
 	}
 	if scopeType == "schema" {
@@ -121,6 +121,13 @@ func GetScopeFromId(ctx context.Context, connection Connection, scopeResourceId 
 		return Scope{
 			ResourceType: "database",
 			Name:         "database",
+			Id:           0,
+		}
+	}
+	if scopeResourceId == connection.ConnectionId && connection.IsServerConnection {
+		return Scope{
+			ResourceType: "server",
+			Name:         "server",
 			Id:           0,
 		}
 	}
@@ -178,7 +185,7 @@ func CreatePermission(ctx context.Context, connection Connection, scopeResourceI
 		query = fmt.Sprintf("grant %s on schema::%s to [%s]", permissionName, scope.Name, principal.Name)
 	} else if scope.ResourceType == "object" {
 		query = fmt.Sprintf("grant %s on object::%s to [%s]", permissionName, scope.Name, principal.Name)
-	} else if scope.ResourceType == "database" {
+	} else if scope.ResourceType == "database" || scope.ResourceType == "server" {
 		query = fmt.Sprintf("grant %s to [%s]", permissionName, principal.Name)
 	} else if scope.ResourceType == "databasescopedcredential" {
 		query = fmt.Sprintf("grant %s on database scoped credential::%s to [%s]", permissionName, scope.Name, principal.Name)
@@ -312,10 +319,13 @@ func DropPermission(ctx context.Context, connection Connection, scopeResourceId 
 		query = fmt.Sprintf("revoke %s on schema::%s to [%s]", permissionName, scope.Name, principal.Name)
 	} else if scope.ResourceType == "object" {
 		query = fmt.Sprintf("revoke %s on object::%s to [%s]", permissionName, scope.Name, principal.Name)
-	} else if scope.ResourceType == "database" {
+	} else if scope.ResourceType == "database" || scope.ResourceType == "server" {
 		query = fmt.Sprintf("revoke %s to [%s]", permissionName, principal.Name)
 	} else if scope.ResourceType == "databasescopedcredential" {
 		query = fmt.Sprintf("revoke %s on database scoped credential::%s to [%s]", permissionName, scope.Name, principal.Name)
+	} else {
+		logging.AddError(ctx, "Unrecognized scope", fmt.Sprintf("Unrecognized scope.resourceType %s", scope.ResourceType))
+		return
 	}
 
 	_, err := connection.Connection.ExecContext(ctx, query)

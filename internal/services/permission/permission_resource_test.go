@@ -19,7 +19,7 @@ func TestAccCreatePermissionDatabaseRole(t *testing.T) {
 
 	connections := []string{
 		data.SQLDatabase_connection,
-		//data.SynapseDatabase_connection,
+		data.SynapseDatabase_connection,
 	}
 
 	for _, connection := range connections {
@@ -41,6 +41,28 @@ func TestAccCreatePermissionDatabaseRole(t *testing.T) {
 		})
 	}
 }
+
+/*func TestAccCreatePermissionServerRole(t *testing.T) {
+	acceptance.PreCheck(t)
+	data := acceptance.BuildTestData(t)
+	r := PermissionResource{}
+
+	connections := []string{
+		data.SQLServer_connection,
+	}
+
+	for _, connection := range connections {
+		print(fmt.Sprintf("\n\nRunning test for connection %s\n\n", connection))
+		resource.Test(t, resource.TestCase{
+			Steps: []resource.TestStep{
+				{
+					Config:                   r.serverRole(connection, data.RandomString, "alter any event notification"),
+					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+				},
+			},
+		})
+	}
+}*/
 
 func TestAccCreatePermissionSchemaRole(t *testing.T) {
 	acceptance.PreCheck(t)
@@ -77,7 +99,6 @@ func TestAccCreatePermissionDatabaseScopedCredentialUser(t *testing.T) {
 
 	connections := []string{
 		data.SQLDatabase_connection,
-		//data.SynapseDatabase_connection,
 	}
 
 	for _, connection := range connections {
@@ -167,6 +188,24 @@ func (r PermissionResource) databaseRole(connection string, name string, permiss
 
 	resource "azuresql_permission" "test" {
 		database 	= "%[2]s"
+		scope 		= "%[2]s"
+		principal   = azuresql_role.test.id
+		permission  = "%[4]s"
+	}
+`, r.template(), connection, name, permission)
+}
+
+func (r PermissionResource) serverRole(connection string, name string, permission string) string {
+	return fmt.Sprintf(`
+	%[1]s
+
+	resource "azuresql_role" "test" {
+		server 		= "%[2]s"
+		name        = "tfrole_%[3]s"
+	}
+
+	resource "azuresql_permission" "test" {
+		server 		= "%[2]s"
 		scope 		= "%[2]s"
 		principal   = azuresql_role.test.id
 		permission  = "%[4]s"
