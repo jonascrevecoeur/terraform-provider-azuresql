@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"terraform-provider-azuresql/internal/services/database"
+	"terraform-provider-azuresql/internal/services/database_scoped_credential"
 	"terraform-provider-azuresql/internal/services/execute_sql"
 	"terraform-provider-azuresql/internal/services/function"
 	"terraform-provider-azuresql/internal/services/master_key"
@@ -97,5 +98,6 @@ func (p *azuresql_provider) Resources(_ context.Context) []func() resource.Resou
 		securitypredicate.NewSecurityPredicateResource,
 		role_assignment.NewRoleAssignmentResource,
 		master_key.NewMasterKeyResource,
+		database_scoped_credential.NewDatabaseScopedCredentialResource,
 	}
 }

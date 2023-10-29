@@ -79,6 +79,6 @@ func DropMasterKey(ctx context.Context, connection Connection) {
 	_, err = connection.Connection.ExecContext(ctx, "drop master key")
 
 	if err != nil {
-		logging.AddError(ctx, fmt.Sprintf("Dropping master key failed for database", connection.ConnectionId), err)
+		logging.AddError(ctx, fmt.Sprintf("Dropping master key failed for database %s", connection.ConnectionId), err)
 	}
 }
