@@ -70,9 +70,13 @@ resource "azuresql_permission" "test" {
 
 - `principal` (String) ID of the principal (`azuresql_role` or `azuresql_user`) to which the permission is granted. n (user, role).
 
-- `scope` (String) ID of the resource on which the permission is granted. Currently implemented are: `azuresql_table`, `azuresql_schema` and `azuresql_database`.
+- `scope` (String) ID of the resource on which the permission is granted. Currently implemented are: `azuresql_table`, `azuresql_schema`, `azuresql_database`, `azuresql_sqlserver`, `azuresql_synapseserver` and `azuresql_database_scoped_credential`.
 
 - `permission` (String) Permission to be granted.
+
+### Optional
+
+- `action` (String) Accepts `"grant"` or `"deny"`. Default `"grant"`.
 
 ### Read-Only
 

@@ -20,4 +20,5 @@ type PermissionResourceModel struct {
 	Scope      types.String `tfsdk:"scope"`
 	Principal  types.String `tfsdk:"principal"`
 	Permission types.String `tfsdk:"permission"`
+	Action     types.String `tfsdk:"action"`
 }

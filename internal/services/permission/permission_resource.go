@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -83,6 +84,17 @@ func (r *PermissionResource) Schema(_ context.Context, _ resource.SchemaRequest,
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
+			"action": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				Default:  stringdefault.StaticString("grant"),
+				Validators: []validator.String{
+					stringvalidator.OneOf([]string{"grant", "deny"}...),
+				},
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+			},
 		},
 	}
 }
@@ -105,7 +117,7 @@ func (r *PermissionResource) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	permission := sql.CreatePermission(ctx, connection, plan.Scope.ValueString(), plan.Principal.ValueString(), plan.Permission.ValueString())
+	permission := sql.CreatePermission(ctx, connection, plan.Scope.ValueString(), plan.Principal.ValueString(), plan.Permission.ValueString(), plan.Action.ValueString())
 
 	if logging.HasError(ctx) {
 		if permission.Id != "" {
@@ -157,6 +169,7 @@ func (r *PermissionResource) Read(ctx context.Context, req resource.ReadRequest,
 
 	state.Principal = types.StringValue(permission.Principal)
 	state.Scope = types.StringValue(permission.Scope)
+	state.Action = types.StringValue(permission.Action)
 
 	diags := resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -248,6 +261,7 @@ func (r *PermissionResource) ImportState(ctx context.Context, req resource.Impor
 		Scope:      types.StringValue(permission.Scope),
 		Principal:  types.StringValue(permission.Principal),
 		Permission: types.StringValue(permission.Permission),
+		Action:     types.StringValue(permission.Action),
 	}
 
 	if connection.IsServerConnection {

@@ -92,6 +92,34 @@ func TestAccCreatePermissionSchemaRole(t *testing.T) {
 	}
 }
 
+func TestAccDenyPermissionSchemaRole(t *testing.T) {
+	acceptance.PreCheck(t)
+	data := acceptance.BuildTestData(t)
+	r := PermissionResource{}
+
+	connections := []string{
+		data.SQLDatabase_connection,
+		data.SynapseDatabase_connection,
+	}
+
+	for _, connection := range connections {
+		print(fmt.Sprintf("\n\nRunning test for connection %s\n\n", connection))
+
+		resource.Test(t, resource.TestCase{
+			Steps: []resource.TestStep{
+				{
+					Config:                   r.schemaRoleDeny(connection, data.RandomString, []string{"select", "delete"}),
+					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+					Check: testAccCheckPermissionId(
+						"azuresql_permission.test.0", "azuresql_schema.test", "schema_id",
+						"azuresql_role.test", "schema", "select",
+					),
+				},
+			},
+		})
+	}
+}
+
 func TestAccCreatePermissionDatabaseScopedCredentialUser(t *testing.T) {
 	acceptance.PreCheck(t)
 	data := acceptance.BuildTestData(t)
@@ -238,6 +266,36 @@ func (r PermissionResource) schemaRole(connection string, name string, permissio
 			scope 		= azuresql_schema.test.id
 			principal   = azuresql_role.test.id
 			permission  = local.permissions[count.index]
+		}
+	`, r.template(), connection, name, strings.Join(permissions, "\",\""))
+}
+
+func (r PermissionResource) schemaRoleDeny(connection string, name string, permissions []string) string {
+
+	return fmt.Sprintf(`
+		%[1]s
+
+		locals {
+			permissions = ["%[4]s"]
+		}
+
+		resource "azuresql_schema" "test" {
+			database 	= "%[2]s"
+			name     	= "tfschema_%[3]s"
+		}
+
+		resource "azuresql_role" "test" {
+			database 	= "%[2]s"
+			name        = "tfrole_%[3]s"
+		}
+
+		resource "azuresql_permission" "test" {
+			count       = length(local.permissions)
+			database 	= "%[2]s"
+			scope 		= azuresql_schema.test.id
+			principal   = azuresql_role.test.id
+			permission  = local.permissions[count.index]
+			action		= "deny"
 		}
 	`, r.template(), connection, name, strings.Join(permissions, "\",\""))
 }

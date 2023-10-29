@@ -10,9 +10,9 @@ description: |-
 
 Read SQL database or server users. 
 
-**Supported**: `SQL Server`, `SQL database`, `Synapse serverless server`, `Synapse serverless database` 
+**Supported**: `SQL Server`, `SQL database`, `Synapse serverless database` 
 
-**Not supported**: `Synapse dedicated server`, `Synapse dedicated database`
+**Not supported**: `Synapse dedicated server`, `Synapse serverless server`, `Synapse dedicated database`
 
 ## Example Usage
 

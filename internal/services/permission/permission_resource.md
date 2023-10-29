@@ -74,6 +74,10 @@ resource "azuresql_permission" "test" {
 
 - `permission` (String) Permission to be granted.
 
+### Optional
+
+- `action` (String) Accepts `"grant"` or `"deny"`. Default `"grant"`.
+
 ### Read-Only
 
 - `id` (String) The azuresql ID of the permission resource.

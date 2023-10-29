@@ -24,6 +24,7 @@ type Permission struct {
 	PrincipalId int64
 	Permission  string
 	ScopeType   string
+	Action      string
 }
 
 func permissionFormatId(connectionId string, principalId int64, permission string, permissionType string, targetId int64) string {
@@ -66,6 +67,17 @@ func ParsePermissionId(ctx context.Context, id string) (permission Permission) {
 	permission.Permission = s[1]
 	permission.ScopeType = s[2]
 	return
+}
+
+func permissionStateToAction(ctx context.Context, state string) string {
+	if state == "G" {
+		return "grant"
+	} else if state == "D" {
+		return "deny"
+	} else {
+		logging.AddError(ctx, "Unrecognized state", fmt.Sprintf("Uncrecongized permission state %s", state))
+		return ""
+	}
 }
 
 func objectFormatId(ctx context.Context, connectionId string, objectId int64, objectType string) string {
@@ -168,7 +180,7 @@ func GetScopeFromId(ctx context.Context, connection Connection, scopeResourceId 
 	return Scope{}
 }
 
-func CreatePermission(ctx context.Context, connection Connection, scopeResourceId string, principalResourceId string, permissionName string) (permission Permission) {
+func CreatePermission(ctx context.Context, connection Connection, scopeResourceId string, principalResourceId string, permissionName string, action string) (permission Permission) {
 
 	principal := GetPrincipalFromId(ctx, connection, principalResourceId, true)
 	if logging.HasError(ctx) {
@@ -182,13 +194,13 @@ func CreatePermission(ctx context.Context, connection Connection, scopeResourceI
 
 	var query string
 	if scope.ResourceType == "schema" {
-		query = fmt.Sprintf("grant %s on schema::%s to [%s]", permissionName, scope.Name, principal.Name)
+		query = fmt.Sprintf("%s %s on schema::%s to [%s]", action, permissionName, scope.Name, principal.Name)
 	} else if scope.ResourceType == "object" {
-		query = fmt.Sprintf("grant %s on object::%s to [%s]", permissionName, scope.Name, principal.Name)
+		query = fmt.Sprintf("%s %s on object::%s to [%s]", action, permissionName, scope.Name, principal.Name)
 	} else if scope.ResourceType == "database" || scope.ResourceType == "server" {
-		query = fmt.Sprintf("grant %s to [%s]", permissionName, principal.Name)
+		query = fmt.Sprintf("%s %s to [%s]", action, permissionName, principal.Name)
 	} else if scope.ResourceType == "databasescopedcredential" {
-		query = fmt.Sprintf("grant %s on database scoped credential::%s to [%s]", permissionName, scope.Name, principal.Name)
+		query = fmt.Sprintf("%s %s on database scoped credential::%s to [%s]", action, permissionName, scope.Name, principal.Name)
 	} else {
 		logging.AddError(ctx, "Unrecognized scope", fmt.Sprintf("Unrecognized scope.resourceType %s", scope.ResourceType))
 		return
@@ -196,7 +208,7 @@ func CreatePermission(ctx context.Context, connection Connection, scopeResourceI
 
 	_, err := connection.Connection.ExecContext(ctx, query)
 	if err != nil {
-		logging.AddError(ctx, fmt.Sprintf("Failed to grant permission %s on %s to %s", permissionName, scope.Name, principal.Name), err)
+		logging.AddError(ctx, fmt.Sprintf("Failed to %s permission %s on %s to %s", action, permissionName, scope.Name, principal.Name), err)
 		return
 	}
 
@@ -209,6 +221,7 @@ func CreatePermission(ctx context.Context, connection Connection, scopeResourceI
 		PrincipalId: principal.PrincipalId,
 		Permission:  permissionName,
 		ScopeType:   scope.ResourceType,
+		Action:      action,
 	}
 }
 
@@ -263,19 +276,18 @@ func GetPermissionFromId(ctx context.Context, connection Connection, permissionR
 	}
 
 	// check existence
-	var principalType string
+	var principalType, state string
 	query := `
-		select principals.type from sys.database_permissions permissions
+		select principals.type, permissions.state from sys.database_permissions permissions
 		left join sys.database_principals principals 
 		on permissions.grantee_principal_id = principals.principal_id
 		where permissions.major_id = @scope_id and permissions.grantee_principal_id=@principal_id
-		and state = 'G'
 		`
 
 	err := (connection.
 		Connection.
 		QueryRowContext(ctx, query, sql.Named("scope_id", permission.ScopeId), sql.Named("principal_id", permission.PrincipalId)).
-		Scan(&principalType))
+		Scan(&principalType, &state))
 
 	switch {
 	case err == sql.ErrNoRows:
@@ -299,6 +311,7 @@ func GetPermissionFromId(ctx context.Context, connection Connection, permissionR
 		PrincipalId: permission.PrincipalId,
 		Permission:  permission.Permission,
 		ScopeType:   permission.ScopeType,
+		Action:      permissionStateToAction(ctx, state),
 	}
 }
 
