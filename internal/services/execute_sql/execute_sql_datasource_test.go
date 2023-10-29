@@ -59,6 +59,31 @@ func TestAccCreateMultipleTables(t *testing.T) {
 	}
 }
 
+func TestAccExecuteSQLCreateLogin(t *testing.T) {
+	acceptance.PreCheck(t)
+	data := acceptance.BuildTestData(t)
+	r := executeSQLDataSource{}
+	connections := []string{
+		data.SQLServer_connection,
+		data.SynapseServer_connection,
+	}
+
+	for _, connection := range connections {
+		print(fmt.Sprintf("\n\nRunning test for connection %s\n\n", connection))
+
+		defer acceptance.ExecuteSQL(connection, fmt.Sprintf("DROP login test_%s", data.RandomString))
+
+		resource.Test(t, resource.TestCase{
+			Steps: []resource.TestStep{
+				{
+					Config:                   r.create_login(connection, data.RandomString),
+					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+				},
+			},
+		})
+	}
+}
+
 func (r executeSQLDataSource) create_table(connection string, name string) string {
 	return fmt.Sprintf(
 		`
@@ -98,5 +123,24 @@ func (r executeSQLDataSource) create_tables(connection string, name string) stri
 			EOT
 		}
 
+		`, connection, name)
+}
+
+func (r executeSQLDataSource) create_login(connection string, name string) string {
+	return fmt.Sprintf(
+		`
+		provider "azuresql" {
+		}
+
+		data "azuresql_execute_sql" "test" {
+			server		= "%[1]s"
+			sql 		= <<-EOT
+				IF NOT EXISTS 
+					(SELECT name from master.sys.sql_logins where name = 'test_%[2]s')
+				BEGIN
+					create login test_%[2]s with password = '1e5gegeg15jijf!bg!!'
+				END
+			EOT
+		}
 		`, connection, name)
 }
