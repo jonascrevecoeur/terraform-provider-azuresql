@@ -102,6 +102,12 @@ func (r *DatabaseScopedCredentialResource) Create(ctx context.Context, req resou
 	)
 
 	if logging.HasError(ctx) {
+		if databaseScopedCredential.Id != "" {
+			logging.AddError(
+				ctx,
+				"Database scoped credential already exists",
+				fmt.Sprintf("You can import this resource using `terraform import azuresql_database_scoped_credential.<name> %s", databaseScopedCredential.Id))
+		}
 		return
 	}
 
