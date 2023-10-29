@@ -5,6 +5,7 @@ import (
 	"terraform-provider-azuresql/internal/services/database"
 	"terraform-provider-azuresql/internal/services/execute_sql"
 	"terraform-provider-azuresql/internal/services/function"
+	"terraform-provider-azuresql/internal/services/master_key"
 	"terraform-provider-azuresql/internal/services/permission"
 	"terraform-provider-azuresql/internal/services/role"
 	"terraform-provider-azuresql/internal/services/role_assignment"
@@ -95,5 +96,6 @@ func (p *azuresql_provider) Resources(_ context.Context) []func() resource.Resou
 		securitypolicy.NewSecurityPolicyResource,
 		securitypredicate.NewSecurityPredicateResource,
 		role_assignment.NewRoleAssignmentResource,
+		master_key.NewMasterKeyResource,
 	}
 }

@@ -108,6 +108,12 @@ func (r *PermissionResource) Create(ctx context.Context, req resource.CreateRequ
 	permission := sql.CreatePermission(ctx, connection, plan.Scope.ValueString(), plan.Principal.ValueString(), plan.Permission.ValueString())
 
 	if logging.HasError(ctx) {
+		if permission.Id != "" {
+			logging.AddError(
+				ctx,
+				"Permission already exists",
+				fmt.Sprintf("You can import this resource using `terraform import azuresql_permission.<name> %s", permission.Id))
+		}
 		return
 	}
 
@@ -141,12 +147,6 @@ func (r *PermissionResource) Read(ctx context.Context, req resource.ReadRequest,
 	var permission = sql.GetPermissionFromId(ctx, connection, state.Id.ValueString(), false)
 
 	if logging.HasError(ctx) || permission.Id == "" {
-		if permission.Id != "" {
-			logging.AddError(
-				ctx,
-				"Permission already exists",
-				fmt.Sprintf("You can import this resource using `terraform import azuresql_permission.<name> %s", permission.Id))
-		}
 		return
 	}
 
