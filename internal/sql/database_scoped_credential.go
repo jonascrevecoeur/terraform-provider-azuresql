@@ -22,7 +22,10 @@ func databaseScopedCredentialFormatId(connectionId string, credentialId int64) s
 	return fmt.Sprintf("%s/databasescopedcredential/%d", connectionId, credentialId)
 }
 
-// retrieve name and sid from a tf databaseScopedCredential id
+func isDatabaseScopedCredentialId(id string) bool {
+	return strings.Contains(id, "/databasescopedcredential/")
+}
+
 func ParseDatabaseScopedCredentialId(ctx context.Context, id string) (databaseScopedCredential DatabaseScopedCredential) {
 	s := strings.Split(id, "/databasescopedcredential/")
 

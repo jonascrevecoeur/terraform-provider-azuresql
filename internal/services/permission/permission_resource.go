@@ -64,7 +64,7 @@ func (r *PermissionResource) Schema(_ context.Context, _ resource.SchemaRequest,
 			},
 			"scope": schema.StringAttribute{
 				Required:    true,
-				Description: "Azuresql resource id determining the scope of the permission (table, view, schema, database, server)",
+				Description: "Azuresql resource id determining the scope of the permission (table, view, schema, database, server, database scoped credential)",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},

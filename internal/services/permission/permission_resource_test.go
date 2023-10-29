@@ -70,6 +70,30 @@ func TestAccCreatePermissionSchemaRole(t *testing.T) {
 	}
 }
 
+func TestAccCreatePermissionDatabaseScopedCredentialUser(t *testing.T) {
+	acceptance.PreCheck(t)
+	data := acceptance.BuildTestData(t)
+	r := PermissionResource{}
+
+	connections := []string{
+		data.SQLDatabase_connection,
+		//data.SynapseDatabase_connection,
+	}
+
+	for _, connection := range connections {
+		print(fmt.Sprintf("\n\nRunning test for connection %s\n\n", connection))
+
+		resource.Test(t, resource.TestCase{
+			Steps: []resource.TestStep{
+				{
+					Config:                   r.databaseScopedCredential_user(connection, data.RandomString, "control"),
+					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+				},
+			},
+		})
+	}
+}
+
 func TestAccCreatePermissionTableRole(t *testing.T) {
 	acceptance.PreCheck(t)
 	data := acceptance.BuildTestData(t)
@@ -206,6 +230,37 @@ func (r PermissionResource) tableRole(connection string, name string, permission
 			permission  = local.permissions[count.index]
 		}
 	`, r.template(), connection, name, strings.Join(permissions, "\",\""))
+}
+
+func (r PermissionResource) databaseScopedCredential_user(connection string, name string, permission string) string {
+	return fmt.Sprintf(`
+	%[1]s
+
+	resource "azuresql_user" "test" {
+		database 		= "%[2]s"
+		name        	= "tfuser_%[3]s"
+		authentication 	= "WithoutLogin"
+	}
+
+	resource "azuresql_master_key" "test" {
+		database 		= "%[2]s"
+	}
+
+	resource "azuresql_database_scoped_credential" "test" {
+		database 		= "%[2]s"
+		name			= "tfdsc_%[3]s"
+		identity		= "test"
+
+		depends_on = [azuresql_master_key.test]
+	}
+
+	resource "azuresql_permission" "test" {
+		database 	= "%[2]s"
+		scope 		= azuresql_database_scoped_credential.test.id
+		principal   = azuresql_user.test.id
+		permission  = "%[4]s"
+	}
+`, r.template(), connection, name, permission)
 }
 
 func (r PermissionResource) template() string {
