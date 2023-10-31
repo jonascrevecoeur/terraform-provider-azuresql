@@ -82,9 +82,21 @@ resource "azuresql_security_predicate" "filter_select" {
 - `database` (String) ID of the database where the security policy should be created.
 
 - `name` (String) Name of the security policy
-- `schema` (String) ID of the `azuresql_schema` in which the function should be created.
+- `schema` (String) ID of the `azuresql_schema` in which the security policy should be created.
 
 ### Read-Only
 
 - `id` (String)  azuresql ID of the security policy resource.
 - `object_id` (Number) ID of the security policy object in the database.
+
+## ID structure
+
+The ID is formed as `<database>`/securitypolicy/`<object id>`, where
+* `<database>` is the ID of the `azuresql_database` resource.
+* `<object id>` is the id of the security policy in the database. It can be found by running `select object_id('<schema name>.<security policy  name>')`.
+
+## Import
+
+You can import a security policy using 
+
+```terraform import azuresql_security_policy.<resource name> <id>```

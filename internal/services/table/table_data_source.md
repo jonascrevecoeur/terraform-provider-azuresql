@@ -57,3 +57,9 @@ data "azuresql_table" "mytable" {
 
 - `id` (String) azuresql ID of the table resource.
 - `object_id` (Number) ID of the table object in the database.
+
+## ID structure
+
+The ID is formed as `<database>`/table/`<object id>`, where
+* `<database>` is the ID of the `azuresql_database` resource.
+* `<object id>` is the id of the table in the database. It can be found by running `select object_id('<schema name>.<table name>')`.

@@ -68,3 +68,15 @@ resource "azuresql_function" "myfunction" {
 
 - `id` (String)  azuresql ID of the function resource.
 - `object_id` (Number) ID of the function object in the database
+
+## ID structure
+
+The ID is formed as `<database>`/function/`<object_id>`, where
+* `<database>` is the ID of the `azuresql_database` resource.
+* `<object_id>` is the id of the function in the database. It can be found by running `select object_id('<function schema>.<function name>')`.
+
+## Import
+
+You can import a function using 
+
+```terraform import azuresql_function.<resource name> <id>```

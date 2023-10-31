@@ -43,3 +43,10 @@ data "azuresql_login" "login" {
 
 - `id` (String)  Internal azuresql ID of the login resource. Used to refer to this resource in other azuresql resources/data sources.
 - `sid` (String) sid of the login on the server.
+
+## ID structure
+
+The ID is formed as `<server>`/login/`<name>`/`<sid>`, where
+* `<server>` is the ID of the `azuresql_sqlserver` or `azuresql_synapseserver` resource.
+* `<name>` is the login name.
+* `<sid>` is the id of the login on the server. It can be found by running `select suser_sid('<name of the user assuming the login>')`.

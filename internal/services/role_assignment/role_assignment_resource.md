@@ -63,3 +63,17 @@ resource "azuresql_role_assignment" "assign_myuser_myrole" {
 ### Read-Only
 
 - `id` (String) The azuresql ID of the role assignment resource.
+
+
+## ID structure
+
+The ID is formed as `<connection>`/roleassignment/`<role id>`/`<principal id>`, where
+* `<connection>` is the azuresql ID of the database or server where the resource exists.
+* `<role_id>` is the id of the role in the database. It can be found by running `select database_principal_id('<role name>')`.
+* `<principal_id>` is the id of the role or user assuming the role assignment. It can be found by running `select database_principal_id('<principal name>')`.
+
+## Import
+
+You can import a role assignment using 
+
+```terraform import azuresql_role_assignment.<resource name> <id>```
