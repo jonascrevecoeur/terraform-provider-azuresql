@@ -56,7 +56,7 @@ resource "azuresql_permission" "test" {
 
 -> Only one of `database` or `server` should be specified.
 
-- `principal` (String) ID of the principal (`azuresql_role` or `azuresql_user`) to which the permission is granted. n (user, role).
+- `principal` (String) ID of the principal (`azuresql_role` or `azuresql_user`) to which the permission is granted. 
 - `scope` (String) ID of the resource on which the permission is granted. Currently implemented are: `azuresql_table`, `azuresql_schema` and `azuresql_database`.
 
 ### Read-Only
