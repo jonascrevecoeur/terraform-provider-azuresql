@@ -33,3 +33,9 @@ data "azuresql_sqlserver" "server" {
 ### Read-Only
 
 - `id` (String) ID of the sqlserver connection in `azuresql`. This ID is passed to other `azuresql` resources and data sources to indicate that the resource should be created in/read from this server, respectively.
+
+## ID structure
+
+The ID is formed as `sqlserver::<name>:<port>`, where
+* `<name>` is the name of the server.
+* `<port>` is the port of the server. Default 1433.

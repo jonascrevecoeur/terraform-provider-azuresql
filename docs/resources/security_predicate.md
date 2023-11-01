@@ -93,3 +93,16 @@ resource "azuresql_security_predicate" "filter_select" {
 
 - `id` (String) azuresql ID of the security predicate resource.
 - `predicate_id` (Number) ID of the security predicate in the database.
+
+## ID structure
+
+The ID is formed as `<database>`/securitypredicate/`<policy id>/<predicate id>`, where
+* `<database>` is the ID of the `azuresql_database` resource.
+* `<policy id>` is the id of the security policy in the database. It can be found by running `select object_id('<schema name>.<security policy name>')`.
+* `<predicate id>` is the ID of the predicate in the database. You can find the predicate id from `select * from sys.security_predicates`
+
+## Import
+
+You can import a security predicate using 
+
+```terraform import azuresql_security_predicate.<resource name> <id>```

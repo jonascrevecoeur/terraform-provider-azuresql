@@ -57,3 +57,16 @@ resource "azuresql_role" "myrole" {
 
 - `id` (String) The azuresql ID of the role resource.
 - `principal_id` (Number) Principal ID of the role in the database.
+
+
+## ID structure
+
+The ID is formed as `<connection>`/role/`<principal id>`, where
+* `<connection>` is the azuresql ID of the database or server where the resource exists.
+* `<principal_id>` is the id of the role in the database. It can be found by running `select database_principal_id('<role name>')`.
+
+## Import
+
+You can import a role using 
+
+```terraform import azuresql_role.<resource name> <id>```

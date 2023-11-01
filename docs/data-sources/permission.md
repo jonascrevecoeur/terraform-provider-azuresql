@@ -56,10 +56,29 @@ resource "azuresql_permission" "test" {
 
 -> Only one of `database` or `server` should be specified.
 
-- `principal` (String) ID of the principal (`azuresql_role` or `azuresql_user`) to which the permission is granted. n (user, role).
+- `principal` (String) ID of the principal (`azuresql_role` or `azuresql_user`) to which the permission is granted. 
 - `scope` (String) ID of the resource on which the permission is granted. Currently implemented are: `azuresql_table`, `azuresql_schema` and `azuresql_database`.
 
 ### Read-Only
 
 - `id` (String) The azuresql ID of the permission resource.
 - `permissions` (List of String) List of granted permissions of the principal on the given scope.
+
+## ID structure
+
+The ID is formed as `<connection>`/permission/`<principal>/<permission>/<permission type>/<scope>`, where
+* `<connection>` is the azuresql ID of the database or server where the resource exists.
+* `<principal>` is the id of the principal to which the permission is given. This can be found by runnning `select database_principal_id('<principal name>')`.
+* `<permission>` is the permission granted or denied in lowercase.
+* `<permission type>`:
+  * `database` for database permissions
+  * `server` for server permissions
+  * `schema` for schema permissions
+  * `object` for table permissions
+  * `databasescopedcredential` for database scoped credential permissions
+* `<scope>`: The id of the scope in the database/server
+  * `0` for database permissions
+  * `0` for server permissions
+  * `schema_id` for schema permissions. Can be retrieved as `select schema_id('<schema name>')`
+  * `object` for table permissions. Can be retrieved as `select object_id('<schema name>.<table name>')`
+  * `databasescopedcredential` for database scoped credential permissions. Can be retrieved as `select credential_id from sys.database_scoped_credentials where name = '<name>'`

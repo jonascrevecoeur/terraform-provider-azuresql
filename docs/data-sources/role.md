@@ -53,3 +53,9 @@ data "azuresql_role" "myrole" {
 - `id` (String) The azuresql ID of the role resource.
 - `owner` (String) ID of the role or user owning this role.
 - `principal_id` (Number) Principal ID of the role in the database.
+
+## ID structure
+
+The ID is formed as `<connection>`/function/`<principal id>`, where
+* `<connection>` is the azuresql ID of the database or server where the resource exists.
+* `<principal_id>` is the id of the role in the database. It can be found by running `select database_principal_id('<role name>')`.

@@ -61,3 +61,16 @@ resource "azuresql_user" "user" {
 ~> The generated password consists of 20 characters with at least 3 special characters, 4 numbers and 5 upper case letters.
 
 - `sid` (String) sid of the login on the server.
+
+## ID structure
+
+The ID is formed as `<server>`/login/`<name>`/`<sid>`, where
+* `<server>` is the ID of the `azuresql_sqlserver` or `azuresql_synapseserver` resource.
+* `<name>` is the login name.
+* `<sid>` is the id of the login on the server. It can be found by running `select suser_sid('<name of the user assuming the login>')`.
+
+## Import
+
+You can import a login using 
+
+```terraform import azuresql_login.<resource name> <id>```

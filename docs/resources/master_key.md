@@ -6,7 +6,7 @@ description: |-
   Manage the database master key.
 ---
 
-# azuresql_schema (Resource)
+# azuresql_master_key (Resource)
 
 Manage the database master key.
 
@@ -48,3 +48,8 @@ resource "azuresql_master_key" "example" {
 - `password` (String) Auto generated password for the master key.
 
 ~> The generated password consists of 20 characters with at least 3 special characters, 4 numbers and 5 upper case letters.
+
+## ID structure
+
+The ID is formed as `<database>`/masterkey, where
+* `<database>` is the ID of the `azuresql_database` resource.

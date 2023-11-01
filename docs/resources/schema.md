@@ -52,3 +52,15 @@ resource "azuresql_schema" "schema" {
 
 - `id` (String) azuresql ID of the schema resource.
 - `schema_id` (Number) ID of the schema in the database.
+
+## ID structure
+
+The ID is formed as `<database>`/schema/`<schema id>`, where
+* `<database>` is the ID of the `azuresql_database` resource.
+* `<schema id>` is the id of the schema in the database. It can be found by running `select schema_id('<schema name>')`.
+
+## Import
+
+You can import a schema using 
+
+```terraform import azuresql_schema.<resource name> <id>```

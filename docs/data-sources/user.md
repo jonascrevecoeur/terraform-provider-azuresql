@@ -60,3 +60,9 @@ data "azuresql_user" "serveruser" {
 - `authentication` (String) The user authentication mode. Possible values are `AzureAD`, `SQLLogin` and `WithoutLogin`.
 - `principal_id` (Number) Principal ID of the user in the database.
 - `type` (String) Database/Server user type. Possible values `SQL user`, `AD group`, `AD user`. 
+
+## ID structure
+
+The ID is formed as `<connection>`/user/`<principal id>`, where
+* `<connection>` is the azuresql ID of the database or server where the resource exists.
+* `<principal_id>` is the id of the user in the database. It can be found by running `select database_principal_id('<user name>')`.

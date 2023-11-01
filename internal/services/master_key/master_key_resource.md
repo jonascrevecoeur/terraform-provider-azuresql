@@ -6,7 +6,7 @@ description: |-
   Manage the database master key.
 ---
 
-# azuresql_schema (Resource)
+# azuresql_master_key (Resource)
 
 Manage the database master key.
 

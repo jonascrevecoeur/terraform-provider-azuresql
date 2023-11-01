@@ -6,7 +6,7 @@ description: |-
   Execute an SQL query.
 ---
 
-# azuresql_table (Data Source)
+# azuresql_execute_sql (Data Source)
 
 Executes an SQL query without returning any results. This resource acts as an escape hatch for operations that are not supported by this provider.
 

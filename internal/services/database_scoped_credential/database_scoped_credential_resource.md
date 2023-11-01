@@ -6,7 +6,7 @@ description: |-
   Manage database scoped credentials.
 ---
 
-# azuresql_schema (Resource)
+# azuresql_database_scoped_credential (Resource)
 
 Manage database scoped credentials.
 

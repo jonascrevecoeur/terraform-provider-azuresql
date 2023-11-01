@@ -49,4 +49,10 @@ data "azuresql_database" "synapsedatabase" {
 
 ### Read-Only
 
-- `id` (String) ID of the sqlserver connection in `azuresql`. This ID is passed to other `azuresql` resources and data sources to indicate that the resource should be created in/read from this database, respectively.
+- `id` (String) ID of the sqlserver connection in `azuresql`. This ID is passed to other `azuresql` resources and data sources to indicate that the resource should be created in/read from this database, respectively. 
+
+## ID structure
+
+The ID is formed as `<server>:<name>`, where
+* `<server>` is the ID of the `azuresql_sqlserver` or `azuresql_synapseserver` resource.
+* `<name>` is the name of the database.

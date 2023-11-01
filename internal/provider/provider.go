@@ -5,6 +5,7 @@ import (
 	"terraform-provider-azuresql/internal/services/database"
 	"terraform-provider-azuresql/internal/services/database_scoped_credential"
 	"terraform-provider-azuresql/internal/services/execute_sql"
+	"terraform-provider-azuresql/internal/services/external_data_source"
 	"terraform-provider-azuresql/internal/services/function"
 	"terraform-provider-azuresql/internal/services/master_key"
 	"terraform-provider-azuresql/internal/services/permission"
@@ -82,6 +83,7 @@ func (p *azuresql_provider) DataSources(_ context.Context) []func() datasource.D
 		function.NewFunctionDataSource,
 		table.NewTableDataSource,
 		execute_sql.NewExecuteSQLDataSource,
+		external_data_source.NewExternalDataSourceDataSource,
 	}
 }
 
@@ -99,5 +101,6 @@ func (p *azuresql_provider) Resources(_ context.Context) []func() resource.Resou
 		role_assignment.NewRoleAssignmentResource,
 		master_key.NewMasterKeyResource,
 		database_scoped_credential.NewDatabaseScopedCredentialResource,
+		external_data_source.NewExternalDataSourceResource,
 	}
 }

@@ -6,7 +6,7 @@ description: |-
   Manage database scoped credentials.
 ---
 
-# azuresql_schema (Resource)
+# azuresql_database_scoped_credential (Resource)
 
 Manage database scoped credentials.
 
@@ -66,3 +66,17 @@ resource "azuresql_database_scoped_credential" "example" {
 
 - `id` (String) azuresql ID of the master key resource.
 - `credential_id` (String) ID of the credential in the database.
+
+## ID structure
+
+The ID is formed as `<database>`/databasescopedcredential/`<credential_id>`, where
+* `<database>` is the ID of the `azuresql_database` resource.
+* `<credential_id>` is the id of the credential in the database. This can be retrieved using the following query. 
+
+```select credential_id from sys.database_scoped_credentials where name = '<name>'```
+
+## Import
+
+You can import a database_scoped_credential using 
+
+```terraform import azuresql_dabase_scoped_credential.<resource name> <id>```
