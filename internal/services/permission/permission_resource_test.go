@@ -2,6 +2,7 @@ package permission_test
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"terraform-provider-azuresql/internal/acceptance"
 	"testing"
@@ -174,6 +175,30 @@ func TestAccCreatePermissionTableRole(t *testing.T) {
 	}
 }
 
+func TestAccCreatePermissionViewUser(t *testing.T) {
+	acceptance.PreCheck(t)
+	data := acceptance.BuildTestData(t)
+	r := PermissionResource{}
+
+	connections := []string{
+		data.SQLDatabase_connection,
+		data.SynapseDatabase_connection,
+	}
+
+	for _, connection := range connections {
+		print(fmt.Sprintf("\n\nRunning test for connection %s\n\n", connection))
+
+		resource.Test(t, resource.TestCase{
+			Steps: []resource.TestStep{
+				{
+					Config:                   r.viewUser(connection, data.RandomString, "select"),
+					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+				},
+			},
+		})
+	}
+}
+
 func testAccCheckPermissionId(permission_obj string, target_obj string, target_field string, principal_obj string, permissionType string, permissionString string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		permission, ok := s.RootModule().Resources[permission_obj]
@@ -327,6 +352,38 @@ func (r PermissionResource) tableRole(connection string, name string, permission
 			permission  = local.permissions[count.index]
 		}
 	`, r.template(), connection, name, strings.Join(permissions, "\",\""))
+}
+
+func (r PermissionResource) viewUser(connection string, name string, permission string) string {
+
+	return fmt.Sprintf(`
+		%[1]s
+
+		data "azuresql_schema" "dbo" {
+			database 	= "%[2]s"
+			name 		= "dbo"
+		}
+
+		resource "azuresql_view" "test" {
+			database 	= "%[2]s"
+			name        = "tfview_%[3]s"
+			schema		= data.azuresql_schema.dbo.id
+			definition	= "select top 10 * from sys.objects"
+		}
+
+		resource "azuresql_user" "test" {
+			database 		= "%[2]s"
+			name        	= "%[5]s"
+			authentication 	= "AzureAD"
+		}
+
+		resource "azuresql_permission" "test" {
+			database 	= "%[2]s"
+			scope 		= azuresql_view.test.id
+			principal   = azuresql_user.test.id
+			permission  = "%[4]s"
+		}
+	`, r.template(), connection, name, permission, os.Getenv("AZURE_AD_GROUP"))
 }
 
 func (r PermissionResource) databaseScopedCredential_user(connection string, name string, permission string) string {

@@ -23,6 +23,10 @@ func viewFormatId(connectionId string, objectId int64) string {
 	return fmt.Sprintf("%s/view/%d", connectionId, objectId)
 }
 
+func isViewId(id string) bool {
+	return strings.Contains(id, "/view/")
+}
+
 func ParseViewId(ctx context.Context, id string) (view View) {
 	s := strings.Split(id, "/view/")
 

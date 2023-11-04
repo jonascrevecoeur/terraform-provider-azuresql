@@ -74,11 +74,11 @@ The ID is formed as `<connection>`/permission/`<principal>/<permission>/<permiss
   * `database` for database permissions
   * `server` for server permissions
   * `schema` for schema permissions
-  * `object` for table permissions
+  * `object` for table or view permissions
   * `databasescopedcredential` for database scoped credential permissions
 * `<scope>`: The id of the scope in the database/server
   * `0` for database permissions
   * `0` for server permissions
   * `schema_id` for schema permissions. Can be retrieved as `select schema_id('<schema name>')`
-  * `object` for table permissions. Can be retrieved as `select object_id('<schema name>.<table name>')`
+  * `object id` for table or view permissions. Can be retrieved as `select object_id('<schema name>.<table or view name>')`
   * `databasescopedcredential` for database scoped credential permissions. Can be retrieved as `select credential_id from sys.database_scoped_credentials where name = '<name>'`
