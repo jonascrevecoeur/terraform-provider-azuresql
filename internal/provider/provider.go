@@ -19,6 +19,7 @@ import (
 	"terraform-provider-azuresql/internal/services/synapseserver"
 	"terraform-provider-azuresql/internal/services/table"
 	"terraform-provider-azuresql/internal/services/user"
+	"terraform-provider-azuresql/internal/services/view"
 	"terraform-provider-azuresql/internal/sql"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -102,5 +103,6 @@ func (p *azuresql_provider) Resources(_ context.Context) []func() resource.Resou
 		master_key.NewMasterKeyResource,
 		database_scoped_credential.NewDatabaseScopedCredentialResource,
 		external_data_source.NewExternalDataSourceResource,
+		view.NewViewResource,
 	}
 }
