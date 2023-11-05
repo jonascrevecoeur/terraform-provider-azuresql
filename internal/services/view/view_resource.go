@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -67,6 +68,19 @@ func (r *ViewResource) Schema(_ context.Context, _ resource.SchemaRequest, resp 
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
+			"schemabinding": schema.BoolAttribute{
+				Optional: true,
+				Computed: true,
+				Default:  booldefault.StaticBool(false),
+				Description: `If set to true, prevents the referenced objects to be changed in any way that would break 
+				the functionality of the function.`,
+			},
+			"check_option": schema.BoolAttribute{
+				Optional:    true,
+				Computed:    true,
+				Default:     booldefault.StaticBool(false),
+				Description: `If true, all data modification statements in the view have to match the select statements. [(official docs)](https://learn.microsoft.com/en-us/sql/t-sql/statements/create-view-transact-sql?view=sql-server-ver16#check-option)`,
+			},
 			"definition": schema.StringAttribute{
 				Required:    true,
 				Description: "Definition of the view.",
@@ -96,7 +110,7 @@ func (r *ViewResource) Create(ctx context.Context, req resource.CreateRequest, r
 		return
 	}
 
-	view := sql.CreateViewFromDefinition(ctx, connection, name, plan.Schema.ValueString(), plan.Definition.ValueString())
+	view := sql.CreateViewFromDefinition(ctx, connection, name, plan.Schema.ValueString(), plan.Definition.ValueString(), plan.Schemabinding.ValueBool(), plan.CheckOption.ValueBool())
 
 	if logging.HasError(ctx) {
 		if view.Id != "" {
@@ -152,6 +166,9 @@ func (r *ViewResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	if !sql.IsViewDefinitionEquivalent(ctx, state.Definition.ValueString(), view.Definition) {
 		state.Definition = types.StringValue(view.Definition)
 	}
+
+	state.Schemabinding = types.BoolValue(view.Schemabinding)
+	state.CheckOption = types.BoolValue(view.CheckOption)
 
 	state.Schema = types.StringValue(view.Schema)
 

@@ -11,12 +11,14 @@ import (
 )
 
 type View struct {
-	Id         string
-	Connection string
-	Name       string
-	ObjectId   int64
-	Schema     string
-	Definition string
+	Id            string
+	Connection    string
+	Name          string
+	ObjectId      int64
+	Schema        string
+	Schemabinding bool
+	CheckOption   bool
+	Definition    string
 }
 
 func viewFormatId(connectionId string, objectId int64) string {
@@ -52,7 +54,7 @@ func ParseViewId(ctx context.Context, id string) (view View) {
 	return
 }
 
-func CreateViewFromDefinition(ctx context.Context, connection Connection, name string, schemaResourceId string, definition string) (view View) {
+func CreateViewFromDefinition(ctx context.Context, connection Connection, name string, schemaResourceId string, definition string, schemabinding bool, checkOption bool) (view View) {
 
 	schema := GetSchemaFromId(ctx, connection, schemaResourceId, true)
 
@@ -60,11 +62,22 @@ func CreateViewFromDefinition(ctx context.Context, connection Connection, name s
 		return
 	}
 
+	arg_schemabinding := ""
+	if schemabinding {
+		arg_schemabinding = "with schemabinding"
+	}
+
+	arg_checkoption := ""
+	if checkOption {
+		arg_checkoption = "with check option"
+	}
+
 	query := fmt.Sprintf(`
-		create view %s.%s as (
-			%s
-		)
-	`, schema.Name, name, definition)
+create view %s.%s %s as (
+	%s
+)
+%s
+	`, schema.Name, name, arg_schemabinding, definition, arg_checkoption)
 
 	_, err := connection.Connection.ExecContext(ctx, query)
 
@@ -83,6 +96,8 @@ func CreateViewFromDefinition(ctx context.Context, connection Connection, name s
 
 func cleanDefinition(definition string) string {
 	retval := strings.TrimSpace(definition)
+	retval = strings.TrimSuffix(retval, "with check option")
+	retval = strings.TrimSpace(retval)
 	if retval[0] == '(' && retval[len(retval)-1] == ')' {
 		retval = strings.TrimSpace(retval[2:(len(retval) - 1)])
 	}
@@ -102,6 +117,11 @@ func extractViewDefintion(ctx context.Context, statement string) (defintion stri
 	return cleanDefinition(split[1])
 }
 
+func extractViewCheckOption(ctx context.Context, statement string) bool {
+	value, _ := regexp.MatchString("(?i)with check option", statement)
+	return value
+}
+
 func IsViewDefinitionEquivalent(ctx context.Context, definition1 string, definition2 string) bool {
 	if definition1 == "" || definition2 == "" {
 		return (definition1 == "" && definition2 == "")
@@ -112,16 +132,17 @@ func IsViewDefinitionEquivalent(ctx context.Context, definition1 string, definit
 
 func GetViewFromNameAndSchema(ctx context.Context, connection Connection, name string, schemaResourceId string, requiresExist bool) (view View) {
 	var statement string
+	var schemabinding bool
 	schema := ParseSchemaId(ctx, schemaResourceId)
 
 	query := `
-		select obj.object_id, mod.definition from sys.objects obj 
+		select obj.object_id, mod.definition, mod.is_schema_bound from sys.objects obj 
 		inner join sys.sql_modules mod
 		on obj.object_id = mod.object_id
 		where obj.name = @name and obj.schema_id = @schema_id 
 		and type = 'V'`
 
-	err := connection.Connection.QueryRowContext(ctx, query, sql.Named("name", name), sql.Named("schema_id", schema.SchemaId)).Scan(&view.ObjectId, &statement)
+	err := connection.Connection.QueryRowContext(ctx, query, sql.Named("name", name), sql.Named("schema_id", schema.SchemaId)).Scan(&view.ObjectId, &statement, &schemabinding)
 	switch {
 	case err == sql.ErrNoRows:
 		if requiresExist {
@@ -136,7 +157,9 @@ func GetViewFromNameAndSchema(ctx context.Context, connection Connection, name s
 	view.Id = viewFormatId(connection.ConnectionId, view.ObjectId)
 	view.Schema = schemaResourceId
 	view.Name = name
+	view.Schemabinding = schemabinding
 	view.Definition = extractViewDefintion(ctx, statement)
+	view.CheckOption = extractViewCheckOption(ctx, statement)
 
 	return
 }
@@ -144,14 +167,16 @@ func GetViewFromNameAndSchema(ctx context.Context, connection Connection, name s
 func GetViewFromObjectId(ctx context.Context, connection Connection, objectId int64, requiresExist bool) (view View) {
 	var statement string
 	var schemaId int64
+	var schemabinding bool
+
 	query := `
-		select obj.schema_id, obj.name, mod.definition from sys.objects obj 
+		select obj.schema_id, obj.name, mod.definition, mod.is_schema_bound from sys.objects obj 
 		inner join sys.sql_modules mod
 		on obj.object_id = mod.object_id
 		where obj.object_id = @object_id
 		and type = 'V'`
 
-	err := connection.Connection.QueryRowContext(ctx, query, sql.Named("object_id", objectId)).Scan(&schemaId, &view.Name, &statement)
+	err := connection.Connection.QueryRowContext(ctx, query, sql.Named("object_id", objectId)).Scan(&schemaId, &view.Name, &statement, &schemabinding)
 	switch {
 	case err == sql.ErrNoRows:
 		if requiresExist {
@@ -168,6 +193,8 @@ func GetViewFromObjectId(ctx context.Context, connection Connection, objectId in
 	view.Schema = schemaFormatId(connection.ConnectionId, schemaId)
 	view.Connection = connection.ConnectionId
 	view.Definition = extractViewDefintion(ctx, statement)
+	view.Schemabinding = schemabinding
+	view.CheckOption = extractViewCheckOption(ctx, statement)
 
 	return
 }

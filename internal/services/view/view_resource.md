@@ -58,6 +58,11 @@ resource "azuresql_view" "example" {
 - `schema` (String) ID of the `azuresql_schema` in which the view should be created.
 - `definition` (String) SQL statement executed by the view
 
+### optional
+
+- `schemabinding` (bool) When set to `true`, the database determines the referenced resources in the view and prevents their modification in any way that would break the view. Defaults to `false`.
+
+- `check_option` (bool) If true, all data modification statements in the view have to match the select statements. [(official docs)](https://learn.microsoft.com/en-us/sql/t-sql/statements/create-view-transact-sql?view=sql-server-ver16#check-option). Defaults to `false`.
 
 ### Read-Only
 
