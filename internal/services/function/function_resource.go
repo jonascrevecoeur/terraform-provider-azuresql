@@ -7,10 +7,16 @@ import (
 	"terraform-provider-azuresql/internal/logging"
 	"terraform-provider-azuresql/internal/sql"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -67,14 +73,82 @@ func (r *FunctionResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
+			"properties": schema.SingleNestedAttribute{
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.Object{
+					objectplanmodifier.RequiresReplace(),
+				},
+				Attributes: map[string]schema.Attribute{
+					"arguments": schema.ListNestedAttribute{
+						Optional: true,
+						NestedObject: schema.NestedAttributeObject{
+							Attributes: map[string]schema.Attribute{
+								"name": schema.StringAttribute{
+									Required: true,
+								},
+								"type": schema.StringAttribute{
+									Required: true,
+								},
+							},
+						},
+					},
+					"return_type": schema.StringAttribute{
+						Description: "Type of the returned value.",
+						Required:    true,
+					},
+					"executor": schema.StringAttribute{
+						Optional: true,
+						Computed: true,
+						Default:  stringdefault.StaticString("caller"),
+					},
+					"schemabinding": schema.BoolAttribute{
+						Optional: true,
+						Computed: true,
+						Default:  booldefault.StaticBool(true),
+						Description: `If set to true, prevents the referenced objects to be changed in any way that would break 
+						the functionality of the function.`,
+					},
+					"definition": schema.StringAttribute{
+						Required: true,
+					},
+				},
+			},
 			"raw": schema.StringAttribute{
-				Required:    true,
+				Optional:    true,
+				Computed:    true,
 				Description: "Raw definition of the function.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
+				Validators: []validator.String{
+					stringvalidator.ExactlyOneOf(path.Expressions{
+						path.MatchRoot("properties"),
+					}...),
+				},
 			},
 		},
+	}
+}
+
+func GetFunctionProps(rm *FunctionPropertiesResourceModel) (props sql.FunctionProps) {
+	if rm == nil {
+		return sql.FunctionProps{}
+	} else {
+		var arguments []sql.FunctionArgument
+		for _, argument := range rm.Arguments {
+			arguments = append(arguments, sql.FunctionArgument{
+				Name: argument.Name.ValueString(),
+				Type: argument.Type.ValueString(),
+			})
+		}
+		return sql.FunctionProps{
+			Arguments:     arguments,
+			ReturnType:    rm.ReturnType.ValueString(),
+			Definition:    rm.Definition.ValueString(),
+			Executor:      rm.Executor.ValueString(),
+			Schemabinding: rm.Schemabinding.ValueBool(),
+		}
 	}
 }
 
@@ -96,7 +170,12 @@ func (r *FunctionResource) Create(ctx context.Context, req resource.CreateReques
 		return
 	}
 
-	function := sql.CreateFunctionFromDefinition(ctx, connection, name, plan.Schema.ValueString(), plan.Raw.ValueString())
+	var function sql.Function
+	if plan.Properites == nil {
+		function = sql.CreateFunctionFromRaw(ctx, connection, name, plan.Schema.ValueString(), plan.Raw.ValueString())
+	} else {
+		function = sql.CreateFunctionFromProperties(ctx, connection, name, plan.Schema.ValueString(), GetFunctionProps(plan.Properites))
+	}
 
 	if logging.HasError(ctx) {
 		if function.Id != "" {
@@ -110,6 +189,7 @@ func (r *FunctionResource) Create(ctx context.Context, req resource.CreateReques
 
 	plan.Id = types.StringValue(function.Id)
 	plan.ObjectId = types.Int64Value(function.ObjectId)
+	plan.Raw = types.StringValue(function.Raw)
 
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
