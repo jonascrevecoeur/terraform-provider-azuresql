@@ -55,19 +55,19 @@ resource "azuresql_external_data_source" "example" {
 
 ## Schema
 
-### Required
+### Argument reference
+The following arguments are supported:
 
-- `database` (String) The ID of the database in which the external data source is registered.
+- `database` (Requied, String) The ID of the database in which the external data source is registered.
 
-- `name` (String) Name of the external data source.
+- `name` (Required, String) Name of the external data source.
 
-- `location` (String) Location (path) of the external data source.
+- `location` (Requiered, String) Location (path) of the external data source.
 
-### Optional
+- `credential` (Optional, String) Id of the credential (`azuresql_database_scoped_credential`) used to access the external data source. Can be left empty for external data sources allowing anonymous access.
 
-- `credential` (String) Id of the credential (`azuresql_database_scoped_credential`) used to access the external data source. Can be left empty for external data sources allowing anonymous access.
-
-### Read-Only
+### Attributes Reference
+In addition to the arguments listed above, the following read only attributes are exported:
 
 - `id` (String) The azuresql ID of the external data source resource.
 - `data_source_id` (Number) ID of the external data source in the database.
@@ -83,4 +83,6 @@ The ID is formed as `<database>`/externaldatasource/`<data source id>`, where
 
 You can import an external data source using 
 
-```terraform import azuresql_external_data_source.<resource name> <id>```
+```shell
+terraform import azuresql_external_data_source.<resource name> <id>
+```

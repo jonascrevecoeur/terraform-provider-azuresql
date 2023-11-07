@@ -22,12 +22,12 @@ provider "azuresql" {
 }
 
 data "azuresql_sqlserver" "server" {
-  server = "mysqlserver"
+  server  = "mysqlserver"
 }
 
 data "azuresql_database" "database" {
-  server = data.azuresql_sqlserver.server.id
-  name   = "mydatabase"
+  server  = data.azuresql_sqlserver.server.id
+  name    = "mydatabase"
 }
 
 
@@ -38,18 +38,18 @@ data "azuresql_schema" "dbo" {
 
 # Define a function via the properties argument
 resource "azuresql_function" "sum_props" {
-  database = data.azuresql_database.database.id
-  name     = "sum"
-  schema   = data.azuresql_schema.dbo.id
+  database  = data.azuresql_database.database.id
+  name      = "sum"
+  schema    = data.azuresql_schema.dbo.id
   properties = {
     arguments = [
       {
-        name = "a"
-        type = "int"
+        name  = "a"
+        type  = "int"
       },
       {
-        name = "b"
-        type = "int"
+        name  = "b"
+        type  = "int"
       }
     ]
     executor      = "self"
@@ -61,9 +61,9 @@ resource "azuresql_function" "sum_props" {
 
 # Define the same function via the raw argument
 resource "azuresql_function" "sum_raw" {
-    database 	  = data.azuresql_database.database.id
+    database    = data.azuresql_database.database.id
     name        = "sum2"
-    schema		  = data.azuresql_schema.dbo.id
+    schema      = data.azuresql_schema.dbo.id
     raw         = <<-EOT
         create function dbo.sum2(@a int, @b int)
         returns int
@@ -86,32 +86,32 @@ resource "azuresql_function" "sum_raw" {
 ### Argument reference
 The following arguments are supported:
 
-- `database` (Required, string) ID of the database where the function should be created.
-- `name` (Required, string) Name of the function
-- `schema` (Required, string) ID of the `azuresql_schema` in which the function should be created.
-- `raw` (Optional, string) SQL query used to create the function. When `raw` is specified, `properties` can not be specified.
+- `database` (Required, String) ID of the database where the function should be created.
+- `name` (Required, String) Name of the function
+- `schema` (Required, String) ID of the `azuresql_schema` in which the function should be created.
+- `raw` (Optional, String) SQL query used to create the function. When `raw` is specified, `properties` can not be specified.
 - `properties` (Optional, `<properties>`) A properties block `properties` as defined below.  When `properties` is specified, `raw` can not be specified.
 
 ---
 A `properties` block supports the following:
 
-- `arguments` (Optional, list<`argument`>) List of `argument` blocks specifying the input arguments of the function. The `argument` block is defined below.
-- `return_type` (Required, string) Return type of the function.
-- `executor` (Optional, string) Specify the [execution context](https://learn.microsoft.com/en-us/sql/t-sql/statements/execute-as-clause-transact-sql) for the function. Allowed values are `"caller"`, `"self"`, `"owner"` or the name of an existing database user. Default value `"caller"`. Only `executor = "caller"` is supported in Synapse or when defining table valued functions. 
+- `arguments` (Optional, List<`argument`>) List of `argument` blocks specifying the input arguments of the function. The `argument` block is defined below.
+- `return_type` (Required, String) Return type of the function.
+- `executor` (Optional, String) Specify the [execution context](https://learn.microsoft.com/en-us/sql/t-sql/statements/execute-as-clause-transact-sql) for the function. Allowed values are `"caller"`, `"self"`, `"owner"` or the name of an existing database user. Default value `"caller"`. Only `executor = "caller"` is supported in Synapse or when defining table valued functions. 
 - `schemabinding` (Optional, bool) When set to `true`, the database determines the referenced resources in the function and prevents their modification in any way that would break the function. Default is `true`.
-- `definition` (Required, string) Query executed by the function.
+- `definition` (Required, String) Query executed by the function.
 
 ---
 An `argument` block supports the following:
 
-- `name` (Required, string) name of the variable. This variable can be referenced in the function definition as `@<name>`.
-- `type` (Required, string) type of the variable.
+- `name` (Required, String) name of the variable. This variable can be referenced in the function definition as `@<name>`.
+- `type` (Required, String) type of the variable.
 
 ### Attributes Reference
 In addition to the arguments listed above, the following read only attributes are exported:
 
-- `id` azuresql ID of the function resource.
-- `object_id` ID of the function object in the database
+- `id` (String) azuresql ID of the function resource.
+- `object_id` (String) ID of the function object in the database
 
 ## ID structure
 
