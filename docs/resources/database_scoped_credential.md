@@ -48,21 +48,21 @@ resource "azuresql_database_scoped_credential" "example" {
 
 ## Schema
 
-### Required
+### Argument reference
+The following arguments are supported:
 
-- `database` (String) Id of the database in which the database scoped credential is created.
+- `database` (Requied, String) Id of the database in which the database scoped credential is created.
 
-- `name` (String) Name of the database scoped credential.
+- `name` (Required, String) Name of the database scoped credential.
 
-- `identity` (String) Identity used by the database scoped credential.
+- `identity` (Required, String) Identity used by the database scoped credential.
 
 ~> In Synapse serverless, the identity can be set to to be an existing Azure AD user, Service principal or "Managed Identity" or "SHARED ACCESS SIGNATURE". In an Azure SQL database any value can be specified.
 
-### Optional
+- `secret` (Optional, String) Secret used to login to the specified identity. Can be left blank for anonymous access.
 
-- `secret` (String) Secret used to login to the specified identity. Can be left blank for anonymous access.
-
-### Read-Only
+### Attributes Reference
+In addition to the arguments listed above, the following read only attributes are exported:
 
 - `id` (String) azuresql ID of the master key resource.
 - `credential_id` (String) ID of the credential in the database.
@@ -79,4 +79,6 @@ The ID is formed as `<database>`/databasescopedcredential/`<credential_id>`, whe
 
 You can import a database_scoped_credential using 
 
-```terraform import azuresql_dabase_scoped_credential.<resource name> <id>```
+```shell
+terraform import azuresql_dabase_scoped_credential.<resource name> <id>
+```
