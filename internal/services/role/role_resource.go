@@ -97,7 +97,7 @@ func (r RoleResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanReq
 
 	server := state.Server.ValueString()
 	database := state.Database.ValueString()
-	connection := r.ConnectionCache.Connect_server_or_database(ctx, server, database)
+	connection := r.ConnectionCache.Connect_server_or_database(ctx, server, database, false)
 
 	// in Synapse serverless alter authorization cannot be used
 	// -> a replace is required when owner changes
@@ -119,7 +119,7 @@ func (r *RoleResource) Create(ctx context.Context, req resource.CreateRequest, r
 	name := plan.Name.ValueString()
 	server := plan.Server.ValueString()
 	database := plan.Database.ValueString()
-	connection := r.ConnectionCache.Connect_server_or_database(ctx, server, database)
+	connection := r.ConnectionCache.Connect_server_or_database(ctx, server, database, true)
 
 	if logging.HasError(ctx) {
 		return
@@ -169,9 +169,14 @@ func (r *RoleResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	server := state.Server.ValueString()
 	database := state.Database.ValueString()
 
-	connection := r.ConnectionCache.Connect_server_or_database(ctx, server, database)
+	connection := r.ConnectionCache.Connect_server_or_database(ctx, server, database, false)
 
 	if logging.HasError(ctx) {
+		return
+	}
+
+	if connection.ConnectionResourceStatus == sql.ConnectionResourceStatusNotFound {
+		resp.State.RemoveResource(ctx)
 		return
 	}
 
@@ -239,7 +244,7 @@ func (r *RoleResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	// so they are identical for state/plan
 	server := state.Server.ValueString()
 	database := state.Database.ValueString()
-	connection := r.ConnectionCache.Connect_server_or_database(ctx, server, database)
+	connection := r.ConnectionCache.Connect_server_or_database(ctx, server, database, true)
 	id := state.Id.ValueString()
 
 	// update name
@@ -282,9 +287,13 @@ func (r *RoleResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 
 	server := state.Server.ValueString()
 	database := state.Database.ValueString()
-	connection := r.ConnectionCache.Connect_server_or_database(ctx, server, database)
+	connection := r.ConnectionCache.Connect_server_or_database(ctx, server, database, false)
 
 	if logging.HasError(ctx) {
+		return
+	}
+
+	if connection.ConnectionResourceStatus == sql.ConnectionResourceStatusNotFound {
 		return
 	}
 
@@ -311,7 +320,7 @@ func (r *RoleResource) ImportState(ctx context.Context, req resource.ImportState
 		return
 	}
 
-	connection = r.ConnectionCache.Connect(ctx, connection.ConnectionId, connection.IsServerConnection)
+	connection = r.ConnectionCache.Connect(ctx, connection.ConnectionId, connection.IsServerConnection, true)
 
 	if logging.HasError(ctx) {
 		return

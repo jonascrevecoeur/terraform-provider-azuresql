@@ -22,10 +22,13 @@ import (
 	"terraform-provider-azuresql/internal/services/view"
 	"terraform-provider-azuresql/internal/sql"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/boolvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -59,12 +62,43 @@ func (p *azuresql_provider) Schema(_ context.Context, _ provider.SchemaRequest, 
 			" azuresql authenticates using the [Azure default credential chain](https://learn.microsoft.com/en-us/dotnet/api/azure.identity.defaultazurecredential)." +
 			" By authentiation to Azure instead of a specific database/server instance, the provider can be used to manage multiple SQL databases/servers at once." +
 			"\\\n\\\n" +
-			"The identitiy using this providers requires full control on the database/server to be configured."}
+			"The identitiy using this providers requires full control on the database/server to be configured.",
+		Attributes: map[string]schema.Attribute{
+			"subscription_id": schema.StringAttribute{
+				Optional: true,
+			},
+			"check_server_exists": schema.BoolAttribute{
+				Optional: true,
+				Validators: []validator.Bool{
+					boolvalidator.AlsoRequires(path.Expressions{
+						path.MatchRoot("subscription_id"),
+					}...),
+				},
+			},
+			"check_database_exists": schema.BoolAttribute{
+				Optional: true,
+			},
+		},
+	}
 }
 
 func (p *azuresql_provider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+	var config ProviderConfigModel
+	resp.Diagnostics.Append(
+		req.Config.Get(ctx, &config)...,
+	)
 
-	cache := sql.NewCache()
+	var check_database_exists bool
+	if config.CheckDatabaseExists.IsNull() {
+		check_database_exists = true
+	} else {
+		check_database_exists = config.CheckDatabaseExists.ValueBool()
+	}
+
+	cache := sql.NewCache(
+		config.SubscriptionId.ValueString(),
+		config.CheckServerExists.ValueBool(),
+		check_database_exists)
 
 	resp.DataSourceData = &cache
 	resp.ResourceData = &cache

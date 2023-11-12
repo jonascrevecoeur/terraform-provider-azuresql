@@ -104,7 +104,7 @@ func (r *ViewResource) Create(ctx context.Context, req resource.CreateRequest, r
 
 	name := plan.Name.ValueString()
 	database := plan.Database.ValueString()
-	connection := r.ConnectionCache.Connect(ctx, database, false)
+	connection := r.ConnectionCache.Connect(ctx, database, false, true)
 
 	if logging.HasError(ctx) {
 		return
@@ -143,9 +143,14 @@ func (r *ViewResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	)
 
 	database := state.Database.ValueString()
-	connection := r.ConnectionCache.Connect(ctx, database, false)
+	connection := r.ConnectionCache.Connect(ctx, database, false, false)
 
 	if logging.HasError(ctx) {
+		return
+	}
+
+	if connection.ConnectionResourceStatus == sql.ConnectionResourceStatusNotFound {
+		resp.State.RemoveResource(ctx)
 		return
 	}
 
@@ -214,9 +219,13 @@ func (r *ViewResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 	)
 
 	database := state.Database.ValueString()
-	connection := r.ConnectionCache.Connect(ctx, database, false)
+	connection := r.ConnectionCache.Connect(ctx, database, false, false)
 
 	if logging.HasError(ctx) {
+		return
+	}
+
+	if connection.ConnectionResourceStatus == sql.ConnectionResourceStatusNotFound {
 		return
 	}
 
@@ -238,7 +247,7 @@ func (r *ViewResource) ImportState(ctx context.Context, req resource.ImportState
 		return
 	}
 
-	connection := r.ConnectionCache.Connect(ctx, view.Connection, false)
+	connection := r.ConnectionCache.Connect(ctx, view.Connection, false, true)
 
 	if logging.HasError(ctx) {
 		return

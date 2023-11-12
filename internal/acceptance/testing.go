@@ -19,6 +19,7 @@ func PreCheck(t *testing.T) {
 		"AZURE_SYNAPSE_SERVER_PORT",
 		"AZURE_AD_USER",
 		"AZURE_AD_GROUP",
+		"AZURE_SUBSCRIPTION",
 	}
 
 	for _, variable := range variables {
@@ -30,10 +31,10 @@ func PreCheck(t *testing.T) {
 }
 
 func ExecuteSQL(connectionId string, query string) {
-	cache := sql.NewCache()
+	cache := sql.NewCache("", false, false)
 
 	isServer := len(strings.Split(connectionId, ":")) == 5
-	connection := cache.Connect(logging.GetTestContext(), connectionId, isServer)
+	connection := cache.Connect(logging.GetTestContext(), connectionId, isServer, true)
 
 	_, err := connection.Connection.Exec(query)
 	if err != nil {
