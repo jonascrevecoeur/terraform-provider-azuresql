@@ -19,6 +19,9 @@ Please give a description of the bug.
 
 **Terraform config**
 If applicable, please provide a minimal terraform configuration to reproduce the bug.
+```{hcl}
+<add your code here>
+```
 
 **Expected behavior**
 A clear and concise description of what you expected to happen.
