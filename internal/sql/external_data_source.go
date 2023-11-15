@@ -81,7 +81,7 @@ func CreateExternalDataSource(ctx context.Context, connection Connection, name s
 	}
 
 	query := fmt.Sprintf(`
-		create external data source %s
+		create external data source [%s]
 		with (location = '%s' %s %s)
 		`, name, location, credential_arg, type_arg)
 
