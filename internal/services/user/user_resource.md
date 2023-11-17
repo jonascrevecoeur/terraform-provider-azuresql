@@ -32,14 +32,14 @@ data "azuresql_database" "database" {
 
 # create a user in the database without login
 resource "azuresql_user" "sqluser" {
-  database       = azuresql_database.database.id
+  database       =data.azuresql_database.database.id
   name           = "myuser"
   authentication = "WithoutLogin"
 }
 
 # map an Azure AD user/group to a SQL user
 resource "azuresql_user" "aduser" {
-  database       = azuresql_database.database.id
+  database       =data.azuresql_database.database.id
   name           = "my-azure-ad-group"
   authentication = "AzureAD"
 }

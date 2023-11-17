@@ -30,17 +30,17 @@ data "azuresql_database" "database" {
 }
 
 data "azuresql_role" "myrole" {
-    database       = azuresql_database.database.id
+    database       =data.azuresql_database.database.id
     name           = "myrole"
 }
 
 data "azuresql_user" "myuser" {
-    database       = azuresql_database.database.id
+    database       =data.azuresql_database.database.id
     name           = "myuser"
 }
 
 resource "azuresql_role_assignment" "assign_myuser_myrole" {
-    database      = azuresql_database.database.id
+    database      =data.azuresql_database.database.id
     principal     = data.azuresql_user.myuser.id
     role          = data.azuresql_role.myrole.id
 }
