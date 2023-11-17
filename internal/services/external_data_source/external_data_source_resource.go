@@ -102,7 +102,7 @@ func (r *ExternalDataSourceResource) Create(ctx context.Context, req resource.Cr
 			logging.AddError(
 				ctx,
 				"ExternalDataSource already exists",
-				fmt.Sprintf("You can import this resource using `terraform import azuresql_externalDataSource.<name> %s", externalDataSource.Id))
+				fmt.Sprintf("You can import this resource using `terraform import azuresql_external_data_source.<name> %s", externalDataSource.Id))
 		}
 		return
 	}

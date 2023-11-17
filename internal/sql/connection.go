@@ -57,6 +57,7 @@ func (cache ConnectionCache) Connect(ctx context.Context, connectionId string, s
 			con, err := sql.Open("azuresql", connection.ConnectionString)
 			connection.Connection = con
 			if err == nil {
+				tflog.Debug(ctx, "Pinging database")
 				err = connection.Connection.PingContext(ctx)
 			}
 			return connection, err
