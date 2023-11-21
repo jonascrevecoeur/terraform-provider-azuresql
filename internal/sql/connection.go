@@ -6,6 +6,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 	"terraform-provider-azuresql/internal/logging"
@@ -59,6 +60,13 @@ func (cache ConnectionCache) Connect(ctx context.Context, connectionId string, s
 			if err == nil {
 				tflog.Debug(ctx, "Pinging database")
 				err = connection.Connection.PingContext(ctx)
+
+				error_sql_pool := regexp.MustCompile("The SQL pool is warming up.")
+				if err != nil && error_sql_pool.MatchString(err.Error()) {
+					tflog.Info(ctx, "Waiting 3 seconds for Synapse to prepare the SQL pools.")
+					time.Sleep(3 * time.Second)
+					err = nil
+				}
 			}
 			return connection, err
 		},
