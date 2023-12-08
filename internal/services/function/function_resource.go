@@ -75,7 +75,8 @@ func (r *FunctionResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 			},
 			"properties": schema.SingleNestedAttribute{
 				Optional: true,
-				Computed: true,
+				// Disabled for now - require a refactoring of the FunctionPropertiesResourceModel into a terraform type to work
+				// Computed: true,
 				PlanModifiers: []planmodifier.Object{
 					objectplanmodifier.RequiresReplace(),
 				},
