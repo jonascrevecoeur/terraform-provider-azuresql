@@ -37,7 +37,7 @@ func (r *ViewResource) Metadata(_ context.Context, req resource.MetadataRequest,
 
 func (r *ViewResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "SQL database or server user.",
+		Description: "Database view.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:    true,

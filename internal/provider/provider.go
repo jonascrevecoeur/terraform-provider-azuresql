@@ -85,6 +85,7 @@ func (p *azuresql_provider) DataSources(_ context.Context) []func() datasource.D
 		table.NewTableDataSource,
 		execute_sql.NewExecuteSQLDataSource,
 		external_data_source.NewExternalDataSourceDataSource,
+		view.NewViewDataSource,
 	}
 }
 
