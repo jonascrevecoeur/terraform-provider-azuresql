@@ -200,7 +200,6 @@ func (r *FunctionResource) Create(ctx context.Context, req resource.CreateReques
 
 	var plan FunctionResourceModel
 
-	tflog.Info(ctx, "Read - create function")
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -260,7 +259,6 @@ func (r *FunctionResource) Create(ctx context.Context, req resource.CreateReques
 func (r *FunctionResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	ctx = logging.WithDiagnostics(ctx, &resp.Diagnostics)
 
-	tflog.Info(ctx, "Read function")
 	var state FunctionResourceModel
 	resp.Diagnostics.Append(
 		req.State.Get(ctx, &state)...,
@@ -289,7 +287,6 @@ func (r *FunctionResource) Read(ctx context.Context, req resource.ReadRequest, r
 	state.Raw = types.StringValue(function.Raw)
 	state.Schema = types.StringValue(function.Schema)
 
-	tflog.Info(ctx, "Set function")
 	diags := resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
