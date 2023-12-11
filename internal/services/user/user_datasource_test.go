@@ -112,7 +112,7 @@ func (r UserDataSource) server_user_doesnt_exist(server string, random string) s
 		
 		data "azuresql_user" "test" {
 			server        = "%[1]s"
-			name           	= "user_%[2]s"
+			name          = "user_%[2]s"
 		}
 
 		`, server, random)

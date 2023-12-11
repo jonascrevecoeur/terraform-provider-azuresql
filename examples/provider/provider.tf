@@ -16,7 +16,7 @@ data "azuresql_database" "database" {
 # create a user in the database
 resource "azuresql_user" "test" {
   # every resource/datasource uses the database/server argument to determine where to create the resource
-  database       = azuresql_database.database.id
+  database       = data.azuresql_database.database.id
   name           = "myuser"
   authentication = "WithoutLogin"
 }

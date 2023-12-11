@@ -26,11 +26,11 @@ type FunctionArgumentResourceModel struct {
 }
 
 type FunctionResourceModel struct {
-	Id         types.String                     `tfsdk:"id"`
-	Database   types.String                     `tfsdk:"database"`
-	ObjectId   types.Int64                      `tfsdk:"object_id"`
-	Name       types.String                     `tfsdk:"name"`
-	Schema     types.String                     `tfsdk:"schema"`
-	Properites *FunctionPropertiesResourceModel `tfsdk:"properties"`
-	Raw        types.String                     `tfsdk:"raw"`
+	Id         types.String `tfsdk:"id"`
+	Database   types.String `tfsdk:"database"`
+	ObjectId   types.Int64  `tfsdk:"object_id"`
+	Name       types.String `tfsdk:"name"`
+	Schema     types.String `tfsdk:"schema"`
+	Properites types.Object `tfsdk:"properties"`
+	Raw        types.String `tfsdk:"raw"`
 }

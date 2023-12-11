@@ -30,7 +30,7 @@ data "azuresql_database" "database" {
 }
 
 resource "azuresql_role" "myrole" {
-    database  = azuresql_database.database.id
+    database  =data.azuresql_database.database.id
     name      = "myrole"
 }
 ```

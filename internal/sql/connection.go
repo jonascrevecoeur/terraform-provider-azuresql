@@ -214,22 +214,32 @@ func (cache ConnectionCache) Connect(ctx context.Context, connectionId string, s
 		func() (interface{}, error) {
 			connection := ParseConnectionId(ctx, connectionId)
 
+			if logging.HasError(ctx) {
+				tflog.Debug(ctx, fmt.Sprintf("Parsing of connectionId %s failed", connectionId))
+				return connection, nil
+			}
+
+			tflog.Debug(ctx, fmt.Sprintf("IsServerConnection: %t", connection.IsServerConnection))
 			if cache.CheckServerExists && connection.IsServerConnection {
+				tflog.Debug(ctx, fmt.Sprintf("Check server exists"))
 				connection.ConnectionResourceStatus = cache.ServerExists(ctx, connection)
 			}
 
 			if cache.CheckDatabaseExists && !connection.IsServerConnection {
+				tflog.Debug(ctx, fmt.Sprintf("Check database exists"))
 				connection.ConnectionResourceStatus = cache.DatabaseExists(ctx, connection)
 			}
 
 			if logging.HasError(ctx) || connection.ConnectionResourceStatus == ConnectionResourceStatusNotFound {
+				tflog.Debug(ctx, fmt.Sprintf("Connection %s not found", connectionId))
 				return connection, nil
 			}
 
 			con, err := sql.Open("azuresql", connection.ConnectionString)
 			connection.Connection = con
 			if err == nil {
-				tflog.Info(ctx, fmt.Sprintf("pinging context %v", err))
+				tflog.Debug(ctx, "Pinging database")
+				err = connection.Connection.PingContext(ctx)
 			}
 			return connection, err
 		},
