@@ -66,7 +66,7 @@ func (r *providerConfig) Read(ctx context.Context, req datasource.ReadRequest, r
 
 	connectionId := state.Server.ValueString()
 	tflog.Info(ctx, fmt.Sprintf("ConnectionId: %s", connectionId))
-	connection := r.ConnectionCache.Connect(ctx, connectionId, true)
+	connection := r.ConnectionCache.Connect(ctx, connectionId, true, true)
 	name := state.Name.ValueString()
 
 	login := sql.GetLoginFromName(ctx, connection, name)

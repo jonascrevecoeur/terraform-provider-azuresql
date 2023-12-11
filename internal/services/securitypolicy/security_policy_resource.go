@@ -77,7 +77,7 @@ func (r *SecurityPolicyResource) Create(ctx context.Context, req resource.Create
 	name := plan.Name.ValueString()
 	schema := plan.Schema.ValueString()
 	database := plan.Database.ValueString()
-	connection := r.ConnectionCache.Connect(ctx, database, false)
+	connection := r.ConnectionCache.Connect(ctx, database, false, true)
 
 	if logging.HasError(ctx) {
 		return
@@ -121,9 +121,14 @@ func (r *SecurityPolicyResource) Read(ctx context.Context, req resource.ReadRequ
 	)
 
 	database := state.Database.ValueString()
-	connection := r.ConnectionCache.Connect(ctx, database, false)
+	connection := r.ConnectionCache.Connect(ctx, database, false, false)
 
 	if logging.HasError(ctx) {
+		return
+	}
+
+	if connection.ConnectionResourceStatus == sql.ConnectionResourceStatusNotFound {
+		resp.State.RemoveResource(ctx)
 		return
 	}
 
@@ -185,9 +190,13 @@ func (r *SecurityPolicyResource) Delete(ctx context.Context, req resource.Delete
 	)
 
 	database := state.Database.ValueString()
-	connection := r.ConnectionCache.Connect(ctx, database, false)
+	connection := r.ConnectionCache.Connect(ctx, database, false, false)
 
 	if logging.HasError(ctx) {
+		return
+	}
+
+	if connection.ConnectionResourceStatus == sql.ConnectionResourceStatusNotFound {
 		return
 	}
 
@@ -208,7 +217,7 @@ func (r *SecurityPolicyResource) ImportState(ctx context.Context, req resource.I
 		return
 	}
 
-	connection := r.ConnectionCache.Connect(ctx, policy.Connection, false)
+	connection := r.ConnectionCache.Connect(ctx, policy.Connection, false, true)
 
 	if logging.HasError(ctx) {
 		return

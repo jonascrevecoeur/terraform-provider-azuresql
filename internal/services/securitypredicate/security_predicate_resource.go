@@ -116,7 +116,7 @@ func (r *SecurityPredicateResource) Create(ctx context.Context, req resource.Cre
 	rule := plan.Rule.ValueString()
 	predicateType := plan.Type.ValueString()
 	blockRestriction := plan.BlockRestriction.ValueString()
-	connection := r.ConnectionCache.Connect(ctx, database, false)
+	connection := r.ConnectionCache.Connect(ctx, database, false, true)
 
 	if logging.HasError(ctx) {
 		return
@@ -155,9 +155,14 @@ func (r *SecurityPredicateResource) Read(ctx context.Context, req resource.ReadR
 	)
 
 	database := state.Database.ValueString()
-	connection := r.ConnectionCache.Connect(ctx, database, false)
+	connection := r.ConnectionCache.Connect(ctx, database, false, false)
 
 	if logging.HasError(ctx) {
+		return
+	}
+
+	if connection.ConnectionResourceStatus == sql.ConnectionResourceStatusNotFound {
+		resp.State.RemoveResource(ctx)
 		return
 	}
 
@@ -237,9 +242,13 @@ func (r *SecurityPredicateResource) Delete(ctx context.Context, req resource.Del
 	)
 
 	database := state.Database.ValueString()
-	connection := r.ConnectionCache.Connect(ctx, database, false)
+	connection := r.ConnectionCache.Connect(ctx, database, false, false)
 
 	if logging.HasError(ctx) {
+		return
+	}
+
+	if connection.ConnectionResourceStatus == sql.ConnectionResourceStatusNotFound {
 		return
 	}
 
@@ -260,7 +269,7 @@ func (r *SecurityPredicateResource) ImportState(ctx context.Context, req resourc
 		return
 	}
 
-	connection := r.ConnectionCache.Connect(ctx, predicate.Connection, false)
+	connection := r.ConnectionCache.Connect(ctx, predicate.Connection, false, true)
 
 	if logging.HasError(ctx) {
 		return

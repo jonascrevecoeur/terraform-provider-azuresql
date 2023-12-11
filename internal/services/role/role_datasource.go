@@ -80,7 +80,7 @@ func (r *providerConfig) Read(ctx context.Context, req datasource.ReadRequest, r
 
 	server := state.Server.ValueString()
 	database := state.Database.ValueString()
-	connection := r.ConnectionCache.Connect_server_or_database(ctx, server, database)
+	connection := r.ConnectionCache.Connect_server_or_database(ctx, server, database, true)
 	name := state.Name.ValueString()
 
 	if logging.HasError(ctx) {

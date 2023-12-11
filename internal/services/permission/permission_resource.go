@@ -111,7 +111,7 @@ func (r *PermissionResource) Create(ctx context.Context, req resource.CreateRequ
 
 	server := plan.Server.ValueString()
 	database := plan.Database.ValueString()
-	connection := r.ConnectionCache.Connect_server_or_database(ctx, server, database)
+	connection := r.ConnectionCache.Connect_server_or_database(ctx, server, database, true)
 
 	if logging.HasError(ctx) {
 		return
@@ -150,9 +150,14 @@ func (r *PermissionResource) Read(ctx context.Context, req resource.ReadRequest,
 
 	server := state.Server.ValueString()
 	database := state.Database.ValueString()
-	connection := r.ConnectionCache.Connect_server_or_database(ctx, server, database)
+	connection := r.ConnectionCache.Connect_server_or_database(ctx, server, database, false)
 
 	if logging.HasError(ctx) {
+		return
+	}
+
+	if connection.ConnectionResourceStatus == sql.ConnectionResourceStatusNotFound {
+		resp.State.RemoveResource(ctx)
 		return
 	}
 
@@ -215,9 +220,13 @@ func (r *PermissionResource) Delete(ctx context.Context, req resource.DeleteRequ
 
 	server := state.Server.ValueString()
 	database := state.Database.ValueString()
-	connection := r.ConnectionCache.Connect_server_or_database(ctx, server, database)
+	connection := r.ConnectionCache.Connect_server_or_database(ctx, server, database, false)
 
 	if logging.HasError(ctx) {
+		return
+	}
+
+	if connection.ConnectionResourceStatus == sql.ConnectionResourceStatusNotFound {
 		return
 	}
 
@@ -244,7 +253,7 @@ func (r *PermissionResource) ImportState(ctx context.Context, req resource.Impor
 		return
 	}
 
-	connection = r.ConnectionCache.Connect(ctx, connection.ConnectionId, connection.IsServerConnection)
+	connection = r.ConnectionCache.Connect(ctx, connection.ConnectionId, connection.IsServerConnection, true)
 
 	if logging.HasError(ctx) {
 		return
