@@ -89,7 +89,7 @@ func (r *ExternalDataSourceResource) Create(ctx context.Context, req resource.Cr
 
 	name := plan.Name.ValueString()
 	database := plan.Database.ValueString()
-	connection := r.ConnectionCache.Connect(ctx, database, false)
+	connection := r.ConnectionCache.Connect(ctx, database, false, true)
 
 	if logging.HasError(ctx) {
 		return
@@ -128,9 +128,14 @@ func (r *ExternalDataSourceResource) Read(ctx context.Context, req resource.Read
 	)
 
 	database := state.Database.ValueString()
-	connection := r.ConnectionCache.Connect(ctx, database, false)
+	connection := r.ConnectionCache.Connect(ctx, database, false, false)
 
 	if logging.HasError(ctx) {
+		return
+	}
+
+	if connection.ConnectionResourceStatus == sql.ConnectionResourceStatusNotFound {
+		resp.State.RemoveResource(ctx)
 		return
 	}
 
@@ -195,7 +200,11 @@ func (r *ExternalDataSourceResource) Delete(ctx context.Context, req resource.De
 	)
 
 	database := state.Database.ValueString()
-	connection := r.ConnectionCache.Connect(ctx, database, false)
+	connection := r.ConnectionCache.Connect(ctx, database, false, false)
+
+	if connection.ConnectionResourceStatus == sql.ConnectionResourceStatusNotFound {
+		return
+	}
 
 	if logging.HasError(ctx) {
 		return
@@ -224,7 +233,7 @@ func (r *ExternalDataSourceResource) ImportState(ctx context.Context, req resour
 		return
 	}
 
-	connection = r.ConnectionCache.Connect(ctx, connection.ConnectionId, false)
+	connection = r.ConnectionCache.Connect(ctx, connection.ConnectionId, false, true)
 
 	if logging.HasError(ctx) {
 		return

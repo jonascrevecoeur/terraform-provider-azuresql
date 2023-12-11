@@ -135,7 +135,7 @@ func (r *UserResource) Create(ctx context.Context, req resource.CreateRequest, r
 	name := plan.Name.ValueString()
 	server := plan.Server.ValueString()
 	database := plan.Database.ValueString()
-	connection := r.ConnectionCache.Connect_server_or_database(ctx, server, database)
+	connection := r.ConnectionCache.Connect_server_or_database(ctx, server, database, true)
 
 	if connection.IsServerConnection && connection.Provider == "synapse" {
 		logging.AddError(ctx, "Invalid config", "In Synapse users cannot be created at server level. Try creating a database user instead.")
@@ -184,9 +184,14 @@ func (r *UserResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 
 	server := state.Server.ValueString()
 	database := state.Database.ValueString()
-	connection := r.ConnectionCache.Connect_server_or_database(ctx, server, database)
+	connection := r.ConnectionCache.Connect_server_or_database(ctx, server, database, false)
 
 	if logging.HasError(ctx) {
+		return
+	}
+
+	if connection.ConnectionResourceStatus == sql.ConnectionResourceStatusNotFound {
+		resp.State.RemoveResource(ctx)
 		return
 	}
 
@@ -260,9 +265,13 @@ func (r *UserResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 
 	server := state.Server.ValueString()
 	database := state.Database.ValueString()
-	connection := r.ConnectionCache.Connect_server_or_database(ctx, server, database)
+	connection := r.ConnectionCache.Connect_server_or_database(ctx, server, database, false)
 
 	if logging.HasError(ctx) {
+		return
+	}
+
+	if connection.ConnectionResourceStatus == sql.ConnectionResourceStatusNotFound {
 		return
 	}
 
@@ -289,7 +298,7 @@ func (r *UserResource) ImportState(ctx context.Context, req resource.ImportState
 		return
 	}
 
-	connection = r.ConnectionCache.Connect(ctx, connection.ConnectionId, connection.IsServerConnection)
+	connection = r.ConnectionCache.Connect(ctx, connection.ConnectionId, connection.IsServerConnection, true)
 
 	if logging.HasError(ctx) {
 		return

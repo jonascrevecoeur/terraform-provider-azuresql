@@ -8,6 +8,7 @@ import (
 	"terraform-provider-azuresql/internal/sql"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -38,6 +39,60 @@ type FunctionResource struct {
 
 func (r *FunctionResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_function"
+}
+
+func (r *FunctionResource) SchemaPropertiesAttributes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"arguments": types.ListType{
+			ElemType: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"name": types.StringType,
+					"type": types.StringType,
+				},
+			},
+		},
+		"return_type":   types.StringType,
+		"definition":    types.StringType,
+		"schemabinding": types.BoolType,
+		"executor":      types.StringType,
+	}
+}
+
+func (r *FunctionResource) SchemaProperties() map[string]schema.Attribute {
+	return map[string]schema.Attribute{
+		"arguments": schema.ListNestedAttribute{
+			Optional: true,
+			NestedObject: schema.NestedAttributeObject{
+				Attributes: map[string]schema.Attribute{
+					"name": schema.StringAttribute{
+						Required: true,
+					},
+					"type": schema.StringAttribute{
+						Required: true,
+					},
+				},
+			},
+		},
+		"return_type": schema.StringAttribute{
+			Description: "Type of the returned value.",
+			Required:    true,
+		},
+		"executor": schema.StringAttribute{
+			Optional: true,
+			Computed: true,
+			Default:  stringdefault.StaticString("caller"),
+		},
+		"schemabinding": schema.BoolAttribute{
+			Optional: true,
+			Computed: true,
+			Default:  booldefault.StaticBool(true),
+			Description: `If set to true, prevents the referenced objects to be changed in any way that would break 
+			the functionality of the function.`,
+		},
+		"definition": schema.StringAttribute{
+			Required: true,
+		},
+	}
 }
 
 func (r *FunctionResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
@@ -75,44 +130,12 @@ func (r *FunctionResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 			},
 			"properties": schema.SingleNestedAttribute{
 				Optional: true,
-				Computed: true,
+				// Disabled for now - requires proper parsing of raw to props
+				// Computed: true,
 				PlanModifiers: []planmodifier.Object{
 					objectplanmodifier.RequiresReplace(),
 				},
-				Attributes: map[string]schema.Attribute{
-					"arguments": schema.ListNestedAttribute{
-						Optional: true,
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"name": schema.StringAttribute{
-									Required: true,
-								},
-								"type": schema.StringAttribute{
-									Required: true,
-								},
-							},
-						},
-					},
-					"return_type": schema.StringAttribute{
-						Description: "Type of the returned value.",
-						Required:    true,
-					},
-					"executor": schema.StringAttribute{
-						Optional: true,
-						Computed: true,
-						Default:  stringdefault.StaticString("caller"),
-					},
-					"schemabinding": schema.BoolAttribute{
-						Optional: true,
-						Computed: true,
-						Default:  booldefault.StaticBool(true),
-						Description: `If set to true, prevents the referenced objects to be changed in any way that would break 
-						the functionality of the function.`,
-					},
-					"definition": schema.StringAttribute{
-						Required: true,
-					},
-				},
+				Attributes: r.SchemaProperties(),
 			},
 			"raw": schema.StringAttribute{
 				Optional:    true,
@@ -152,10 +175,31 @@ func GetFunctionProps(rm *FunctionPropertiesResourceModel) (props sql.FunctionPr
 	}
 }
 
+func FunctionPropsToResourceModel(props sql.FunctionProps) FunctionPropertiesResourceModel {
+
+	rm := FunctionPropertiesResourceModel{
+		ReturnType:    types.StringValue(props.ReturnType),
+		Executor:      types.StringValue(props.Executor),
+		Schemabinding: types.BoolValue(props.Schemabinding),
+		Definition:    types.StringValue(props.Definition),
+	}
+
+	rm.Arguments = []FunctionArgumentResourceModel{}
+	for _, argument := range props.Arguments {
+		rm.Arguments = append(rm.Arguments, FunctionArgumentResourceModel{
+			Name: types.StringValue(argument.Name),
+			Type: types.StringValue(argument.Type),
+		})
+	}
+
+	return rm
+}
+
 func (r *FunctionResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	ctx = logging.WithDiagnostics(ctx, &resp.Diagnostics)
 
 	var plan FunctionResourceModel
+
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -164,17 +208,23 @@ func (r *FunctionResource) Create(ctx context.Context, req resource.CreateReques
 
 	name := plan.Name.ValueString()
 	database := plan.Database.ValueString()
-	connection := r.ConnectionCache.Connect(ctx, database, false)
+	connection := r.ConnectionCache.Connect(ctx, database, false, true)
 
 	if logging.HasError(ctx) {
 		return
 	}
 
 	var function sql.Function
-	if plan.Properites == nil {
+	if plan.Properites.IsNull() || plan.Properites.IsUnknown() {
 		function = sql.CreateFunctionFromRaw(ctx, connection, name, plan.Schema.ValueString(), plan.Raw.ValueString())
 	} else {
-		function = sql.CreateFunctionFromProperties(ctx, connection, name, plan.Schema.ValueString(), GetFunctionProps(plan.Properites))
+		var planProps FunctionPropertiesResourceModel
+		diags := req.Plan.GetAttribute(ctx, path.Root("properties"), &planProps)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		function = sql.CreateFunctionFromProperties(ctx, connection, name, plan.Schema.ValueString(), GetFunctionProps(&planProps))
 	}
 
 	if logging.HasError(ctx) {
@@ -196,22 +246,33 @@ func (r *FunctionResource) Create(ctx context.Context, req resource.CreateReques
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// TODO: reenable when setting function properties again to computed
+	/*
+		diags = resp.State.SetAttribute(ctx, path.Root("properties"), FunctionPropsToResourceModel(function.Properties))
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}*/
 }
 
 func (r *FunctionResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	ctx = logging.WithDiagnostics(ctx, &resp.Diagnostics)
 
 	var state FunctionResourceModel
-
-	// Read input configured in data block
 	resp.Diagnostics.Append(
 		req.State.Get(ctx, &state)...,
 	)
 
 	database := state.Database.ValueString()
-	connection := r.ConnectionCache.Connect(ctx, database, false)
+	connection := r.ConnectionCache.Connect(ctx, database, false, false)
 
 	if logging.HasError(ctx) {
+		return
+	}
+
+	if connection.ConnectionResourceStatus == sql.ConnectionResourceStatusNotFound {
+		resp.State.RemoveResource(ctx)
 		return
 	}
 
@@ -273,9 +334,13 @@ func (r *FunctionResource) Delete(ctx context.Context, req resource.DeleteReques
 	)
 
 	database := state.Database.ValueString()
-	connection := r.ConnectionCache.Connect(ctx, database, false)
+	connection := r.ConnectionCache.Connect(ctx, database, false, false)
 
 	if logging.HasError(ctx) {
+		return
+	}
+
+	if connection.ConnectionResourceStatus == sql.ConnectionResourceStatusNotFound {
 		return
 	}
 
@@ -297,7 +362,7 @@ func (r *FunctionResource) ImportState(ctx context.Context, req resource.ImportS
 		return
 	}
 
-	connection := r.ConnectionCache.Connect(ctx, function.Connection, false)
+	connection := r.ConnectionCache.Connect(ctx, function.Connection, false, true)
 
 	if logging.HasError(ctx) {
 		return
@@ -310,12 +375,13 @@ func (r *FunctionResource) ImportState(ctx context.Context, req resource.ImportS
 	}
 
 	state := FunctionResourceModel{
-		Id:       types.StringValue(function.Id),
-		Database: types.StringValue(function.Connection),
-		ObjectId: types.Int64Value(function.ObjectId),
-		Name:     types.StringValue(function.Name),
-		Schema:   types.StringValue(function.Schema),
-		Raw:      types.StringValue(function.Raw),
+		Id:         types.StringValue(function.Id),
+		Database:   types.StringValue(function.Connection),
+		ObjectId:   types.Int64Value(function.ObjectId),
+		Name:       types.StringValue(function.Name),
+		Schema:     types.StringValue(function.Schema),
+		Raw:        types.StringValue(function.Raw),
+		Properites: types.ObjectNull(r.SchemaPropertiesAttributes()),
 	}
 
 	diags := resp.State.Set(ctx, &state)

@@ -87,7 +87,7 @@ func (r *SQLLoginResource) Create(ctx context.Context, req resource.CreateReques
 
 	name := plan.Name.ValueString()
 	server := plan.Server.ValueString()
-	connection := r.ConnectionCache.Connect(ctx, server, true)
+	connection := r.ConnectionCache.Connect(ctx, server, true, true)
 
 	if logging.HasError(ctx) {
 		return
@@ -127,7 +127,16 @@ func (r *SQLLoginResource) Read(ctx context.Context, req resource.ReadRequest, r
 	)
 
 	connectionId := state.Server.ValueString()
-	connection := r.ConnectionCache.Connect(ctx, connectionId, true)
+	connection := r.ConnectionCache.Connect(ctx, connectionId, true, false)
+
+	if connection.ConnectionResourceStatus == sql.ConnectionResourceStatusNotFound {
+		resp.State.RemoveResource(ctx)
+		return
+	}
+
+	if logging.HasError(ctx) {
+		return
+	}
 
 	var login sql.Login
 	if state.Sid.IsNull() && state.Name.IsNull() {
@@ -194,7 +203,11 @@ func (r *SQLLoginResource) Delete(ctx context.Context, req resource.DeleteReques
 		req.State.Get(ctx, &state)...,
 	)
 
-	connection := r.ConnectionCache.Connect(ctx, state.Server.ValueString(), true)
+	connection := r.ConnectionCache.Connect(ctx, state.Server.ValueString(), true, false)
+
+	if connection.ConnectionResourceStatus == sql.ConnectionResourceStatusNotFound {
+		return
+	}
 
 	sql.DropLogin(ctx, connection, state.Sid.ValueString())
 
@@ -213,7 +226,7 @@ func (r *SQLLoginResource) ImportState(ctx context.Context, req resource.ImportS
 		return
 	}
 
-	connection := r.ConnectionCache.Connect(ctx, login.Connection, true)
+	connection := r.ConnectionCache.Connect(ctx, login.Connection, true, true)
 
 	if logging.HasError(ctx) {
 		return

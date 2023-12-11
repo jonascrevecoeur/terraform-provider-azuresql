@@ -87,7 +87,7 @@ func (r *DatabaseScopedCredentialResource) Create(ctx context.Context, req resou
 	}
 
 	database := plan.Database.ValueString()
-	connection := r.ConnectionCache.Connect(ctx, database, false)
+	connection := r.ConnectionCache.Connect(ctx, database, false, true)
 
 	if logging.HasError(ctx) {
 		return
@@ -132,9 +132,14 @@ func (r *DatabaseScopedCredentialResource) Read(ctx context.Context, req resourc
 	)
 
 	database := state.Database.ValueString()
-	connection := r.ConnectionCache.Connect(ctx, database, false)
+	connection := r.ConnectionCache.Connect(ctx, database, false, false)
 
 	if logging.HasError(ctx) {
+		return
+	}
+
+	if connection.ConnectionResourceStatus == sql.ConnectionResourceStatusNotFound {
+		resp.State.RemoveResource(ctx)
 		return
 	}
 
@@ -190,7 +195,7 @@ func (r *DatabaseScopedCredentialResource) Update(ctx context.Context, req resou
 	}
 
 	database := plan.Database.ValueString()
-	connection := r.ConnectionCache.Connect(ctx, database, false)
+	connection := r.ConnectionCache.Connect(ctx, database, false, true)
 
 	if logging.HasError(ctx) {
 		return
@@ -226,9 +231,13 @@ func (r *DatabaseScopedCredentialResource) Delete(ctx context.Context, req resou
 	)
 
 	database := state.Database.ValueString()
-	connection := r.ConnectionCache.Connect(ctx, database, false)
+	connection := r.ConnectionCache.Connect(ctx, database, false, false)
 
 	if logging.HasError(ctx) {
+		return
+	}
+
+	if connection.ConnectionResourceStatus == sql.ConnectionResourceStatusNotFound {
 		return
 	}
 
@@ -249,7 +258,7 @@ func (r *DatabaseScopedCredentialResource) ImportState(ctx context.Context, req 
 		return
 	}
 
-	connection := r.ConnectionCache.Connect(ctx, databaseScopedCredential.Connection, false)
+	connection := r.ConnectionCache.Connect(ctx, databaseScopedCredential.Connection, false, true)
 
 	if logging.HasError(ctx) {
 		return

@@ -92,7 +92,7 @@ func (r *RoleAssignmentResource) Create(ctx context.Context, req resource.Create
 
 	server := plan.Server.ValueString()
 	database := plan.Database.ValueString()
-	connection := r.ConnectionCache.Connect_server_or_database(ctx, server, database)
+	connection := r.ConnectionCache.Connect_server_or_database(ctx, server, database, true)
 
 	if logging.HasError(ctx) {
 		return
@@ -131,9 +131,14 @@ func (r *RoleAssignmentResource) Read(ctx context.Context, req resource.ReadRequ
 
 	server := state.Server.ValueString()
 	database := state.Database.ValueString()
-	connection := r.ConnectionCache.Connect_server_or_database(ctx, server, database)
+	connection := r.ConnectionCache.Connect_server_or_database(ctx, server, database, false)
 
 	if logging.HasError(ctx) {
+		return
+	}
+
+	if connection.ConnectionResourceStatus == sql.ConnectionResourceStatusNotFound {
+		resp.State.RemoveResource(ctx)
 		return
 	}
 
@@ -195,9 +200,13 @@ func (r *RoleAssignmentResource) Delete(ctx context.Context, req resource.Delete
 
 	server := state.Server.ValueString()
 	database := state.Database.ValueString()
-	connection := r.ConnectionCache.Connect_server_or_database(ctx, server, database)
+	connection := r.ConnectionCache.Connect_server_or_database(ctx, server, database, false)
 
 	if logging.HasError(ctx) {
+		return
+	}
+
+	if connection.ConnectionResourceStatus == sql.ConnectionResourceStatusNotFound {
 		return
 	}
 
@@ -224,7 +233,7 @@ func (r *RoleAssignmentResource) ImportState(ctx context.Context, req resource.I
 		return
 	}
 
-	connection = r.ConnectionCache.Connect(ctx, connection.ConnectionId, connection.IsServerConnection)
+	connection = r.ConnectionCache.Connect(ctx, connection.ConnectionId, connection.IsServerConnection, true)
 
 	if logging.HasError(ctx) {
 		return

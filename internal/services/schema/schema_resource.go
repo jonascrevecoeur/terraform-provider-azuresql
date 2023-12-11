@@ -85,7 +85,7 @@ func (r SchemaResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanR
 	}
 
 	database := state.Database.ValueString()
-	connection := r.ConnectionCache.Connect(ctx, database, false)
+	connection := r.ConnectionCache.Connect(ctx, database, false, false)
 
 	// in Synapse serverless alter authorization cannot be used
 	// -> a replace is required when owner changes
@@ -106,7 +106,7 @@ func (r *SchemaResource) Create(ctx context.Context, req resource.CreateRequest,
 
 	name := plan.Name.ValueString()
 	database := plan.Database.ValueString()
-	connection := r.ConnectionCache.Connect(ctx, database, false)
+	connection := r.ConnectionCache.Connect(ctx, database, false, true)
 
 	if logging.HasError(ctx) {
 		return
@@ -148,9 +148,14 @@ func (r *SchemaResource) Read(ctx context.Context, req resource.ReadRequest, res
 	)
 
 	database := state.Database.ValueString()
-	connection := r.ConnectionCache.Connect(ctx, database, false)
+	connection := r.ConnectionCache.Connect(ctx, database, false, false)
 
 	if logging.HasError(ctx) {
+		return
+	}
+
+	if connection.ConnectionResourceStatus == sql.ConnectionResourceStatusNotFound {
+		resp.State.RemoveResource(ctx)
 		return
 	}
 
@@ -217,7 +222,7 @@ func (r *SchemaResource) Update(ctx context.Context, req resource.UpdateRequest,
 	// changes in these values would have triggered a replacement
 	// so they are identical for state/plan
 	database := state.Database.ValueString()
-	connection := r.ConnectionCache.Connect(ctx, database, false)
+	connection := r.ConnectionCache.Connect(ctx, database, false, true)
 	id := state.Id.ValueString()
 
 	// update owner
@@ -248,9 +253,13 @@ func (r *SchemaResource) Delete(ctx context.Context, req resource.DeleteRequest,
 	)
 
 	database := state.Database.ValueString()
-	connection := r.ConnectionCache.Connect(ctx, database, false)
+	connection := r.ConnectionCache.Connect(ctx, database, false, false)
 
 	if logging.HasError(ctx) {
+		return
+	}
+
+	if connection.ConnectionResourceStatus == sql.ConnectionResourceStatusNotFound {
 		return
 	}
 
@@ -271,7 +280,7 @@ func (r *SchemaResource) ImportState(ctx context.Context, req resource.ImportSta
 		return
 	}
 
-	connection := r.ConnectionCache.Connect(ctx, schema.Connection, false)
+	connection := r.ConnectionCache.Connect(ctx, schema.Connection, false, true)
 
 	if logging.HasError(ctx) {
 		return
