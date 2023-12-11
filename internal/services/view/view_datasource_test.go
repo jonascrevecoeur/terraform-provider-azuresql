@@ -17,7 +17,7 @@ func TestAccReadView(t *testing.T) {
 
 	connections := []string{
 		data.SQLDatabase_connection,
-		//data.SynapseDatabase_connection,
+		data.SynapseDatabase_connection,
 	}
 
 	for _, connection := range connections {

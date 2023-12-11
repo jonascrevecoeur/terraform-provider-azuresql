@@ -130,7 +130,7 @@ func (r *FunctionResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 			},
 			"properties": schema.SingleNestedAttribute{
 				Optional: true,
-				// Disable compute untill there is a proper parser for function definitions to properties
+				// Disabled for now - requires proper parsing of raw to props
 				// Computed: true,
 				PlanModifiers: []planmodifier.Object{
 					objectplanmodifier.RequiresReplace(),
