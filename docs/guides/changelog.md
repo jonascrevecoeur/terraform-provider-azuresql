@@ -20,4 +20,3 @@ description: |-
 
 **Documentation:**
 * Start Changelog
-* Document `azuresql_external_data_source` data source
