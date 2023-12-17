@@ -17,7 +17,7 @@ func TestAccCreateSchemaBasic(t *testing.T) {
 	r := SchemaResource{}
 
 	connections := []string{
-		//data.SQLDatabase_connection,
+		data.SQLDatabase_connection,
 		data.SynapseDatabase_connection,
 	}
 
@@ -48,7 +48,7 @@ func TestAccCreateDuplicateResource(t *testing.T) {
 
 	connections := []string{
 		data.SQLDatabase_connection,
-		//data.SynapseDatabase_connection,
+		data.SynapseDatabase_connection,
 	}
 
 	for _, connection := range connections {
