@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 	"terraform-provider-azuresql/internal/logging"
@@ -203,6 +204,28 @@ func (cache ConnectionCache) DatabaseExists(ctx context.Context, connection Conn
 	return ConnectionResourceStatusExists
 }
 
+func retrySynapsePoolWarmup(ctx context.Context, connection *sql.DB) (err error) {
+	// Try connecting again after 2, 15, 60, 180 seconds
+	// delay contains the diff of these delays
+	var delay = []int{
+		3, 12, 45, 120,
+	}
+
+	for _, wait := range delay {
+		tflog.Info(ctx, fmt.Sprintf("Waiting %d seconds for Synapse to prepare the SQL pools.", wait))
+		time.Sleep(time.Duration(wait) * time.Second)
+
+		err = connection.PingContext(ctx)
+
+		error_sql_pool := regexp.MustCompile("The SQL pool is warming up.")
+		if err == nil || !error_sql_pool.MatchString(err.Error()) {
+			// the pool is no longer warning up, return the new error code
+			return err
+		}
+	}
+	return err
+}
+
 // Convert a connectionId into an actual SQL connection
 // The connectionId is a required parameter of each azuresql terraform resource
 func (cache ConnectionCache) Connect(ctx context.Context, connectionId string, server bool, requiresExist bool) Connection {
@@ -240,6 +263,11 @@ func (cache ConnectionCache) Connect(ctx context.Context, connectionId string, s
 			if err == nil {
 				tflog.Debug(ctx, "Pinging database")
 				err = connection.Connection.PingContext(ctx)
+
+				error_sql_pool := regexp.MustCompile("The SQL pool is warming up.")
+				if err != nil && error_sql_pool.MatchString(err.Error()) {
+					err = retrySynapsePoolWarmup(ctx, connection.Connection)
+				}
 			}
 			return connection, err
 		},
