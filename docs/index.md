@@ -45,3 +45,13 @@ resource "azuresql_user" "test" {
   authentication = "WithoutLogin"
 }
 ```
+
+## Argument Reference
+The following arguments are supported:
+
+- `subscription_id` (Optional, String) Id of the Azure subscription in which the Synapse or SQL servers exist. This parameter should only be specified when `check_server_exists` is true.
+
+- `check_server_exists` (Optional, Bool) Allow the provider to check the Azure subscription to check if the Synapse or SQL server exists. This is necessary for the provider to correctly cleanup resources after a manual deletion of the server. This requires the provider to have the right to list SQL servers on the subscription. Default is false.
+
+- `check_database_exists` (Optional, Bool) Allow the provider to check whether a database exists within a server. This is necessary for the provider to correctly cleanup resources after a manual deletion of the database. This requires the provider to have permission to execute SQL queries at the server level. Default is false.
+
