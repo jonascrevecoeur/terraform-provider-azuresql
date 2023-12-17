@@ -16,6 +16,8 @@ description: |-
 
 **Bugfixes:**
 * Type conversion error when creating an `azuresql_function` using the raw api
+* Exponential retry until Synapse pool has warmed up
 
 **Documentation:**
 * Start Changelog
+* Document `azuresql_external_data_source` data source
