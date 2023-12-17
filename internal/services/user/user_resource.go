@@ -137,12 +137,12 @@ func (r *UserResource) Create(ctx context.Context, req resource.CreateRequest, r
 	database := plan.Database.ValueString()
 	connection := r.ConnectionCache.Connect_server_or_database(ctx, server, database, true)
 
-	if connection.IsServerConnection && connection.Provider == "synapse" {
-		logging.AddError(ctx, "Invalid config", "In Synapse users cannot be created at server level. Try creating a database user instead.")
+	if logging.HasError(ctx) {
 		return
 	}
 
-	if logging.HasError(ctx) {
+	if connection.IsServerConnection && connection.Provider == "synapse" {
+		logging.AddError(ctx, "Invalid config", "In Synapse users cannot be created at server level. Try creating a database user instead.")
 		return
 	}
 
