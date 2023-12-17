@@ -7,3 +7,9 @@ type databaseDataSourceModel struct {
 	Server       types.String `tfsdk:"server"`
 	Name         types.String `tfsdk:"name"`
 }
+
+type DatabaseResourceModel struct {
+	ConnectionId types.String `tfsdk:"id"`
+	Server       types.String `tfsdk:"server"`
+	Name         types.String `tfsdk:"name"`
+}

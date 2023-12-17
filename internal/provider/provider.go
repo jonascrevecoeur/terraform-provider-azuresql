@@ -139,5 +139,6 @@ func (p *azuresql_provider) Resources(_ context.Context) []func() resource.Resou
 		database_scoped_credential.NewDatabaseScopedCredentialResource,
 		external_data_source.NewExternalDataSourceResource,
 		view.NewViewResource,
+		database.NewDatabaseResource,
 	}
 }

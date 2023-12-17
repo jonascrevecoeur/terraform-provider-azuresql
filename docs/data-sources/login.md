@@ -26,7 +26,7 @@ data "azuresql_sqlserver" "server" {
 }
 
 data "azuresql_login" "login" {
-    server   = azuresql_sqlserver.server.id
+    server   = data.azuresql_sqlserver.server.id
     name     = "mylogin"
 }
 ```
