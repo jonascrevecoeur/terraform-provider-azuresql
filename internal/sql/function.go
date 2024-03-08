@@ -71,8 +71,8 @@ func CreateFunctionFromRaw(ctx context.Context, connection Connection, name stri
 		return
 	}
 
-	regex := strings.ToLower(fmt.Sprintf("^[\\s]*create function %s.%s[\\s]*\\(", schema.Name, name))
-	if match, _ := regexp.MatchString(regex, definition); !match {
+	regex := fmt.Sprintf("^[\\s]*create function %s.%s[\\s]*\\(", schema.Name, name)
+	if match, _ := regexp.MatchString("(?i)"+regex, definition); !match {
 		logging.AddError(ctx, "Function creation failed", fmt.Sprintf("Function defintion should contain 'create function %s.%s()'. The given definition was %s.", schema.Name, name, definition))
 		return
 	}
