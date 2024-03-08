@@ -39,6 +39,32 @@ func TestAccCreateDatabase(t *testing.T) {
 	}
 }
 
+func TestAccRenameDatabase(t *testing.T) {
+	acceptance.PreCheck(t)
+	data := acceptance.BuildTestData(t)
+	r := DatabaseResource{}
+
+	connections := []string{
+		data.SynapseServer_connection,
+	}
+
+	for _, connection := range connections {
+		print(fmt.Sprintf("\n\nRunning test for connection %s\n\n", connection))
+		resource.Test(t, resource.TestCase{
+			Steps: []resource.TestStep{
+				{
+					Config:                   r.basic(connection, data.RandomString),
+					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+				},
+				{
+					Config:                   r.basic(connection, data.RandomString+"2"),
+					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+				},
+			},
+		})
+	}
+}
+
 func TestAccCreateSchemaInNewDatabase(t *testing.T) {
 	acceptance.PreCheck(t)
 	data := acceptance.BuildTestData(t)

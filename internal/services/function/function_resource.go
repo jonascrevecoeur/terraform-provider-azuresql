@@ -320,7 +320,8 @@ func (r *FunctionResource) Configure(_ context.Context, req resource.ConfigureRe
 }
 
 func (r *FunctionResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-
+	ctx = logging.WithDiagnostics(ctx, &resp.Diagnostics)
+	logging.AddError(ctx, "Update not implemented", "Update should never be called for function resources as any change requires a delete and recreate.")
 }
 
 func (r *FunctionResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
