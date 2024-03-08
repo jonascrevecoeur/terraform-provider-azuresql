@@ -79,7 +79,7 @@ func (r FunctionResource) basic(connection string, name string) string {
 			name        = "tffunction_%[3]s"
 			schema		= data.azuresql_schema.dbo.id
 			raw         = <<-EOT
-				create function dbo.tffunction_%[3]s()
+				create FUNCTION dbo.tffunction_%[3]s()
 				returns table 
 				with SCHEMABINDING AS
 				return  
