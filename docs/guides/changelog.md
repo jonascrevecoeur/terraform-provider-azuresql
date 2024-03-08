@@ -7,6 +7,17 @@ description: |-
 
 # Changelog
 
+## 0.4.1
+
+**Features:**
+
+**Bugfixes:**
+* Fix: Error when renaming resource azuresql_dabase 
+* Fix: Error when using upper case letters when creating an azuresql_function resource
+
+**Documentation:**
+* Improve documentation formatting
+
 ## 0.4.0
 
 **Features:**

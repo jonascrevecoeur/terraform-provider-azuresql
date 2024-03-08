@@ -34,9 +34,9 @@ data "azuresql_schema" "myschema" {
 }
 
 data "azuresql_table" "mytable" {
-    database 	= data.azuresql_database.database.id
+    database  = data.azuresql_database.database.id
     schema    = data.azuresql_schema.myschema.id
-    name     	= "mytable"
+    name      = "mytable"
 }
 
 ```

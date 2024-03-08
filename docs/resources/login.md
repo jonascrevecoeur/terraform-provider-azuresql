@@ -39,9 +39,9 @@ resource "azuresql_login" "login" {
 
 resource "azuresql_user" "user" {
     database        = data.azuresql_database.database.id
-    name           	= "myuser"
-    authentication 	= "SQLLogin"
-    login		   	= azuresql_login.login.id
+    name            = "myuser"
+    authentication  = "SQLLogin"
+    login           = azuresql_login.login.id
 }
 ```
 

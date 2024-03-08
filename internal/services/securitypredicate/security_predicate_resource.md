@@ -32,14 +32,14 @@ data "azuresql_database" "database" {
 }
 
 data "azuresql_schema" "dbo" {
-    database 	= data.azuresql_database.database.id
-    name 		  = "dbo"
+    database  = data.azuresql_database.database.id
+    name      = "dbo"
 }
 
 resource "azuresql_function" "filter" {
-    database 	= data.azuresql_database.database.id
+    database  = data.azuresql_database.database.id
     name      = "filter"
-    schema		= data.azuresql_schema.dbo.id
+    schema    = data.azuresql_schema.dbo.id
     raw       = <<-EOT
         create function dbo.filter(@user as varchar(50))
         returns table 
@@ -56,9 +56,9 @@ resource "azuresql_security_policy" "filter" {
 }
 
 data "azuresql_table" "mytable" {
-    database 	= data.azuresql_database.database.id
+    database  = data.azuresql_database.database.id
     schema    =  data.azuresql_schema.dbo.id
-    name     	= "mytable"
+    name      = "mytable"
 }
 
 resource "azuresql_security_predicate" "filter_select" {

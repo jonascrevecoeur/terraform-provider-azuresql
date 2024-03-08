@@ -31,7 +31,7 @@ data "azuresql_database" "database" {
 
 # read a user in the database
 data "azuresql_user" "dbuser" {
-  database       =data.azuresql_database.database.id
+  database       = data.azuresql_database.database.id
   name           = "my-database-user"
 }
 

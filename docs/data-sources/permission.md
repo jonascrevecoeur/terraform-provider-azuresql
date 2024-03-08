@@ -40,8 +40,8 @@ resource "azuresql_role" "myrole" {
 }
 
 resource "azuresql_permission" "test" {
-    database 	  = data.azuresql_database.database.id
-    scope 		  = data.azuresql_table.mytable.id
+    database    = data.azuresql_database.database.id
+    scope       = data.azuresql_table.mytable.id
     principal   = azuresql_role.myrole.id
 }
 ```

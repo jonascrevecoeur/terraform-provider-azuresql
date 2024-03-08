@@ -36,23 +36,23 @@ data "azuresql_table" "mytable" {
 }
 
 data "azuresql_role" "myrole" {
-    database 	  = data.azuresql_database.database.id
+    database    = data.azuresql_database.database.id
     name        = "myrole"
 }
 
 # grant myrole select, insert and delete permissions on table mytable
 resource "azuresql_permission" "test" {
     for_each    = toset(["select", "insert", "delete"])
-    database 	  = data.azuresql_database.database.id
-    scope 		  = data.azuresql_table.mytable.id
+    database    = data.azuresql_database.database.id
+    scope       = data.azuresql_table.mytable.id
     principal   = data.azuresql_role.myrole.id
     permission  = each.key
 }
 
 # grant myrole create table permission on the databse
 resource "azuresql_permission" "test" {
-    database 	  = data.azuresql_database.database.id
-    scope 		  = data.azuresql_database.database.id
+    database    = data.azuresql_database.database.id
+    scope       = data.azuresql_database.database.id
     principal   = data.azuresql_role.myrole.id
     permission  = "create table"
 }

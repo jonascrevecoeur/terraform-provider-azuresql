@@ -32,16 +32,16 @@ data "azuresql_database" "database" {
 
 
 data "azuresql_schema" "dbo" {
-    database 	= data.azuresql_database.database.id
-    name 		  = "dbo"
+    database  = data.azuresql_database.database.id
+    name      = "dbo"
 }
 
 # Define a function via the properties argument
 resource "azuresql_function" "sum_props" {
-  database  = data.azuresql_database.database.id
-  name      = "sum"
-  schema    = data.azuresql_schema.dbo.id
-  properties = {
+  database    = data.azuresql_database.database.id
+  name        = "sum"
+  schema      = data.azuresql_schema.dbo.id
+  properties  = {
     arguments = [
       {
         name  = "a"

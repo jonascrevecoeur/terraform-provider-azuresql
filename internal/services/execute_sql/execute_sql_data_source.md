@@ -30,7 +30,7 @@ data "azuresql_database" "database" {
 # use the datasource to create a table if it doesn't exist
 data "azuresql_execute_sql" "test" {
   database  = data.azuresql_database.database.id
-  sql 		  = <<-EOT
+  sql       = <<-EOT
     IF OBJECT_ID('mytable', 'U') IS NULL
     create table mytable(
       col1 float

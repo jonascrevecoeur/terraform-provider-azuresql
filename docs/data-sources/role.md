@@ -31,7 +31,7 @@ data "azuresql_database" "database" {
 }
 
 data "azuresql_role" "myrole" {
-    database       =data.azuresql_database.database.id
+    database       = data.azuresql_database.database.id
     name           = "myrole"
 }
 ```
