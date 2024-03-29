@@ -12,7 +12,7 @@ description: |-
 **Features:**
 
 **Bugfixes:**
-* Fix: Error when renaming resource azuresql_dabase 
+* Fix: Error when renaming resource azuresql_database 
 * Fix: Error when using upper case letters when creating an azuresql_function resource
 * Fix: Bug in security_predicate continously detecting changes when the rule contains spaces
 * Update provider dependencies
