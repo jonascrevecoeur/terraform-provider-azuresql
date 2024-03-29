@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -193,7 +194,11 @@ func (r *SecurityPredicateResource) Read(ctx context.Context, req resource.ReadR
 			")", "",
 			"[", "",
 			"]", "",
+			" ", "",
 		)
+
+		tflog.Error(ctx, stringReplacer.Replace(state.Rule.ValueString()))
+		tflog.Error(ctx, stringReplacer.Replace(securityPredicate.Rule))
 
 		if stringReplacer.Replace(state.Rule.ValueString()) != stringReplacer.Replace(securityPredicate.Rule) {
 			state.Rule = types.StringValue(securityPredicate.Rule)

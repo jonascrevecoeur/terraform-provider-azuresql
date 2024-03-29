@@ -14,9 +14,11 @@ description: |-
 **Bugfixes:**
 * Fix: Error when renaming resource azuresql_dabase 
 * Fix: Error when using upper case letters when creating an azuresql_function resource
+* Fix: Bug in security_predicate continously detecting changes when the rule contains spaces
+* Update provider dependencies
 
 **Documentation:**
-* Improve documentation formatting
+* Improve indentation docs
 
 ## 0.4.0
 
