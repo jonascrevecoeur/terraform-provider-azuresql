@@ -38,6 +38,10 @@ func functionFormatId(connectionId string, objectId int64) string {
 	return fmt.Sprintf("%s/function/%d", connectionId, objectId)
 }
 
+func isFunctionId(id string) bool {
+	return strings.Contains(id, "/function/")
+}
+
 func ParseFunctionId(ctx context.Context, id string) (function Function) {
 	s := strings.Split(id, "/function/")
 

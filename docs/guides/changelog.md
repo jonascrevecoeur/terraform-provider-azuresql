@@ -7,6 +7,14 @@ description: |-
 
 # Changelog
 
+## 0.4.2
+
+**Features:**
+* `azuresql_permission` can now grant permissions on `azuresql_function` resources.
+
+**Bugfixes:**
+
+
 ## 0.4.1
 
 **Features:**
