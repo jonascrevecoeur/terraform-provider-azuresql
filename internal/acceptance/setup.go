@@ -9,6 +9,7 @@ import (
 
 const ProviderConfig = `
 provider "azuresql" {
+	
 }
 `
 

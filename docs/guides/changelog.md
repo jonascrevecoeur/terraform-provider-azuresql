@@ -14,7 +14,8 @@ description: |-
 
 **Bugfixes:**
 * Fix: Login error caused by caching faulty connections
-
+* Fix: Provider documentation - default value for `check_database_exists` is true
+  
 ## 0.4.1
 
 **Features:**
