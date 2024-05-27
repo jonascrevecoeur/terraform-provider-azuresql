@@ -37,6 +37,22 @@ func TestAccSQLServerCreateUserWithoutLogin(t *testing.T) {
 	})
 }
 
+func TestAccUseEnvironmentCredentials(t *testing.T) {
+	t.Setenv("AZURE_CLIENT_SECRET", os.Getenv("AZURE_CLIENT_SECRET_OPT"))
+	t.Setenv("AZURE_CLIENT_ID", os.Getenv("AZURE_CLIENT_ID_OPT"))
+	acceptance.PreCheck(t)
+	data := acceptance.BuildTestData(t)
+	r := UserResource{}
+	resource.Test(t, resource.TestCase{
+		Steps: []resource.TestStep{
+			{
+				Config:                   r.basic_database(data.SQLDatabase_connection, data.RandomString, "WithoutLogin"),
+				ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+			},
+		},
+	})
+}
+
 func TestAccSQLServerCreateUserWithLogin(t *testing.T) {
 	acceptance.PreCheck(t)
 	data := acceptance.BuildTestData(t)
@@ -288,6 +304,7 @@ func (r UserResource) login_server_mismatch(server1 string, server2 string, user
 func (r UserResource) template() string {
 	return fmt.Sprintf(`
 		provider "azuresql" {
+			check_database_exists = false
 		}
 	`)
 }

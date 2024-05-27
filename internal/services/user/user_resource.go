@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -136,7 +137,7 @@ func (r *UserResource) Create(ctx context.Context, req resource.CreateRequest, r
 	server := plan.Server.ValueString()
 	database := plan.Database.ValueString()
 	connection := r.ConnectionCache.Connect_server_or_database(ctx, server, database, true)
-
+	tflog.Debug(ctx, fmt.Sprintf("Status %d", connection.ConnectionResourceStatus))
 	if logging.HasError(ctx) {
 		return
 	}

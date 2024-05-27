@@ -289,17 +289,21 @@ func (cache ConnectionCache) Connect(ctx context.Context, connectionId string, s
 		}
 	}
 
-	if cached {
-		tflog.Info(ctx, "Succesfully retrieved an existing connection.")
-	} else {
-		tflog.Info(ctx, "Successfully opened a new connection.")
-	}
-
 	conn := connection.(Connection)
 
 	if requiresExist && conn.ConnectionResourceStatus == ConnectionResourceStatusNotFound {
 		logging.AddError(ctx, fmt.Sprintf("Database or server not found"), fmt.Sprintf("Connection %s doesn't exist", connectionId))
 		return conn
+	}
+
+	if conn.ConnectionResourceStatus == ConnectionResourceStatusUnknown {
+		logging.AddError(ctx, fmt.Sprintf("Unable to determine whether server or database exists"), fmt.Sprintf("Unable to determine whether server or database %s exists", connectionId))
+	}
+
+	if cached {
+		tflog.Info(ctx, "Succesfully retrieved an existing connection.")
+	} else {
+		tflog.Info(ctx, "Successfully opened a new connection.")
 	}
 
 	if conn.IsServerConnection != server {

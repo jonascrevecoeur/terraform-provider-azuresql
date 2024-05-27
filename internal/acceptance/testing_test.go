@@ -90,7 +90,7 @@ func TestSQLDatabaseExists(t *testing.T) {
 	}
 
 	ctx := logging.GetTestContext()
-	cache := sql.NewCache(os.Getenv("AZURE_SUBSCRIPTION"), false, true)
+	cache := sql.NewCache(os.Getenv("AZURE_SUBSCRIPTION"), true, true)
 	data := BuildTestData(t)
 
 	connection := sql.ParseConnectionId(ctx, data.SQLDatabase_connection)
@@ -102,7 +102,7 @@ func TestSQLDatabaseExists(t *testing.T) {
 			log.Fatalf("%s - %s", err.Summary(), err.Detail())
 		}
 	}
-	return
+
 	if status != sql.ConnectionResourceStatusExists {
 		log.Fatal(fmt.Sprintf("Wrong status (%d) returned by DatabaseExists, expected ConnectionResourceStatusExists", status))
 	}

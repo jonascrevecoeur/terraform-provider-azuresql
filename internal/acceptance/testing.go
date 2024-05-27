@@ -20,6 +20,8 @@ func PreCheck(t *testing.T) {
 		"AZURE_AD_USER",
 		"AZURE_AD_GROUP",
 		"AZURE_SUBSCRIPTION",
+		"AZURE_CLIENT_ID_OPT",
+		"AZURE_CLIENT_SECRET_OPT",
 	}
 
 	for _, variable := range variables {
