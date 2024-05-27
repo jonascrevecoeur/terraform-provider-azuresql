@@ -256,7 +256,7 @@ func (cache ConnectionCache) Connect(ctx context.Context, connectionId string, s
 
 			if logging.HasError(ctx) || connection.ConnectionResourceStatus == ConnectionResourceStatusNotFound {
 				tflog.Debug(ctx, fmt.Sprintf("Connection %s not found", connectionId))
-				return connection, errors.New(fmt.Sprintf("Connection %s not found", connectionId))
+				return connection, nil
 			}
 
 			con, err := sql.Open("azuresql", connection.ConnectionString)

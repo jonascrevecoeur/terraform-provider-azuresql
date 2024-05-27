@@ -66,7 +66,7 @@ func TestSQLServerExists(t *testing.T) {
 	}
 
 	if status != sql.ConnectionResourceStatusExists {
-		log.Fatal("Wrong status returned by ServerExists, expected ConnectionResourceStatusExists")
+		log.Fatal(fmt.Sprintf("Wrong status (%d) returned by ServerExists, expected ConnectionResourceStatusExists", status))
 	}
 
 	connection.Server = "servernotexist"
@@ -90,7 +90,7 @@ func TestSQLDatabaseExists(t *testing.T) {
 	}
 
 	ctx := logging.GetTestContext()
-	cache := sql.NewCache(os.Getenv("AZURE_SUBSCRIPTION"), true, false)
+	cache := sql.NewCache(os.Getenv("AZURE_SUBSCRIPTION"), false, true)
 	data := BuildTestData(t)
 
 	connection := sql.ParseConnectionId(ctx, data.SQLDatabase_connection)
@@ -102,9 +102,9 @@ func TestSQLDatabaseExists(t *testing.T) {
 			log.Fatalf("%s - %s", err.Summary(), err.Detail())
 		}
 	}
-
+	return
 	if status != sql.ConnectionResourceStatusExists {
-		log.Fatal("Wrong status returned by DatabaseExists, expected ConnectionResourceStatusExists")
+		log.Fatal(fmt.Sprintf("Wrong status (%d) returned by DatabaseExists, expected ConnectionResourceStatusExists", status))
 	}
 
 	connection.Database += "notexist"

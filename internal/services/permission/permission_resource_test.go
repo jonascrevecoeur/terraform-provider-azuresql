@@ -490,7 +490,6 @@ func (r PermissionResource) databaseScopedCredential_user(connection string, nam
 func (r PermissionResource) template() string {
 	return fmt.Sprintf(`
 		provider "azuresql" {
-			check_database_exists = false
 		}
 	`)
 }
