@@ -14,7 +14,9 @@ description: |-
 
 **Bugfixes:**
 * Fix: Login error caused by caching faulty connections
+* Fix: Login error when using Environmental credentials
 * Fix: Provider documentation - default value for `check_database_exists` is true
+* Update go dependencies
   
 ## 0.4.1
 
