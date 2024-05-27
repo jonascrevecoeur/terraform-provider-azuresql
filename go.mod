@@ -3,7 +3,7 @@ module terraform-provider-azuresql
 go 1.21.0
 
 require (
-	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.11.0
+	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.11.1
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.5.2
 	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/synapse/armsynapse v0.8.0
 	github.com/hashicorp/terraform-plugin-framework v1.8.0
