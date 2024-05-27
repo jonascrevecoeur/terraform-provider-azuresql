@@ -111,7 +111,7 @@ func (cache ConnectionCache) sqlServerExists(ctx context.Context, connection Con
 		return ConnectionResourceStatusUnknown
 	}
 
-	policy := policy.TokenRequestOptions{Scopes: []string{"https://management.azure.com/"}}
+	policy := policy.TokenRequestOptions{Scopes: []string{"https://management.azure.com/.default"}}
 	token, err := cred.GetToken(ctx, policy)
 	if err != nil {
 		logging.AddError(ctx,
