@@ -88,6 +88,9 @@ func objectFormatId(ctx context.Context, connectionId string, objectId int64, ob
 	if objectType == "V" {
 		return viewFormatId(connectionId, objectId)
 	}
+	if objectType == "IF" || objectType == "FN" {
+		return functionFormatId(connectionId, objectId)
+	}
 
 	logging.AddError(ctx, "Unrecognized object type", fmt.Sprintf("Unexpected object type %s found", objectType))
 	return ""
@@ -178,6 +181,18 @@ func GetScopeFromId(ctx context.Context, connection Connection, scopeResourceId 
 			ResourceType: "object",
 			Name:         fmt.Sprintf("%s.%s", schema.Name, view.Name),
 			Id:           view.ObjectId,
+		}
+	}
+	if isFunctionId(scopeResourceId) {
+		function := GetFunctionFromId(ctx, connection, scopeResourceId, requiresExist)
+		if function.Id == "" {
+			return
+		}
+		schema := GetSchemaFromId(ctx, connection, function.Schema, true)
+		return Scope{
+			ResourceType: "object",
+			Name:         fmt.Sprintf("%s.%s", schema.Name, function.Name),
+			Id:           function.ObjectId,
 		}
 	}
 	if isDatabaseScopedCredentialId(scopeResourceId) {
