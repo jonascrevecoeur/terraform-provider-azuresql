@@ -13,7 +13,7 @@ description: |-
 * `azuresql_permission` can now grant permissions on `azuresql_function` resources.
 
 **Bugfixes:**
-
+* Fix: Login error caused by caching faulty connections
 
 ## 0.4.1
 

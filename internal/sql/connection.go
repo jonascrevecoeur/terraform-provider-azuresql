@@ -6,6 +6,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -239,7 +240,7 @@ func (cache ConnectionCache) Connect(ctx context.Context, connectionId string, s
 
 			if logging.HasError(ctx) {
 				tflog.Debug(ctx, fmt.Sprintf("Parsing of connectionId %s failed", connectionId))
-				return connection, nil
+				return connection, errors.New(fmt.Sprintf("Parsing of connectionId %s failed", connectionId))
 			}
 
 			tflog.Debug(ctx, fmt.Sprintf("IsServerConnection: %t", connection.IsServerConnection))
@@ -255,7 +256,7 @@ func (cache ConnectionCache) Connect(ctx context.Context, connectionId string, s
 
 			if logging.HasError(ctx) || connection.ConnectionResourceStatus == ConnectionResourceStatusNotFound {
 				tflog.Debug(ctx, fmt.Sprintf("Connection %s not found", connectionId))
-				return connection, nil
+				return connection, errors.New(fmt.Sprintf("Connection %s not found", connectionId))
 			}
 
 			con, err := sql.Open("azuresql", connection.ConnectionString)
@@ -263,6 +264,10 @@ func (cache ConnectionCache) Connect(ctx context.Context, connectionId string, s
 			if err == nil {
 				tflog.Debug(ctx, "Pinging database")
 				err = connection.Connection.PingContext(ctx)
+
+				if err != nil {
+					tflog.Info(ctx, fmt.Sprintf("Pinging database failed with error: %s", err.Error()))
+				}
 
 				error_sql_pool := regexp.MustCompile("The SQL pool is warming up.")
 				if err != nil && error_sql_pool.MatchString(err.Error()) {
