@@ -70,7 +70,7 @@ The following arguments are supported:
 -> Exactly one of `database` or `server` should be specified.
 
 - `principal` (Required, String) ID of the principal (`azuresql_role` or `azuresql_user`) to which the permission is granted. 
-- `scope` (Required, String) ID of the resource on which the permission is granted. Currently implemented are: `azuresql_table`, `azuresql_view`, `azuresql_schema`, `azuresql_database`, `azuresql_sqlserver`, `azuresql_synapseserver` and `azuresql_database_scoped_credential`.
+- `scope` (Required, String) ID of the resource on which the permission is granted. Currently implemented are: `azuresql_table`, `azuresql_view`, `azuresql_schema`, `azuresql_function` `azuresql_database`, `azuresql_sqlserver`, `azuresql_synapseserver` and `azuresql_database_scoped_credential`.
 
 - `permission` (Required, String) Permission to be granted.
 
@@ -91,7 +91,7 @@ The ID is formed as `<connection>`/permission/`<principal>/<permission>/<permiss
   * `database` for database permissions
   * `server` for server permissions
   * `schema` for schema permissions
-  * `object` for table or view permissions
+  * `object` for table, view or function permissions
   * `databasescopedcredential` for database scoped credential permissions
 * `<scope>`: The id of the scope in the database/server
   * `0` for database permissions
