@@ -91,6 +91,9 @@ func objectFormatId(ctx context.Context, connectionId string, objectId int64, ob
 	if objectType == "IF" || objectType == "FN" {
 		return functionFormatId(connectionId, objectId)
 	}
+	if objectType == "P" {
+		return procedureFormatId(connectionId, objectId)
+	}
 
 	logging.AddError(ctx, "Unrecognized object type", fmt.Sprintf("Unexpected object type %s found", objectType))
 	return ""
@@ -193,6 +196,18 @@ func GetScopeFromId(ctx context.Context, connection Connection, scopeResourceId 
 			ResourceType: "object",
 			Name:         fmt.Sprintf("%s.%s", schema.Name, function.Name),
 			Id:           function.ObjectId,
+		}
+	}
+	if isProcedureId(scopeResourceId) {
+		procedure := GetProcedureFromId(ctx, connection, scopeResourceId, requiresExist)
+		if procedure.Id == "" {
+			return
+		}
+		schema := GetSchemaFromId(ctx, connection, procedure.Schema, true)
+		return Scope{
+			ResourceType: "object",
+			Name:         fmt.Sprintf("%s.%s", schema.Name, procedure.Name),
+			Id:           procedure.ObjectId,
 		}
 	}
 	if isDatabaseScopedCredentialId(scopeResourceId) {
