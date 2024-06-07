@@ -13,7 +13,7 @@ require (
 	github.com/hashicorp/terraform-plugin-sdk v1.17.2
 	github.com/hashicorp/terraform-plugin-testing v1.8.0
 	github.com/kofalt/go-memoize v0.0.0-20220914132407-0b5d6a304579
-	github.com/microsoft/go-mssqldb v1.7.0
+	github.com/microsoft/go-mssqldb v1.7.2
 )
 
 require (
