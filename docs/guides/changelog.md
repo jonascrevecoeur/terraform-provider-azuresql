@@ -7,6 +7,11 @@ description: |-
 
 # Changelog
 
+## 0.5.0
+
+**Features:**
+* Add `azuresql_procedure` resource to manage stored procedures in SQL
+
 ## 0.4.2
 
 **Features:**
