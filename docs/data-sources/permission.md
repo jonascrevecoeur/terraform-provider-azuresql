@@ -59,7 +59,7 @@ The following arguments are supported:
 -> Exactly one of `database` or `server` should be specified.
 
 - `principal` (Required, String) ID of the principal (`azuresql_role` or `azuresql_user`) to which the permission is granted. 
-- `scope` (Required, String) ID of the resource on which the permission is granted. Currently implemented are: `azuresql_table`, `azuresql_view`, `azuresql_schema`, `azuresql_function` `azuresql_database`, `azuresql_sqlserver`, `azuresql_synapseserver` and `azuresql_database_scoped_credential`.
+- `scope` (Required, String) ID of the resource on which the permission is granted. Currently implemented are: `azuresql_table`, `azuresql_view`, `azuresql_schema`, `azuresql_function`, `azuresql_procedure`, `azuresql_database`, `azuresql_sqlserver`, `azuresql_synapseserver` and `azuresql_database_scoped_credential`.
 
 ### Attributes Reference
 In addition to the arguments listed above, the following read only attributes are exported:

@@ -203,6 +203,34 @@ func TestAccCreatePermissionFunctionRole(t *testing.T) {
 	}
 }
 
+func TestAccCreatePermissionProcedureRole(t *testing.T) {
+	acceptance.PreCheck(t)
+	data := acceptance.BuildTestData(t)
+	r := PermissionResource{}
+
+	connections := []string{
+		data.SQLDatabase_connection,
+		//data.SynapseDatabase_connection,
+	}
+
+	for _, connection := range connections {
+		print(fmt.Sprintf("\n\nRunning test for connection %s\n\n", connection))
+
+		resource.Test(t, resource.TestCase{
+			Steps: []resource.TestStep{
+				{
+					Config:                   r.procedureRole(connection, data.RandomString, []string{"execute"}),
+					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+					Check: testAccCheckPermissionId(
+						"azuresql_permission.test.0", "azuresql_procedure.test", "object_id",
+						"azuresql_role.test", "object", "execute",
+					),
+				},
+			},
+		})
+	}
+}
+
 func TestAccCreatePermissionViewUser(t *testing.T) {
 	acceptance.PreCheck(t)
 	data := acceptance.BuildTestData(t)
@@ -359,6 +387,46 @@ func (r PermissionResource) functionRole(connection string, name string, permiss
 			count       = length(local.permissions)
 			database 	= "%[2]s"
 			scope 		= azuresql_function.test.id
+			principal   = azuresql_role.test.id
+			permission  = local.permissions[count.index]
+		}
+	`, r.template(), connection, name, strings.Join(permissions, "\",\""))
+}
+
+func (r PermissionResource) procedureRole(connection string, name string, permissions []string) string {
+
+	return fmt.Sprintf(`
+		%[1]s
+
+		locals {
+			permissions = ["%[4]s"]
+		}
+
+		resource "azuresql_schema" "test" {
+			database 	= "%[2]s"
+			name     	= "tfschema_%[3]s"
+		}
+
+		resource "azuresql_role" "test" {
+			database 	= "%[2]s"
+			name        = "tfrole_%[3]s"
+		}
+
+		resource "azuresql_procedure" "test" {
+			database 	= "%[2]s"
+			name        = "tfprocedure_%[3]s"
+			schema		= azuresql_schema.test.id
+			raw         = <<-EOT
+				create procedure tfschema_%[3]s.tfprocedure_%[3]s
+				AS
+				select 1 as a
+			EOT
+		}
+
+		resource "azuresql_permission" "test" {
+			count       = length(local.permissions)
+			database 	= "%[2]s"
+			scope 		= azuresql_procedure.test.id
 			principal   = azuresql_role.test.id
 			permission  = local.permissions[count.index]
 		}
