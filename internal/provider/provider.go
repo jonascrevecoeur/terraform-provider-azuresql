@@ -9,6 +9,7 @@ import (
 	"terraform-provider-azuresql/internal/services/function"
 	"terraform-provider-azuresql/internal/services/master_key"
 	"terraform-provider-azuresql/internal/services/permission"
+	"terraform-provider-azuresql/internal/services/procedure"
 	"terraform-provider-azuresql/internal/services/role"
 	"terraform-provider-azuresql/internal/services/role_assignment"
 	dbschema "terraform-provider-azuresql/internal/services/schema"
@@ -120,6 +121,7 @@ func (p *azuresql_provider) DataSources(_ context.Context) []func() datasource.D
 		execute_sql.NewExecuteSQLDataSource,
 		external_data_source.NewExternalDataSourceDataSource,
 		view.NewViewDataSource,
+		procedure.NewProcedureDataSource,
 	}
 }
 
@@ -140,5 +142,6 @@ func (p *azuresql_provider) Resources(_ context.Context) []func() resource.Resou
 		external_data_source.NewExternalDataSourceResource,
 		view.NewViewResource,
 		database.NewDatabaseResource,
+		procedure.NewProcedureResource,
 	}
 }
