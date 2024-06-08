@@ -91,6 +91,11 @@ func (r *ExternalDataSourceResource) Create(ctx context.Context, req resource.Cr
 	database := plan.Database.ValueString()
 	connection := r.ConnectionCache.Connect(ctx, database, false, true)
 
+	if connection.Provider == "fabric" {
+		logging.AddError(ctx, "invalid config", "External data sources are not supported in Fabric")
+		return
+	}
+
 	if logging.HasError(ctx) {
 		return
 	}

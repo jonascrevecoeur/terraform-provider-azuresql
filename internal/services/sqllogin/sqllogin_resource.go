@@ -89,6 +89,11 @@ func (r *SQLLoginResource) Create(ctx context.Context, req resource.CreateReques
 	server := plan.Server.ValueString()
 	connection := r.ConnectionCache.Connect(ctx, server, true, true)
 
+	if connection.Provider == "fabric" {
+		logging.AddError(ctx, "invalid config", "Managing logins is not supported in Fabric")
+		return
+	}
+
 	if logging.HasError(ctx) {
 		return
 	}

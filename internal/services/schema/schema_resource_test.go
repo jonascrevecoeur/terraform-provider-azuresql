@@ -48,6 +48,7 @@ func TestAccCreateDuplicateResource(t *testing.T) {
 	r := SchemaResource{}
 
 	connections := []string{
+		data.FabricDatabase_connection,
 		data.SQLDatabase_connection,
 		data.SynapseDatabase_connection,
 	}
@@ -72,6 +73,7 @@ func TestAccCreateSchemaWithOwner(t *testing.T) {
 	r := SchemaResource{}
 
 	connections := []string{
+		data.FabricDatabase_connection,
 		data.SQLDatabase_connection,
 		data.SynapseDatabase_connection,
 	}
@@ -95,6 +97,7 @@ func TestAccUpdateSchemaOwner(t *testing.T) {
 	r := SchemaResource{}
 
 	connections := []string{
+		data.FabricDatabase_connection,
 		data.SQLDatabase_connection,
 		data.SynapseDatabase_connection,
 	}

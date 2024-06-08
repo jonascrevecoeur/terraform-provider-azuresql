@@ -89,6 +89,11 @@ func (r *DatabaseScopedCredentialResource) Create(ctx context.Context, req resou
 	database := plan.Database.ValueString()
 	connection := r.ConnectionCache.Connect(ctx, database, false, true)
 
+	if connection.Provider == "fabric" {
+		logging.AddError(ctx, "invalid config", "Credentials are not supported in Fabric")
+		return
+	}
+
 	if logging.HasError(ctx) {
 		return
 	}

@@ -16,6 +16,8 @@ func TestAccCreateRoleBasic(t *testing.T) {
 	r := RoleResource{}
 
 	connections := []string{
+		data.FabricDatabase_connection,
+		data.FabricServer_connection,
 		data.SQLServer_connection,
 		data.SQLDatabase_connection,
 		data.SynapseDatabase_connection,
@@ -50,6 +52,8 @@ func TestAccCreateRoleWithOwner(t *testing.T) {
 		data.SQLServer_connection,
 		data.SQLDatabase_connection,
 		data.SynapseDatabase_connection,
+		data.FabricDatabase_connection,
+		data.FabricServer_connection,
 	}
 
 	for _, connection := range connections {
@@ -72,8 +76,10 @@ func TestAccUpdateRoleName(t *testing.T) {
 
 	connections := []string{
 		data.SQLServer_connection,
-		//data.SQLDatabase_connection,
-		//data.SynapseDatabase_connection,
+		data.SQLDatabase_connection,
+		data.SynapseDatabase_connection,
+		data.FabricDatabase_connection,
+		data.FabricServer_connection,
 	}
 
 	for _, connection := range connections {
@@ -105,9 +111,11 @@ func TestAccUpdateRoleOwner(t *testing.T) {
 	r := RoleResource{}
 
 	connections := []string{
-		//data.SQLServer_connection,
+		data.SQLServer_connection,
 		data.SQLDatabase_connection,
 		data.SynapseDatabase_connection,
+		data.FabricDatabase_connection,
+		data.FabricServer_connection,
 	}
 
 	for _, connection := range connections {

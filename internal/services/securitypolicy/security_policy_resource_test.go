@@ -17,6 +17,7 @@ func TestAccCreateSecurityPolicyBasic(t *testing.T) {
 	r := SecurityPolicyResource{}
 
 	connections := []string{
+		data.FabricDatabase_connection,
 		data.SQLDatabase_connection,
 	}
 

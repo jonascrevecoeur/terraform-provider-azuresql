@@ -16,6 +16,7 @@ func TestAccReadTable(t *testing.T) {
 	r := tableDatasource{}
 
 	connections := []string{
+		data.FabricDatabase_connection,
 		data.SQLDatabase_connection,
 	}
 

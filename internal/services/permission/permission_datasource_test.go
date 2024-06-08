@@ -15,6 +15,7 @@ func TestAccReadPermission(t *testing.T) {
 	data := acceptance.BuildTestData(t)
 	r := permissionDataSource{}
 	connections := []string{
+		data.FabricDatabase_connection,
 		data.SQLDatabase_connection,
 		data.SynapseDatabase_connection,
 	}

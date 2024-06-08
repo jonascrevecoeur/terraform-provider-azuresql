@@ -10,7 +10,7 @@ description: |-
 
 Manage a database security policy.
 
-**Supported**: `SQL database` 
+**Supported**: `SQL database`, `Fabric`
 
 **Not supported**: `Synapse dedicated database`, `Synapse serverless database`
 

@@ -11,7 +11,7 @@ description: |-
 
 Manage SQL database or server users. 
 
-**Supported**: `SQL Server`, `SQL Database`, `Synapse serverless database` 
+**Supported**: `SQL Server`, `SQL Database`, `Synapse serverless database`, `Fabric`  
 
 **Not supported**: `Synapse dedicated server`, `Synapse serverless server`, `Synapse dedicated database`
 

@@ -17,6 +17,7 @@ func TestAccCreateSecurityPredicateBasic(t *testing.T) {
 	r := SecurityPredicateResource{}
 
 	connections := []string{
+		data.FabricDatabase_connection,
 		data.SQLDatabase_connection,
 	}
 

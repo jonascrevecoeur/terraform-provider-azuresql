@@ -10,7 +10,7 @@ description: |-
 
 Read database and server permissions. This reads all permissions of a given principal on a given scope.
 
-**Supported**: `SQL Server`, `SQL Database`, `Synapse serverless server`, `Synapse serverless database` 
+**Supported**: `SQL Server`, `SQL Database`, `Synapse serverless server`, `Synapse serverless database`, `Fabric`
 
 **Not supported**: `Synapse dedicated server`, `Synapse dedicated database`
 

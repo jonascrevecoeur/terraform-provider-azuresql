@@ -15,6 +15,7 @@ func TestAccReadFunction(t *testing.T) {
 	data := acceptance.BuildTestData(t)
 	r := functionDataSource{}
 	connections := []string{
+		data.FabricDatabase_connection,
 		data.SQLDatabase_connection,
 		data.SynapseDatabase_connection,
 	}

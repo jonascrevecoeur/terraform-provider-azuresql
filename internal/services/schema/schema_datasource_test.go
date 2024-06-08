@@ -15,6 +15,7 @@ func TestAccReadSchema(t *testing.T) {
 	data := acceptance.BuildTestData(t)
 	r := schemaDataSource{}
 	connections := []string{
+		data.FabricDatabase_connection,
 		data.SQLDatabase_connection,
 		data.SynapseDatabase_connection,
 	}

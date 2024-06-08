@@ -16,6 +16,7 @@ func TestAccCreateMasterKey(t *testing.T) {
 	r := MasterKeyResource{}
 
 	connections := []string{
+		data.FabricDatabase_connection,
 		data.SQLDatabase_connection,
 		data.SynapseDatabase_connection,
 	}

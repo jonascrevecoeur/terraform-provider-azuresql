@@ -397,7 +397,7 @@ func ParseConnectionId(ctx context.Context, connectionId string) (connection Con
 		if len(parts) == 5 {
 			return Connection{
 				ConnectionId:       connectionId,
-				ConnectionString:   fmt.Sprintf("%s.datawarehouse.pbidedicated.windows.net?database=%s&fedauth=ActiveDirectoryDefault", server, parts[4]),
+				ConnectionString:   fmt.Sprintf("sqlserver://%s.datawarehouse.fabric.microsoft.com?database=%s&fedauth=ActiveDirectoryDefault", server, parts[4]),
 				IsServerConnection: false,
 				Provider:           provider,
 				Server:             server,
@@ -406,7 +406,7 @@ func ParseConnectionId(ctx context.Context, connectionId string) (connection Con
 		} else {
 			return Connection{
 				ConnectionId:       connectionId,
-				ConnectionString:   fmt.Sprintf("%s.datawarehouse.pbidedicated.windows.net?fedauth=ActiveDirectoryDefault", server),
+				ConnectionString:   fmt.Sprintf("sqlserver://%s.datawarehouse.fabric.microsoft.com?fedauth=ActiveDirectoryDefault", server),
 				IsServerConnection: true,
 				Provider:           provider,
 				Server:             server,

@@ -15,6 +15,7 @@ func TestAccCreateTable(t *testing.T) {
 	data := acceptance.BuildTestData(t)
 	r := executeSQLDataSource{}
 	connections := []string{
+		data.FabricDatabase_connection,
 		data.SQLDatabase_connection,
 	}
 
@@ -39,6 +40,7 @@ func TestAccCreateMultipleTables(t *testing.T) {
 	data := acceptance.BuildTestData(t)
 	r := executeSQLDataSource{}
 	connections := []string{
+		data.FabricDatabase_connection,
 		data.SQLDatabase_connection,
 	}
 

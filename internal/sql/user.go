@@ -102,6 +102,19 @@ func CreateUser(ctx context.Context, connection Connection, name string, authent
 		query += " without login"
 	}
 
+	if connection.Provider == "fabric" {
+		/*
+			Fabric doesn't have a `create user` statement, since users are managed at the workspace level
+			The user appears in the sys.database_principal table the first time a transaction is performed.
+			The query below triggers this by granting and revoking access to a user.
+		*/
+		query = fmt.Sprintf(`
+BEGIN TRANSACTION;
+GRANT CONNECT to [%s]
+REVOKE CONNECT to [%s]
+COMMIT;		`, name, name)
+	}
+
 	_, err := connection.Connection.ExecContext(ctx, query)
 
 	logging.AddError(ctx, fmt.Sprintf("User creation failed for user %s", name), err)

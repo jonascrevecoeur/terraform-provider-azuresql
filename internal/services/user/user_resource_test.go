@@ -106,6 +106,40 @@ func TestAccSQLServerCreateADGroup(t *testing.T) {
 	})
 }
 
+func TestAccFabricServerCreateADGroup(t *testing.T) {
+	acceptance.PreCheck(t)
+	data := acceptance.BuildTestData(t)
+	r := UserResource{}
+	resource.Test(t, resource.TestCase{
+		Steps: []resource.TestStep{
+			{
+				Config:                   r.basic_server(data.FabricServer_connection, os.Getenv("AZURE_AD_GROUP"), "AzureAD"),
+				ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("azuresql_user.test", "type", "AD group"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccFabricDatabaseCreateADGroup(t *testing.T) {
+	acceptance.PreCheck(t)
+	data := acceptance.BuildTestData(t)
+	r := UserResource{}
+	resource.Test(t, resource.TestCase{
+		Steps: []resource.TestStep{
+			{
+				Config:                   r.basic_database(data.FabricDatabase_connection, os.Getenv("AZURE_AD_GROUP"), "AzureAD"),
+				ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("azuresql_user.test", "type", "AD group"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccSQLDatabaseCreateADGroup(t *testing.T) {
 	acceptance.PreCheck(t)
 	data := acceptance.BuildTestData(t)

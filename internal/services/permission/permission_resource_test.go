@@ -19,6 +19,7 @@ func TestAccCreatePermissionDatabaseRole(t *testing.T) {
 	r := PermissionResource{}
 
 	connections := []string{
+		data.FabricDatabase_connection,
 		data.SQLDatabase_connection,
 		data.SynapseDatabase_connection,
 	}
@@ -71,6 +72,7 @@ func TestAccCreatePermissionSchemaRole(t *testing.T) {
 	r := PermissionResource{}
 
 	connections := []string{
+		data.FabricDatabase_connection,
 		data.SQLDatabase_connection,
 		data.SynapseDatabase_connection,
 	}
@@ -99,6 +101,7 @@ func TestAccDenyPermissionSchemaRole(t *testing.T) {
 	r := PermissionResource{}
 
 	connections := []string{
+		data.FabricDatabase_connection,
 		data.SQLDatabase_connection,
 		data.SynapseDatabase_connection,
 	}
@@ -150,6 +153,7 @@ func TestAccCreatePermissionTableRole(t *testing.T) {
 	r := PermissionResource{}
 
 	connections := []string{
+		data.FabricDatabase_connection,
 		data.SQLDatabase_connection,
 		//data.SynapseDatabase_connection,
 	}
@@ -209,6 +213,7 @@ func TestAccCreatePermissionProcedureRole(t *testing.T) {
 	r := PermissionResource{}
 
 	connections := []string{
+		data.FabricDatabase_connection,
 		data.SQLDatabase_connection,
 		//data.SynapseDatabase_connection,
 	}

@@ -12,7 +12,7 @@ Register external data sources.
 
 **Supported**: `SQL Database`, `Synapse serverless database` 
 
-**Not supported**: `SQL Server`, `Synapse dedicated database`
+**Not supported**: `SQL Server`, `Synapse dedicated database`, `Fabric`
 
 !> This resource is under development. At the moment only blobstorage is supported as an external data source.
 

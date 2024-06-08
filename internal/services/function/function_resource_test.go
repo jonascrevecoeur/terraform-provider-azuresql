@@ -16,6 +16,7 @@ func TestAccCreateFunctionBasic(t *testing.T) {
 	r := FunctionResource{}
 
 	connections := []string{
+		data.FabricDatabase_connection,
 		data.SQLDatabase_connection,
 		data.SynapseDatabase_connection,
 	}

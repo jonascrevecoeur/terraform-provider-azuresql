@@ -15,6 +15,7 @@ func TestAccReadProcedure(t *testing.T) {
 	data := acceptance.BuildTestData(t)
 	r := procedureDataSource{}
 	connections := []string{
+		data.FabricDatabase_connection,
 		data.SQLDatabase_connection,
 		data.SynapseDatabase_connection,
 	}

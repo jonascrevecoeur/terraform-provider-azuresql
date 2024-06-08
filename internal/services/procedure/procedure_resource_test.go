@@ -16,6 +16,7 @@ func TestAccCreateProcedureBasic(t *testing.T) {
 	r := ProcedureResource{}
 
 	connections := []string{
+		data.FabricDatabase_connection,
 		data.SQLDatabase_connection,
 		data.SynapseDatabase_connection,
 	}

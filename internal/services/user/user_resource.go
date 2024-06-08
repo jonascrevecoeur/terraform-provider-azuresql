@@ -150,6 +150,11 @@ func (r *UserResource) Create(ctx context.Context, req resource.CreateRequest, r
 	authentication := plan.Authentication.ValueString()
 	login := plan.Login.ValueString()
 
+	if authentication != "AzureAD" && connection.Provider == "fabric" {
+		logging.AddError(ctx, "Invalid config", fmt.Sprintf("Fabric doesn't support `Authentication=%s`. The only suppored value is `Authentication='AzureAD'`.", authentication))
+		return
+	}
+
 	user := sql.CreateUser(ctx, connection, name, authentication, login)
 
 	if logging.HasError(ctx) {
