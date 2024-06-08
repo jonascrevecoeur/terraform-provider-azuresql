@@ -22,6 +22,8 @@ type TestData struct {
 	SQLDatabase_connection     string
 	SynapseServer_connection   string
 	SynapseDatabase_connection string
+	FabricServer_connection    string
+	FabricDatabase_connection  string
 
 	// RandomInteger is a random integer which is unique to this test case
 	RandomInteger int
@@ -36,6 +38,8 @@ func BuildTestData(t *testing.T) TestData {
 		SQLDatabase_connection:     fmt.Sprintf("sqlserver::%s:%s:%s", os.Getenv("AZURE_SQL_SERVER"), os.Getenv("AZURE_SQL_SERVER_PORT"), os.Getenv("AZURE_SQL_DATABASE")),
 		SynapseServer_connection:   fmt.Sprintf("synapse::%s:%s", os.Getenv("AZURE_SYNAPSE_SERVER"), os.Getenv("AZURE_SYNAPSE_SERVER_PORT")),
 		SynapseDatabase_connection: fmt.Sprintf("synapse::%s:%s:%s", os.Getenv("AZURE_SYNAPSE_SERVER"), os.Getenv("AZURE_SYNAPSE_SERVER_PORT"), os.Getenv("AZURE_SYNAPSE_DATABASE")),
+		FabricServer_connection:    fmt.Sprintf("fabric::%s:1443", os.Getenv("AZURE_FABRIC_SERVER")),
+		FabricDatabase_connection:  fmt.Sprintf("fabric::%s:1443:%s", os.Getenv("AZURE_FABRIC_SERVER"), os.Getenv("AZURE_FABRIC_DATABASE")),
 		RandomInteger:              RandTimeInt(),
 		RandomString:               randString(5),
 	}

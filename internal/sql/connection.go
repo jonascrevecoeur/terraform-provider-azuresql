@@ -259,6 +259,7 @@ func (cache ConnectionCache) Connect(ctx context.Context, connectionId string, s
 				return connection, nil
 			}
 
+			tflog.Debug(ctx, fmt.Sprintf("Connection string: %s", connection.ConnectionString))
 			con, err := sql.Open("azuresql", connection.ConnectionString)
 			connection.Connection = con
 			if err == nil {
@@ -342,8 +343,8 @@ func ParseConnectionId(ctx context.Context, connectionId string) (connection Con
 	}
 
 	provider := parts[0]
-	if provider != "sqlserver" && provider != "synapse" {
-		logging.AddError(ctx, "Invalid SQL provider in connection id", fmt.Sprintf("SQL provider %s is invalid. Only sqlserver and synapse are currently supported.", provider))
+	if provider != "sqlserver" && provider != "synapse" && provider != "fabric" {
+		logging.AddError(ctx, "Invalid SQL provider in connection id", fmt.Sprintf("SQL provider %s is invalid. Only sqlserver, synapse and fabric are currently supported.", provider))
 		return
 	}
 
@@ -373,7 +374,7 @@ func ParseConnectionId(ctx context.Context, connectionId string) (connection Con
 				Server:             server,
 			}
 		}
-	} else {
+	} else if provider == "synapse" {
 		if len(parts) == 5 {
 			return Connection{
 				ConnectionId:       connectionId,
@@ -387,6 +388,25 @@ func ParseConnectionId(ctx context.Context, connectionId string) (connection Con
 			return Connection{
 				ConnectionId:       connectionId,
 				ConnectionString:   fmt.Sprintf("sqlserver://%s-ondemand.sql.azuresynapse.net:%d?fedauth=ActiveDirectoryDefault", server, port),
+				IsServerConnection: true,
+				Provider:           provider,
+				Server:             server,
+			}
+		}
+	} else {
+		if len(parts) == 5 {
+			return Connection{
+				ConnectionId:       connectionId,
+				ConnectionString:   fmt.Sprintf("%s.datawarehouse.pbidedicated.windows.net?database=%s&fedauth=ActiveDirectoryDefault", server, parts[4]),
+				IsServerConnection: false,
+				Provider:           provider,
+				Server:             server,
+				Database:           parts[4],
+			}
+		} else {
+			return Connection{
+				ConnectionId:       connectionId,
+				ConnectionString:   fmt.Sprintf("%s.datawarehouse.pbidedicated.windows.net?fedauth=ActiveDirectoryDefault", server),
 				IsServerConnection: true,
 				Provider:           provider,
 				Server:             server,

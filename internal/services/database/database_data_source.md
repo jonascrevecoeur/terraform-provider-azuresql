@@ -10,7 +10,7 @@ description: |-
 
 Defines a connection to a database. Creating the data source does not yet open/test the connection. Opening the connection happens when reading/provisioning other `azuresql` resources.
 
-**Supported**: `SQL Database`, `Synapse serverless database` 
+**Supported**: `SQL Database`, `Synapse serverless database`, `Fabric`
 
 **Not supported**: `Synapse dedicated database`
 

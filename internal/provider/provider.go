@@ -6,6 +6,7 @@ import (
 	"terraform-provider-azuresql/internal/services/database_scoped_credential"
 	"terraform-provider-azuresql/internal/services/execute_sql"
 	"terraform-provider-azuresql/internal/services/external_data_source"
+	"terraform-provider-azuresql/internal/services/fabricworkspace"
 	"terraform-provider-azuresql/internal/services/function"
 	"terraform-provider-azuresql/internal/services/master_key"
 	"terraform-provider-azuresql/internal/services/permission"
@@ -122,6 +123,7 @@ func (p *azuresql_provider) DataSources(_ context.Context) []func() datasource.D
 		external_data_source.NewExternalDataSourceDataSource,
 		view.NewViewDataSource,
 		procedure.NewProcedureDataSource,
+		fabricworkspace.NewFabricWorkspaceDataSource,
 	}
 }
 

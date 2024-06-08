@@ -17,6 +17,7 @@ func TestAccCreateSchemaBasic(t *testing.T) {
 	r := SchemaResource{}
 
 	connections := []string{
+		data.FabricDatabase_connection,
 		data.SQLDatabase_connection,
 		data.SynapseDatabase_connection,
 	}

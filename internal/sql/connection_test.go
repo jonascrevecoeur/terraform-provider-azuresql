@@ -1,8 +1,11 @@
 package sql
 
 import (
+	"database/sql"
 	"terraform-provider-azuresql/internal/logging"
 	"testing"
+
+	_ "github.com/microsoft/go-mssqldb/azuread"
 )
 
 func TestParseConnectionId(t *testing.T) {
@@ -63,4 +66,26 @@ func TestParseConnectionId(t *testing.T) {
 
 		logging.ClearDiagnostics(ctx)
 	}
+}
+
+func TestConnectFabric(t *testing.T) {
+	connectionString := ""
+	con, err := sql.Open("azuresql", connectionString)
+
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	_, err = con.Query("select 1 as a")
+
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	// err = con.Ping()
+
+	// if err != nil {
+	// 	t.Errorf("unexpected error: %v", err)
+	// }
+
 }

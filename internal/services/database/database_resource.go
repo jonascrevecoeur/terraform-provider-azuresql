@@ -84,6 +84,12 @@ func (r *DatabaseResource) Create(ctx context.Context, req resource.CreateReques
 		return
 	}
 
+	if connection.Provider == "fabric" {
+		logging.AddError(ctx, "Invalid config",
+			"`azuresql_database` does not support creating Fabric databases.")
+		return
+	}
+
 	database := sql.CreateDatabase(ctx, connection, name)
 
 	if logging.HasError(ctx) {

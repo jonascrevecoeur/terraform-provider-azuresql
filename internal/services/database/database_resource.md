@@ -12,7 +12,7 @@ Manage the lifecycle of a Synapse database.
 
 **Supported**: `Synapse serverless` 
 
-**Not supported**: `SQL Server`, `Synapse dedicated`
+**Not supported**: `SQL Server`, `Synapse dedicated`, `Fabric`
 
 ~> To avoid accidental deletion of the database it is highly recommended that you use the `prevent_destroy` lifecycle argument in configuring this resource. For more information see the [terraform documentation](https://developer.hashicorp.com/terraform/tutorials/state/resource-lifecycle#prevent-resource-deletion)
 
