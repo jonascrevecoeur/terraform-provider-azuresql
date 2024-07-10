@@ -6,7 +6,7 @@ require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.12.0
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.5.2
 	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/synapse/armsynapse v0.8.0
-	github.com/hashicorp/terraform-plugin-framework v1.9.0
+	github.com/hashicorp/terraform-plugin-framework v1.10.0
 	github.com/hashicorp/terraform-plugin-framework-validators v0.12.0
 	github.com/hashicorp/terraform-plugin-go v0.23.0
 	github.com/hashicorp/terraform-plugin-log v0.9.0
