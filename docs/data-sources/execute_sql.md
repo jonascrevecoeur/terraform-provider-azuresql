@@ -10,7 +10,7 @@ description: |-
 
 Executes an SQL query without returning any results. This resource acts as an escape hatch for operations that are not supported by this provider.
 
-**Supported**: `SQL Server`, `SQL database`, `Synapse serverless server`, `Synapse serverless database` 
+**Supported**: `SQL Server`, `SQL database`, `Synapse serverless server`, `Synapse serverless database`, `Fabric` 
 
 **Not supported**: `Synapse dedicated server`, `Synapse dedicated database`
 

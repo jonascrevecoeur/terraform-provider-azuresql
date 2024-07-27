@@ -10,7 +10,7 @@ description: |-
 
 Read SQL database table.
 
-**Supported**: `SQL Database` 
+**Supported**: `SQL Database`, `Fabric` 
 
 **Not supported**: `Synapse serverless database`, `Synapse dedicated database`
 

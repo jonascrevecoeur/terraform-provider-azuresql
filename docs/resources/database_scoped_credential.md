@@ -12,7 +12,7 @@ Manage database scoped credentials.
 
 **Supported**: `SQL Database`, `Synapse serverless database` 
 
-**Not supported**: `Synapse dedicated database`
+**Not supported**: `Synapse dedicated database`, `Fabric`
 
 ## Example Usage
 

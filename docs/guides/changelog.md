@@ -7,6 +7,13 @@ description: |-
 
 # Changelog
 
+## 5.0.1
+
+**Features:**
+* Add getting started guides
+
+~> I made a mistake causing the version to suddenly jump from 0.4.2 to 5.0.0. 
+
 ## 0.5.0
 
 **Features:**

@@ -12,7 +12,7 @@ Read SQL server logins.
 
 **Supported**: `SQL Server`, `Synapse serverless server` 
 
-**Not supported**: `Synapse dedicated server`
+**Not supported**: `Synapse dedicated server`, `Fabric`
 
 ## Example Usage
 
