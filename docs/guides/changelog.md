@@ -11,6 +11,7 @@ description: |-
 
 **Features:**
 * Add `azuresql_procedure` resource to manage stored procedures in SQL
+* Add support for Fabric workspaces
 
 ## 0.4.2
 
