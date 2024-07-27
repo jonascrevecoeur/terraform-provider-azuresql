@@ -10,6 +10,8 @@ description: |-
 
 Defines a connection to a fabrick workspace. Creating the data source does not yet open/test the connection. Opening the connection happens when it is used for reading/provisioning other `azuresql` resources.
 
+~> When connecting to Fabric workspaces, you have to set `check_server_exists` to `false` when creating the `azuresql` provider. At the moment, Fabric doesn't offer an API to efficiencly determine whether a SQL endpoint exists. 
+
 ## Example Usage
 
 ```terraform
@@ -25,7 +27,7 @@ data "azuresql_fabricworkspace" "workspace" {
 ### Argument reference
 The following arguments are supported:
 
-- `name` (Required, String) Name of the Fabric workspace. This is the value in the url preceeding `.datawarehouse.pbidedicated.windows.net`
+- `endpoint` (Required, String) SQL endpoint of the Fabric workspace. This is the value in the connection string preceeding `.datawarehouse.fabric.microsoft.com`
   
 ### Attributes Reference
 In addition to the arguments listed above, the following read only attributes are exported:
