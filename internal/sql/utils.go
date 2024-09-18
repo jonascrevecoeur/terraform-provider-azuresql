@@ -1,9 +1,13 @@
 package sql
 
 import (
+	"context"
 	"database/sql"
+	"fmt"
 	"math/rand"
+	"strconv"
 	"strings"
+	"terraform-provider-azuresql/internal/logging"
 )
 
 var (
@@ -63,4 +67,36 @@ func parseNullString(s sql.NullString) string {
 	} else {
 		return ""
 	}
+}
+
+func PairwiseReverseHex(number int64, parts int) string {
+	result := ""
+
+	for i := 0; i < parts; i++ {
+		result += fmt.Sprintf("%02x", number%256)
+		number = number / 256
+	}
+
+	return strings.ToUpper(result)
+}
+
+func AzureSIDToDatabaseSID(ctx context.Context, azureSid string) (databaseSID string) {
+	databaseSID = "0x"
+	parts := strings.Split(azureSid, "-")
+
+	if len(parts) != 8 {
+		logging.AddError(ctx, "SID format error", fmt.Sprintf("%s is not a valid Azure SID", azureSid))
+		return
+	}
+
+	for i := 4; i <= 7; i++ {
+		number, err := strconv.ParseInt(parts[i], 10, 64)
+		if err != nil {
+			logging.AddError(ctx, "SID format error", fmt.Sprintf("%s is not a valid Azure SID", azureSid))
+			return
+		}
+		databaseSID += PairwiseReverseHex(number, 4)
+	}
+
+	return databaseSID
 }
