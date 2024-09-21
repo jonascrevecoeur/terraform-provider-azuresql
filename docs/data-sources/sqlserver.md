@@ -14,7 +14,7 @@ Defines a connection to the sqlserver. Creating this data source does not yet op
 
 ```terraform
 data "azuresql_sqlserver" "server" {
-  server = "mysqlserver"
+  name   = "mysqlserver"
   port   = 1433
 }
 ```

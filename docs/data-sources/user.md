@@ -63,7 +63,8 @@ In addition to the arguments listed above, the following read only attributes ar
 - `authentication` (String) The user authentication mode. Possible values are `AzureAD`, `SQLLogin` and `WithoutLogin`.
 - `principal_id` (Number) Principal ID of the user in the database.
 - `type` (String) Database/Server user type. Possible values `SQL user`, `AD group`, `AD user`. 
-
+- `sid` (string) SID assigned to the principal in the database.
+  
 ## ID structure
 
 The ID is formed as `<connection>`/user/`<principal id>`, where

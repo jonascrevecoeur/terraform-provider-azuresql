@@ -100,3 +100,19 @@ func AzureSIDToDatabaseSID(ctx context.Context, azureSid string) (databaseSID st
 
 	return databaseSID
 }
+
+func ObjectIDToDatabaseSID(ctx context.Context, objectID string) (databaseSID string) {
+	s := strings.ReplaceAll(objectID, "-", "")
+
+	if len(s) != 32 {
+		logging.AddError(ctx, "SID format error", fmt.Sprintf("%s is not a valid Object ID", objectID))
+		return
+	}
+
+	databaseSID = "0x" + strings.ToUpper(s[6:8]+s[4:6]+s[2:4]+
+		s[0:2]+s[10:12]+s[8:10]+s[14:16]+s[12:14]+
+		s[16:18]+s[18:20]+s[20:22]+s[22:24]+s[24:26]+
+		s[26:28]+s[28:30]+s[30:32])
+
+	return databaseSID
+}

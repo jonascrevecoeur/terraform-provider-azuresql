@@ -63,13 +63,16 @@ The following arguments are supported:
 
 - `login` (Optional, String) The ID of the `azuresql_login` resource specifying the login credentials. Available only when `authentication=SQLLogin`. 
 
+- `object_id` (Optional, String, **Preview**) Provision a user by providing their EntraID object ID. This option is only available for SQL server with `authentication="AzureAD"`.
+
 ### Attributes Reference
 In addition to the arguments listed above, the following read only attributes are exported:
 
 - `id` (String) The azuresql ID of the user resource.
 - `principal_id` (Number) Principal ID of the user in the database.
 - `type` (String) Database/Server user type. Possible values `SQL user`, `AD group`, `AD user`. 
-
+- `sid` (string) SID assigned to the principal in the database.
+  
 ## ID structure
 
 The ID is formed as `<connection>`/user/`<principal id>`, where

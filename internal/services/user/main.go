@@ -24,5 +24,6 @@ type UserResourceModel struct {
 	Authentication types.String `tfsdk:"authentication"`
 	Type           types.String `tfsdk:"type"`
 	Login          types.String `tfsdk:"login"`
+	ObjectID       types.String `tfsdk:"object_id"`
 	Sid            types.String `tfsdk:"sid"`
 }

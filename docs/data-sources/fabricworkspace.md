@@ -27,7 +27,7 @@ data "azuresql_fabricworkspace" "workspace" {
 ### Argument reference
 The following arguments are supported:
 
-- `name` (Required, String) name of the Fabric workspace. This is the value in the connection string preceeding `.datawarehouse.fabric.microsoft.com`
+- `endpoint` (Required, String) SQL endpoint of the Fabric workspace. This is the value in the connection string preceeding `.datawarehouse.fabric.microsoft.com`
   
 ### Attributes Reference
 In addition to the arguments listed above, the following read only attributes are exported:
