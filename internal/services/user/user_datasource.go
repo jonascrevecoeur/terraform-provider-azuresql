@@ -69,6 +69,9 @@ func (d *providerConfig) Schema(_ context.Context, _ datasource.SchemaRequest, r
 				Computed:    true,
 				Description: "Type of the user in the database. Possible types are TODO.",
 			},
+			"sid": schema.StringAttribute{
+				Computed: true,
+			},
 		},
 	}
 }
@@ -109,6 +112,7 @@ func (r *providerConfig) Read(ctx context.Context, req datasource.ReadRequest, r
 	state.PrincipalId = types.Int64Value(user.PrincipalId)
 	state.Type = types.StringValue(user.Type)
 	state.Authentication = types.StringValue(user.Authentication)
+	state.Sid = types.StringValue(user.Sid)
 
 	state.Id = types.StringValue(user.Id)
 

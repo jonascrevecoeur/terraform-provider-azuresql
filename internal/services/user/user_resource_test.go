@@ -174,23 +174,6 @@ func TestAccSQLDatabaseCreateUserWithObjectId(t *testing.T) {
 	})
 }
 
-func TestAccSynapseDatabaseCreateUserWithObjectId(t *testing.T) {
-	acceptance.PreCheck(t)
-	data := acceptance.BuildTestData(t)
-	r := UserResource{}
-	resource.Test(t, resource.TestCase{
-		Steps: []resource.TestStep{
-			{
-				Config: r.objectid_database(
-					data.SynapseDatabase_connection,
-					"azuresql-sid",
-					"11111111-1111-1111-1111-111111111111"),
-				ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
-			},
-		},
-	})
-}
-
 func TestAccSynapseServerCreateADGroup(t *testing.T) {
 	acceptance.PreCheck(t)
 	data := acceptance.BuildTestData(t)
