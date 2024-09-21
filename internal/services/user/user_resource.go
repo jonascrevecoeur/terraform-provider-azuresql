@@ -97,6 +97,15 @@ func (r *UserResource) Schema(_ context.Context, _ resource.SchemaRequest, resp 
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
+			"object_id": schema.StringAttribute{
+				Optional: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+			},
+			"sid": schema.StringAttribute{
+				Computed: true,
+			},
 		},
 	}
 }
@@ -150,12 +159,24 @@ func (r *UserResource) Create(ctx context.Context, req resource.CreateRequest, r
 	authentication := plan.Authentication.ValueString()
 	login := plan.Login.ValueString()
 
+	objectId := plan.ObjectID.ValueString()
+
 	if authentication != "AzureAD" && connection.Provider == "fabric" {
 		logging.AddError(ctx, "Invalid config", fmt.Sprintf("Fabric doesn't support `Authentication=%s`. The only suppored value is `Authentication='AzureAD'`.", authentication))
 		return
 	}
 
-	user := sql.CreateUser(ctx, connection, name, authentication, login)
+	if authentication != "AzureAD" && objectId != "" {
+		logging.AddError(ctx, "Invalid config", "ObjectId can only be set when Authentication=AzureAD")
+		return
+	}
+
+	if connection.Provider != "sqlserver" && objectId != "" {
+		logging.AddError(ctx, "Invalid config", "ObjectId is only supported in SQLServer")
+		return
+	}
+
+	user := sql.CreateUser(ctx, connection, name, authentication, login, objectId)
 
 	if logging.HasError(ctx) {
 		if user.Id != "" {
@@ -170,6 +191,7 @@ func (r *UserResource) Create(ctx context.Context, req resource.CreateRequest, r
 	plan.Id = types.StringValue(user.Id)
 	plan.PrincipalId = types.Int64Value(user.PrincipalId)
 	plan.Type = types.StringValue(user.Type)
+	plan.Sid = types.StringValue(user.Sid)
 
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
@@ -225,6 +247,7 @@ func (r *UserResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	state.Name = types.StringValue(user.Name)
 	state.Type = types.StringValue(user.Type)
 	state.Authentication = types.StringValue(user.Authentication)
+	state.Sid = types.StringValue(user.Sid)
 
 	state.Id = types.StringValue(user.Id)
 

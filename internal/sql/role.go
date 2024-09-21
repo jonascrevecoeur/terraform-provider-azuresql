@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 	"terraform-provider-azuresql/internal/logging"
+
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 type Role struct {
@@ -59,6 +61,7 @@ func roleOwnerFormatId(ctx context.Context, connectionId string, principalId int
 }
 
 func CreateRole(ctx context.Context, connection Connection, name string, owner string) (role Role) {
+	tflog.Info(ctx, fmt.Sprintf("Creating role %s", name))
 
 	query := fmt.Sprintf("create role [%s]", name)
 
@@ -234,6 +237,8 @@ func UpdateRoleOwner(ctx context.Context, connection Connection, id string, owne
 }
 
 func DropRole(ctx context.Context, connection Connection, principalId int64) {
+
+	tflog.Info(ctx, fmt.Sprintf("Dropping role %d", principalId))
 
 	role := GetRoleFromPrincipalId(ctx, connection, principalId, false)
 	if logging.HasError(ctx) || role.Id == "" {

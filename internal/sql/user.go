@@ -17,6 +17,7 @@ type User struct {
 	Type           string
 	Authentication string
 	Login          string
+	Sid            string
 }
 
 func userFormatId(connectionId string, userPrincipalId int64) string {
@@ -81,12 +82,20 @@ func describeAuthentication(ctx context.Context, authentication_type int64) (aut
 	}
 }
 
-func CreateUser(ctx context.Context, connection Connection, name string, authentication string, loginId string) (user User) {
+func CreateUser(ctx context.Context, connection Connection, name string, authentication string, loginId string, objectId string) (user User) {
 
 	query := fmt.Sprintf("create user [%s]", name)
 
 	if authentication == "AzureAD" {
-		query += " from external provider"
+		if objectId == "" {
+			query += " from external provider"
+		} else {
+			sid := ObjectIDToDatabaseSID(ctx, objectId)
+			if logging.HasError(ctx) {
+				return
+			}
+			query += " with sid=" + sid + ", type=E"
+		}
 	} else if authentication == "SQLLogin" {
 		login := ParseLoginId(ctx, loginId)
 		login_connection := ParseConnectionId(ctx, login.Connection)
@@ -130,10 +139,10 @@ COMMIT;		`, name, name)
 func GetUserFromName(ctx context.Context, connection Connection, name string) (user User) {
 
 	var id, authentication_type int64
-	var userType string
+	var userType, sid string
 
 	query := `
-		select principal_id, type, authentication_type
+		select principal_id, type, authentication_type, sid
 		from sys.database_principals
 		where name = @name and type != 'R'
 		`
@@ -141,7 +150,7 @@ func GetUserFromName(ctx context.Context, connection Connection, name string) (u
 	err := (connection.
 		Connection.
 		QueryRowContext(ctx, query, sql.Named("name", name)).
-		Scan(&id, &userType, &authentication_type))
+		Scan(&id, &userType, &authentication_type, &sid))
 
 	switch {
 	case err == sql.ErrNoRows:
@@ -159,6 +168,7 @@ func GetUserFromName(ctx context.Context, connection Connection, name string) (u
 		PrincipalId:    id,
 		Type:           describeUserType(ctx, userType),
 		Authentication: describeAuthentication(ctx, authentication_type),
+		Sid:            sid,
 	}
 
 }
@@ -188,11 +198,11 @@ func GetUserFromId(ctx context.Context, connection Connection, id string, requir
 
 func GetUserFromPrincipalId(ctx context.Context, connection Connection, principalId int64) (user User) {
 
-	var name, userType string
+	var name, userType, sid string
 	var authentication_type int64
 
 	query := `
-		select name, type, authentication_type
+		select name, type, authentication_type, sid
 		from sys.database_principals
 		where principal_id = @id and type != 'R'
 		`
@@ -200,7 +210,7 @@ func GetUserFromPrincipalId(ctx context.Context, connection Connection, principa
 	err := (connection.
 		Connection.
 		QueryRowContext(ctx, query, sql.Named("id", principalId)).
-		Scan(&name, &userType, &authentication_type))
+		Scan(&name, &userType, &authentication_type, &sid))
 
 	switch {
 	case err == sql.ErrNoRows:
@@ -218,6 +228,7 @@ func GetUserFromPrincipalId(ctx context.Context, connection Connection, principa
 		PrincipalId:    principalId,
 		Type:           describeUserType(ctx, userType),
 		Authentication: describeAuthentication(ctx, authentication_type),
+		Sid:            sid,
 	}
 
 }

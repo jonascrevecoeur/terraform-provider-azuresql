@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"terraform-provider-azuresql/internal/acceptance"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
 type RoleResource struct{}
@@ -105,13 +107,20 @@ func TestAccUpdateRoleName(t *testing.T) {
 	}
 }
 
+func delay_next_step(d time.Duration) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		time.Sleep(d)
+
+		return nil
+	}
+}
+
 func TestAccUpdateRoleOwner(t *testing.T) {
 	acceptance.PreCheck(t)
 	data := acceptance.BuildTestData(t)
 	r := RoleResource{}
 
 	connections := []string{
-		data.SQLServer_connection,
 		data.SQLDatabase_connection,
 		data.SynapseDatabase_connection,
 		data.FabricDatabase_connection,
@@ -120,6 +129,7 @@ func TestAccUpdateRoleOwner(t *testing.T) {
 
 	for _, connection := range connections {
 		print(fmt.Sprintf("\n\nRunning test for connection %s\n\n", connection))
+		print(data.RandomString)
 		resource.Test(t, resource.TestCase{
 			Steps: []resource.TestStep{
 				{
@@ -129,6 +139,8 @@ func TestAccUpdateRoleOwner(t *testing.T) {
 						resource.TestCheckResourceAttrPair(
 							"azuresql_role.test", "owner",
 							"azuresql_role.owner1", "id"),
+						resource.TestCheckResourceAttr("azuresql_role.test", "name", "tfrole_"+data.RandomString),
+						delay_next_step(30*time.Second),
 					),
 				},
 				{

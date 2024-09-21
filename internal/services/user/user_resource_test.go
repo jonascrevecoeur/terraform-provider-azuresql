@@ -157,6 +157,23 @@ func TestAccSQLDatabaseCreateADGroup(t *testing.T) {
 	})
 }
 
+func TestAccSQLDatabaseCreateUserWithObjectId(t *testing.T) {
+	acceptance.PreCheck(t)
+	data := acceptance.BuildTestData(t)
+	r := UserResource{}
+	resource.Test(t, resource.TestCase{
+		Steps: []resource.TestStep{
+			{
+				Config: r.objectid_database(
+					data.SQLDatabase_connection,
+					"azuresql-sid",
+					"11111111-1111-1111-1111-111111111111"),
+				ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+			},
+		},
+	})
+}
+
 func TestAccSynapseServerCreateADGroup(t *testing.T) {
 	acceptance.PreCheck(t)
 	data := acceptance.BuildTestData(t)
@@ -247,6 +264,22 @@ func (r UserResource) basic_database(connection string, username string, authent
 			authentication = "%[4]s"
 		}
 		`, template, connection, username, authentication)
+}
+
+func (r UserResource) objectid_database(connection string, username string, objectid string) string {
+	template := r.template()
+
+	return fmt.Sprintf(
+		`
+		%[1]s
+
+		resource "azuresql_user" "test" {
+			database  	   	= "%[2]s"
+			name           	= "%[3]s"
+			object_id 		= "%[4]s"
+			authentication 	= "AzureAD"
+		}
+		`, template, connection, username, objectid)
 }
 
 func (r UserResource) basic_server_duplicate(connection string, username string, authentication string) string {
