@@ -157,14 +157,14 @@ func TestAccSQLDatabaseCreateADGroup(t *testing.T) {
 	})
 }
 
-func TestAccSQLDatabaseCreateUserWithObjectId(t *testing.T) {
+func TestAccSQLDatabaseCreateUserWithEntraIDIdentity(t *testing.T) {
 	acceptance.PreCheck(t)
 	data := acceptance.BuildTestData(t)
 	r := UserResource{}
 	resource.Test(t, resource.TestCase{
 		Steps: []resource.TestStep{
 			{
-				Config: r.objectid_database(
+				Config: r.entraid_identity_database(
 					data.SQLDatabase_connection,
 					"azuresql-sid",
 					"11111111-1111-1111-1111-111111111111"),
@@ -266,7 +266,7 @@ func (r UserResource) basic_database(connection string, username string, authent
 		`, template, connection, username, authentication)
 }
 
-func (r UserResource) objectid_database(connection string, username string, objectid string) string {
+func (r UserResource) entraid_identity_database(connection string, username string, entraid_identifier string) string {
 	template := r.template()
 
 	return fmt.Sprintf(
@@ -274,12 +274,12 @@ func (r UserResource) objectid_database(connection string, username string, obje
 		%[1]s
 
 		resource "azuresql_user" "test" {
-			database  	   	= "%[2]s"
-			name           	= "%[3]s"
-			object_id 		= "%[4]s"
-			authentication 	= "AzureAD"
+			database  	   		= "%[2]s"
+			name           		= "%[3]s"
+			entraid_identifier 	= "%[4]s"
+			authentication 		= "AzureAD"
 		}
-		`, template, connection, username, objectid)
+		`, template, connection, username, entraid_identifier)
 }
 
 func (r UserResource) basic_server_duplicate(connection string, username string, authentication string) string {
