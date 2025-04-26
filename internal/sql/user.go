@@ -82,15 +82,15 @@ func describeAuthentication(ctx context.Context, authentication_type int64) (aut
 	}
 }
 
-func CreateUser(ctx context.Context, connection Connection, name string, authentication string, loginId string, objectId string) (user User) {
+func CreateUser(ctx context.Context, connection Connection, name string, authentication string, loginId string, entraid_identifier string) (user User) {
 
 	query := fmt.Sprintf("create user [%s]", name)
 
 	if authentication == "AzureAD" {
-		if objectId == "" {
+		if entraid_identifier == "" {
 			query += " from external provider"
 		} else {
-			sid := ObjectIDToDatabaseSID(ctx, objectId)
+			sid := ObjectIDToDatabaseSID(ctx, entraid_identifier)
 			if logging.HasError(ctx) {
 				return
 			}

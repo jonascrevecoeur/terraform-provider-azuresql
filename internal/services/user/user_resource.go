@@ -97,7 +97,7 @@ func (r *UserResource) Schema(_ context.Context, _ resource.SchemaRequest, resp 
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
-			"object_id": schema.StringAttribute{
+			"entraid_identifier": schema.StringAttribute{
 				Optional: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
@@ -159,24 +159,24 @@ func (r *UserResource) Create(ctx context.Context, req resource.CreateRequest, r
 	authentication := plan.Authentication.ValueString()
 	login := plan.Login.ValueString()
 
-	objectId := plan.ObjectID.ValueString()
+	entraid_identifier := plan.EntraIDIdentifier.ValueString()
 
 	if authentication != "AzureAD" && connection.Provider == "fabric" {
 		logging.AddError(ctx, "Invalid config", fmt.Sprintf("Fabric doesn't support `Authentication=%s`. The only suppored value is `Authentication='AzureAD'`.", authentication))
 		return
 	}
 
-	if authentication != "AzureAD" && objectId != "" {
-		logging.AddError(ctx, "Invalid config", "ObjectId can only be set when Authentication=AzureAD")
+	if authentication != "AzureAD" && entraid_identifier != "" {
+		logging.AddError(ctx, "Invalid config", "EntraIDIdentifier can only be set when Authentication=AzureAD")
 		return
 	}
 
-	if connection.Provider != "sqlserver" && objectId != "" {
-		logging.AddError(ctx, "Invalid config", "ObjectId is only supported in SQLServer")
+	if connection.Provider != "sqlserver" && entraid_identifier != "" {
+		logging.AddError(ctx, "Invalid config", "EntraIDIdentifier is only supported in SQLServer")
 		return
 	}
 
-	user := sql.CreateUser(ctx, connection, name, authentication, login, objectId)
+	user := sql.CreateUser(ctx, connection, name, authentication, login, entraid_identifier)
 
 	if logging.HasError(ctx) {
 		if user.Id != "" {

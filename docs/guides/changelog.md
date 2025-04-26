@@ -7,6 +7,16 @@ description: |-
 
 # Changelog
 
+## 5.1.0
+
+**Bugfixes:**
+
+* In `azuresql_user`, renamed the experimental `object_id` parameter to `entraid_identifier` to reflect that application users must be created using their client ID (Entra ID identifier) instead of their Object ID.
+
+**Documentation:**
+
+* Add page on CICD authentication.
+
 ## 5.0.1
 
 **Features:**
