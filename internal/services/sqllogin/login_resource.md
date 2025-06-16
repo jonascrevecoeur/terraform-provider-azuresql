@@ -10,7 +10,7 @@ description: |-
 
 Manage SQL server logins.
 
-**Supported**: `SQL Server`, `Synapse serverless server` 
+**Supported**: `SQL Server`, `Synapse serverless server`
 
 **Not supported**: `Synapse dedicated server`, `Fabric`
 
@@ -58,9 +58,9 @@ The following arguments are supported:
 In addition to the arguments listed above, the following read only attributes are exported:
 
 - `id` (String) azuresql ID of the login resource.
-- `password` (String) Auto generated password for the new login.
+- `password` (String) Generated password for the new login.
 
-~> The generated password consists of 20 characters with at least 3 special characters, 4 numbers and 5 upper case letters.
+~> The generated password, using default settings, consists of 20 characters with at least 3 special characters, 4 numbers and 5 upper case letters.
 
 - `sid` (String) sid of the login on the server.
 
@@ -73,7 +73,7 @@ The ID is formed as `<server>`/login/`<name>`/`<sid>`, where
 
 ## Import
 
-You can import a login using 
+You can import a login using
 
 ```shell
 terraform import azuresql_login.<resource name> <id>
