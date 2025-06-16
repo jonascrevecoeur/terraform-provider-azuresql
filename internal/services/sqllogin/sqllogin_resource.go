@@ -112,14 +112,6 @@ func (r *SQLLoginResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
-			"password": schema.StringAttribute{
-				Computed:    true,
-				Description: "Auto generated password for the new login.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-				Sensitive: true,
-			},
 			"password_properties": schema.SingleNestedAttribute{
 				Optional: true,
 				// Disabled for now - requires proper parsing of raw to props
@@ -128,6 +120,14 @@ func (r *SQLLoginResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 					objectplanmodifier.RequiresReplace(),
 				},
 				Attributes: r.SchemaPasswordProperties(),
+			},
+			"password": schema.StringAttribute{
+				Computed:    true,
+				Description: "Auto generated password for the new login.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+				Sensitive: true,
 			},
 		},
 	}
