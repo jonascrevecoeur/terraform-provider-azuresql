@@ -24,6 +24,6 @@ type SQLLoginResourceModel struct {
 	Server             types.String `tfsdk:"server"`
 	Name               types.String `tfsdk:"name"`
 	PasswordProperties types.Object `tfsdk:"password_properties"`
-	Password           types.Object `tfsdk:"password"`
+	Password           types.String `tfsdk:"password"`
 	Sid                types.String `tfsdk:"sid"`
 }
