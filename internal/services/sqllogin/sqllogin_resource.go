@@ -7,7 +7,6 @@ import (
 	"terraform-provider-azuresql/internal/logging"
 	"terraform-provider-azuresql/internal/sql"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32default"
@@ -44,21 +43,6 @@ type SQLLoginResource struct {
 
 func (r *SQLLoginResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_login"
-}
-
-func (r *SQLLoginResource) SchemaPropertiesAttributes() map[string]attr.Type {
-	return map[string]attr.Type{
-		"arguments": types.ListType{
-			ElemType: types.ObjectType{
-				AttrTypes: map[string]attr.Type{
-					"name": types.StringType,
-					"type": types.StringType,
-				},
-			},
-		},
-		"definition": types.StringType,
-		"executor":   types.StringType,
-	}
 }
 
 func (r *SQLLoginResource) SchemaPasswordProperties() map[string]schema.Attribute {
