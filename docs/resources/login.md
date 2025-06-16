@@ -10,7 +10,7 @@ description: |-
 
 Manage SQL server logins.
 
-**Supported**: `SQL Server`, `Synapse serverless server` 
+**Supported**: `SQL Server`, `Synapse serverless server`
 
 **Not supported**: `Synapse dedicated server`, `Fabric`
 
@@ -33,8 +33,8 @@ data "azuresql_database" "database" {
 
 # create a new login. A secure password will be generated.
 resource "azuresql_login" "login" {
-    server   = data.azuresql_sqlserver.server.id
-    name     = "mylogin"
+    server = data.azuresql_sqlserver.server.id
+    name   = "mylogin"
 }
 
 resource "azuresql_user" "user" {
@@ -42,6 +42,25 @@ resource "azuresql_user" "user" {
     name            = "myuser"
     authentication  = "SQLLogin"
     login           = azuresql_login.login.id
+}
+```
+
+Optionally specify password parameters
+```
+# create a new login. A secure password will be generated with the following parameters
+resource "azuresql_login" "login" {
+    server = data.azuresql_sqlserver.server.id
+    name   = "mylogin"
+
+    password {
+      # Only these special characters will be allowed
+      allowed_special_characters = ["!", "@", "^", "*"]
+
+      length                     = 32                   # Password length will total 32 characters
+      min_special_characters     = 5                    # Password will include at least 5 special characters
+      min_numbers                = 6                    # Password will contain at least 6 numbers
+      min_uppercase              = 9                    # Password will contain at least 9 uppercase letters
+    }
 }
 ```
 
@@ -73,7 +92,7 @@ The ID is formed as `<server>`/login/`<name>`/`<sid>`, where
 
 ## Import
 
-You can import a login using 
+You can import a login using
 
 ```shell
 terraform import azuresql_login.<resource name> <id>
