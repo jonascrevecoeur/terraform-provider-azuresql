@@ -7,19 +7,22 @@ import (
 	"terraform-provider-azuresql/internal/logging"
 	"terraform-provider-azuresql/internal/sql"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
-/*var (
-	_ resource.Resource                = &Resource{}
-	_ resource.ResourceWithConfigure   = &Resource{}
-	_ resource.ResourceWithImportState = &Resource{}
-)*/
+var (
+	_ resource.Resource                = &SQLLoginResource{}
+	_ resource.ResourceWithConfigure   = &SQLLoginResource{}
+	_ resource.ResourceWithImportState = &SQLLoginResource{}
+)
 
 func NewSQLLoginResource() resource.Resource {
 	return &SQLLoginResource{}
@@ -31,6 +34,47 @@ type SQLLoginResource struct {
 
 func (r *SQLLoginResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_login"
+}
+
+func (r *SQLLoginResource) SchemaPropertiesAttributes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"arguments": types.ListType{
+			ElemType: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"name": types.StringType,
+					"type": types.StringType,
+				},
+			},
+		},
+		"definition": types.StringType,
+		"executor":   types.StringType,
+	}
+}
+
+func (r *SQLLoginResource) SchemaPasswordProperties() map[string]schema.Attribute {
+	return map[string]schema.Attribute{
+		"length": schema.Int32Attribute{
+			Optional: true,
+			Computed: true,
+		},
+		"allowed_special_chars": schema.StringAttribute{
+			Optional: true,
+			Computed: true,
+			Default:  stringdefault.StaticString("!@#$%&*"),
+		},
+		"min_special_chars": schema.Int32Attribute{
+			Optional: true,
+			Computed: true,
+		},
+		"min_numbers": schema.Int32Attribute{
+			Optional: true,
+			Computed: true,
+		},
+		"min_uppercase": schema.Int32Attribute{
+			Optional: true,
+			Computed: true,
+		},
+	}
 }
 
 func (r *SQLLoginResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
@@ -70,6 +114,15 @@ func (r *SQLLoginResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 					stringplanmodifier.UseStateForUnknown(),
 				},
 				Sensitive: true,
+			},
+			"password_properties": schema.SingleNestedAttribute{
+				Optional: true,
+				// Disabled for now - requires proper parsing of raw to props
+				// Computed: true,
+				PlanModifiers: []planmodifier.Object{
+					objectplanmodifier.RequiresReplace(),
+				},
+				Attributes: r.SchemaPasswordProperties(),
 			},
 		},
 	}
