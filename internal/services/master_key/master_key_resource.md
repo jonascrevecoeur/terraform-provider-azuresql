@@ -49,9 +49,9 @@ The following arguments are supported:
 In addition to the arguments listed above, the following read only attributes are exported:
 
 - `id` (String) azuresql ID of the master key resource.
-- `password` (String) Generated password for the master key.
+- `password` (String) Auto generated password for the master key.
 
-~> The generated password, using default settings, consists of 20 characters with at least 3 special characters, 4 numbers and 5 upper case letters.
+~> The generated password consists of 20 characters with at least 3 special characters, 4 numbers and 5 upper case letters.
 
 ## ID structure
 
