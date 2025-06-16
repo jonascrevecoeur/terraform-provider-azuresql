@@ -21,25 +21,25 @@ var (
 func GeneratePassword(passwordLength int, minSpecialChars int, minNum int, minUpperCase int, allowedSpecialChars string) string {
 	var password strings.Builder
 
-	//Use predefined special characters if user doesn't specify them
+	// Use predefined special characters if unspecified
 	specialCharSet := allowedSpecialChars
 	if len(allowedSpecialChars) != 0 {
 		specialCharSet = SpecialCharSet
 	}
 
-	//Set special character
+	// Set special characters
 	for i := 0; i < minSpecialChars; i++ {
 		random := rand.Intn(len(specialCharSet))
 		password.WriteString(string(specialCharSet[random]))
 	}
 
-	//Set numeric
+	// Set numeric
 	for i := 0; i < minNum; i++ {
 		random := rand.Intn(len(numberSet))
 		password.WriteString(string(numberSet[random]))
 	}
 
-	//Set uppercase
+	// Set uppercase
 	for i := 0; i < minUpperCase; i++ {
 		random := rand.Intn(len(upperCharSet))
 		password.WriteString(string(upperCharSet[random]))
