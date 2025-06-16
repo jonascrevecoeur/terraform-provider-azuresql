@@ -53,15 +53,12 @@ The following arguments are supported:
 
 - `server` (Required, String) Id of the server where the login should be created.
 - `name` (Required, String) Login name.
+- `password` (Optional, String) Password for the new login. If no password is specified, a password of 20 characters with at least 3 special characters, 4 numbers and 5 letters is auto generated.
 
 ### Attributes Reference
 In addition to the arguments listed above, the following read only attributes are exported:
 
 - `id` (String) azuresql ID of the login resource.
-- `password` (String) Auto generated password for the new login.
-
-~> The generated password consists of 20 characters with at least 3 special characters, 4 numbers and 5 upper case letters.
-
 - `sid` (String) sid of the login on the server.
 
 ## ID structure
