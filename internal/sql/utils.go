@@ -24,7 +24,7 @@ func generatePassword(passwordLength int, minSpecialChars int, minNum int, minUp
 	//Use predefined special characters if user doesn't specify them
 	specialCharSet := allowedSpecialChars
 	if len(allowedSpecialChars) != 0 {
-		specialCharSet = allowedSpecialChars
+		specialCharSet = SpecialCharSet
 	}
 
 	//Set special character

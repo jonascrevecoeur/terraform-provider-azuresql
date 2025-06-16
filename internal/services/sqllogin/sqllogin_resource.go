@@ -202,15 +202,15 @@ func (r *SQLLoginResource) Create(ctx context.Context, req resource.CreateReques
 	}
 
 	if minSpecialChars >= length {
-		logging.AddError(ctx, "invalid password minimum special characters", "Password special characters cannot exceed password length")
+		logging.AddError(ctx, "invalid password minimum special characters", "Login password minimum special characters cannot exceed password length")
 		return
 	}
 	if minNum >= length {
-		logging.AddError(ctx, "invalid password minimum numbers", "Password numbers cannot exceed password length")
+		logging.AddError(ctx, "invalid password minimum numbers", "Login password minimum numbers cannot exceed password length")
 		return
 	}
 	if minUpperCase >= length {
-		logging.AddError(ctx, "invalid password minimum uppercase letters", "Password uppercase letters cannot exceed password length")
+		logging.AddError(ctx, "invalid password minimum uppercase letters", "Login password minimum uppercase letters cannot exceed password length")
 		return
 	}
 
