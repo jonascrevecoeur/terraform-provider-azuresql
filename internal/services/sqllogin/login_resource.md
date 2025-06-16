@@ -58,10 +58,7 @@ The following arguments are supported:
 In addition to the arguments listed above, the following read only attributes are exported:
 
 - `id` (String) azuresql ID of the login resource.
-- `password` (String) Generated password for the new login.
-
-~> The generated password, using default settings, consists of 20 characters with at least 3 special characters, 4 numbers and 5 upper case letters.
-
+- `password` (String) The generated password for the new login, using default settings, consists of 20 characters with at least 3 special characters, 4 numbers and 5 upper case letters.
 - `sid` (String) sid of the login on the server.
 
 ## ID structure
