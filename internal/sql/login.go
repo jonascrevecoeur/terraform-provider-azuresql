@@ -19,7 +19,7 @@ type Login struct {
 type PasswordProperties struct {
 	Length              int
 	AllowedSpecialChars string
-	MinSpecialChar      int
+	minSpecialChars     int
 	MinNum              int
 	MinUpperCase        int
 }
@@ -62,12 +62,12 @@ func CreateLogin(
 	name string,
 	length int,
 	allowedSpecialChars string,
-	minSpecialChar int,
+	minSpecialChars int,
 	minNum int,
 	minUpperCase int,
 ) (login Login) {
 	// password := generatePassword(20, 3, 4, 5)
-	password := generatePassword(length, minSpecialChar, minNum, minUpperCase, allowedSpecialChars)
+	password := generatePassword(length, minSpecialChars, minNum, minUpperCase, allowedSpecialChars)
 
 	query := fmt.Sprintf("create login %s with password = '%s'", name, password)
 

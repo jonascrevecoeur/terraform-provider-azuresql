@@ -14,7 +14,7 @@ type SQLLoginDataSourceModel struct {
 type SQLLoginPasswordPropertiesResourceModel struct {
 	Length              types.Int32  `tfsdk:"length"`
 	AllowedSpecialChars types.String `tfsdk:"allowed_special_chars"`
-	MinSpecialChar      types.Int32  `tfsdk:"min_special_chars"`
+	minSpecialChars     types.Int32  `tfsdk:"min_special_chars"`
 	MinNum              types.Int32  `tfsdk:"min_numbers"`
 	MinUpperCase        types.Int32  `tfsdk:"min_uppercase"`
 }

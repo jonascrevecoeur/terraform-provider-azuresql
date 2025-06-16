@@ -156,7 +156,7 @@ func (r *SQLLoginResource) Create(ctx context.Context, req resource.CreateReques
 		return
 	}
 
-	login := sql.CreateLogin(ctx, connection, name)
+	login := sql.CreateLogin(ctx, connection, name, length, allowedSpecialChars, minSpecialChars, minNum, minUpperCase)
 
 	if logging.HasError(ctx) {
 		if login.Id != "" {
