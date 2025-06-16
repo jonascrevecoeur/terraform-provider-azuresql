@@ -39,3 +39,6 @@ set_env.sh
 .env
 
 .terraform.tfstate.lock.info
+
+# Don't commit the binary while developing it
+terraform-provider-azuresql
