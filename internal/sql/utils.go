@@ -18,7 +18,7 @@ var (
 	allCharSet     = lowerCharSet + upperCharSet + SpecialCharSet + numberSet
 )
 
-func generatePassword(passwordLength int, minSpecialChars int, minNum int, minUpperCase int, allowedSpecialChars string) string {
+func GeneratePassword(passwordLength int, minSpecialChars int, minNum int, minUpperCase int, allowedSpecialChars string) string {
 	var password strings.Builder
 
 	//Use predefined special characters if user doesn't specify them
