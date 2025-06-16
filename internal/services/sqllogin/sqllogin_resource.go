@@ -62,7 +62,7 @@ func (r *SQLLoginResource) SchemaPasswordProperties() map[string]schema.Attribut
 		"allowed_special_chars": schema.StringAttribute{
 			Optional: true,
 			Computed: true,
-			Default:  stringdefault.StaticString("!@#$%&*"),
+			Default:  stringdefault.StaticString(sql.SpecialCharSet),
 		},
 		"min_special_chars": schema.Int32Attribute{
 			Optional: true,

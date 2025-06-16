@@ -13,15 +13,16 @@ import (
 var (
 	lowerCharSet   = "abcdedfghijklmnopqrst"
 	upperCharSet   = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	specialCharSet = "!@#$%&*"
+	SpecialCharSet = "!@#$%&*"
 	numberSet      = "0123456789"
-	allCharSet     = lowerCharSet + upperCharSet + specialCharSet + numberSet
+	allCharSet     = lowerCharSet + upperCharSet + SpecialCharSet + numberSet
 )
 
 func generatePassword(passwordLength int, minSpecialChar int, minNum int, minUpperCase int, allowedSpecialChars string) string {
 	var password strings.Builder
 
 	//Use predefined special characters if user doesn't specify them
+	specialCharSet := allowedSpecialChars
 	if len(allowedSpecialChars) != 0 {
 		specialCharSet = allowedSpecialChars
 	}
