@@ -42,6 +42,40 @@ func TestAccCreateLogin(t *testing.T) {
 	}
 }
 
+func TestAccCreateLoginWithPassword(t *testing.T) {
+	acceptance.PreCheck(t)
+	data := acceptance.BuildTestData(t)
+	r := SQLLoginResource{}
+
+	connections := []string{
+		data.SQLServer_connection,
+		data.SynapseServer_connection,
+	}
+
+	password := "password12345!$"
+
+	for _, connection := range connections {
+		resource.Test(t, resource.TestCase{
+			Steps: []resource.TestStep{
+				{
+					Config:                   r.with_password(connection, "tftest_"+data.RandomString, password),
+					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+					Check: resource.ComposeTestCheckFunc(
+						resource.TestCheckResourceAttr("azuresql_login.test", "name", "tftest_"+data.RandomString),
+					),
+				},
+				{
+					Config:                   r.with_password(connection, "tftest_"+data.RandomString, password),
+					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+					ResourceName:             "azuresql_login.test",
+					ImportState:              true,
+					// No ImportStateVerify since password cannot be imported
+				},
+			},
+		})
+	}
+}
+
 func TestAccSynapseServerCreateLogin(t *testing.T) {
 	acceptance.PreCheck(t)
 	data := acceptance.BuildTestData(t)
@@ -72,6 +106,21 @@ func (r SQLLoginResource) basic(connection string, name string) string {
 			name    = "%[3]s"
 		}
 		`, template, connection, name)
+}
+
+func (r SQLLoginResource) with_password(connection string, name string, password string) string {
+	template := r.template()
+
+	return fmt.Sprintf(
+		`
+		%[1]s
+
+		resource "azuresql_login" "test" {
+			server  = "%[2]s"
+			name    = "%[3]s"
+			password = "%[4]s"
+		}
+		`, template, connection, name, password)
 }
 
 func (r SQLLoginResource) template() string {

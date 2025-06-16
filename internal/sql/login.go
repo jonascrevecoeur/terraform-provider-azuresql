@@ -66,7 +66,6 @@ func CreateLogin(
 	minNum int,
 	minUpperCase int,
 ) (login Login) {
-	// password := generatePassword(20, 3, 4, 5)
 	password := generatePassword(length, minSpecialChars, minNum, minUpperCase, allowedSpecialChars)
 
 	query := fmt.Sprintf("create login %s with password = '%s'", name, password)

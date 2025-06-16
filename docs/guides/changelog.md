@@ -7,6 +7,12 @@ description: |-
 
 # Changelog
 
+## 5.2.0
+
+**Features:**
+
+* Allow specifying the password in `azuresql_login`
+
 ## 5.1.0
 
 **Bugfixes:**
