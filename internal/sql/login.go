@@ -17,11 +17,11 @@ type Login struct {
 }
 
 type PasswordProperties struct {
-	Length              int
+	Length              int32
 	AllowedSpecialChars string
-	minSpecialChars     int
-	MinNum              int
-	MinUpperCase        int
+	minSpecialChars     int32
+	MinNum              int32
+	MinUpperCase        int32
 }
 
 func loginFormatId(connectionId string, name string, sid string) string {
