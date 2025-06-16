@@ -16,6 +16,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+)
+
+var (
+	defaultPasswordLength          = int32(20)
+	defaultPasswordMinSpecialChars = int32(3)
+	defaultPasswordMinNum          = int32(4)
+	defaultPasswordMinUpperCase    = int32(5)
+	defaultAllowedSpecialChars     = sql.SpecialCharSet
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -57,27 +66,27 @@ func (r *SQLLoginResource) SchemaPasswordProperties() map[string]schema.Attribut
 		"length": schema.Int32Attribute{
 			Optional: true,
 			Computed: true,
-			Default:  int32default.StaticInt32(20),
+			Default:  int32default.StaticInt32(defaultPasswordLength),
 		},
 		"allowed_special_chars": schema.StringAttribute{
 			Optional: true,
 			Computed: true,
-			Default:  stringdefault.StaticString(sql.SpecialCharSet),
+			Default:  stringdefault.StaticString(defaultAllowedSpecialChars),
 		},
 		"min_special_chars": schema.Int32Attribute{
 			Optional: true,
 			Computed: true,
-			Default:  int32default.StaticInt32(3),
+			Default:  int32default.StaticInt32(defaultPasswordMinSpecialChars),
 		},
 		"min_numbers": schema.Int32Attribute{
 			Optional: true,
 			Computed: true,
-			Default:  int32default.StaticInt32(4),
+			Default:  int32default.StaticInt32(defaultPasswordMinNum),
 		},
 		"min_uppercase": schema.Int32Attribute{
 			Optional: true,
 			Computed: true,
-			Default:  int32default.StaticInt32(5),
+			Default:  int32default.StaticInt32(defaultPasswordMinUpperCase),
 		},
 	}
 }
@@ -152,19 +161,43 @@ func (r *SQLLoginResource) Create(ctx context.Context, req resource.CreateReques
 		return
 	}
 
-	var passwordProperties SQLLoginPasswordPropertiesResourceModel
-	length := passwordProperties.Length.ValueInt32()
-	allowedSpecialChars := passwordProperties.AllowedSpecialChars.ValueString()
-	minSpecialChars := passwordProperties.MinSpecialChars.ValueInt32()
-	minNum := passwordProperties.MinNum.ValueInt32()
-	minUpperCase := passwordProperties.MinUpperCase.ValueInt32()
+	length := int(defaultPasswordLength)
+	allowedSpecialChars := defaultAllowedSpecialChars
+	minSpecialChars := int(defaultPasswordMinSpecialChars)
+	minNum := int(defaultPasswordMinNum)
+	minUpperCase := int(defaultPasswordMinUpperCase)
 
-	if length < 8 {
-		logging.AddError(ctx, "invalid password length", "Login password must be at least 8 characters long")
+	if !plan.PasswordProperties.IsNull() && !plan.PasswordProperties.IsUnknown() {
+		var passwordProperties SQLLoginPasswordPropertiesResourceModel
+		diags = plan.PasswordProperties.As(ctx, &passwordProperties, basetypes.ObjectAsOptions{})
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		if !passwordProperties.Length.IsNull() {
+			length = int(passwordProperties.Length.ValueInt32())
+		}
+		if !passwordProperties.AllowedSpecialChars.IsNull() {
+			allowedSpecialChars = passwordProperties.AllowedSpecialChars.ValueString()
+		}
+		if !passwordProperties.MinSpecialChars.IsNull() {
+			minSpecialChars = int(passwordProperties.MinSpecialChars.ValueInt32())
+		}
+		if !passwordProperties.MinNum.IsNull() {
+			minNum = int(passwordProperties.MinNum.ValueInt32())
+		}
+		if !passwordProperties.MinUpperCase.IsNull() {
+			minUpperCase = int(passwordProperties.MinUpperCase.ValueInt32())
+		}
+	}
+
+	if length < 8 { // Azure SQL limitations
+		logging.AddError(ctx, "invalid password length", "Login password must be at least 8 characters long, ideally a lot longer")
 		return
 	}
-	if length > 128 {
-		logging.AddError(ctx, "invalid password length", "Login password must not be more than 128 characters long")
+	if length > 128 { // Azure SQL limitations
+		logging.AddError(ctx, "invalid password length", "Login password cannot exceed 128 characters")
 		return
 	}
 
@@ -189,11 +222,11 @@ func (r *SQLLoginResource) Create(ctx context.Context, req resource.CreateReques
 		ctx,
 		connection,
 		name,
-		int(length),
+		length,
 		allowedSpecialChars,
-		int(minSpecialChars),
-		int(minNum),
-		int(minUpperCase),
+		minSpecialChars,
+		minNum,
+		minUpperCase,
 	)
 
 	if logging.HasError(ctx) {
