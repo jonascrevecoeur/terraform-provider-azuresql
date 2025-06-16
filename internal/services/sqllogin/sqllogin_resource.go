@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
@@ -56,6 +57,7 @@ func (r *SQLLoginResource) SchemaPasswordProperties() map[string]schema.Attribut
 		"length": schema.Int32Attribute{
 			Optional: true,
 			Computed: true,
+			Default:  int32default.StaticInt32(20),
 		},
 		"allowed_special_chars": schema.StringAttribute{
 			Optional: true,
@@ -65,14 +67,17 @@ func (r *SQLLoginResource) SchemaPasswordProperties() map[string]schema.Attribut
 		"min_special_chars": schema.Int32Attribute{
 			Optional: true,
 			Computed: true,
+			Default:  int32default.StaticInt32(3),
 		},
 		"min_numbers": schema.Int32Attribute{
 			Optional: true,
 			Computed: true,
+			Default:  int32default.StaticInt32(4),
 		},
 		"min_uppercase": schema.Int32Attribute{
 			Optional: true,
 			Computed: true,
+			Default:  int32default.StaticInt32(5),
 		},
 	}
 }
