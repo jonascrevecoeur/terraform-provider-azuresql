@@ -65,9 +65,11 @@ func (r *SQLLoginResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 			},
 			"password": schema.StringAttribute{
 				Computed:    true,
-				Description: "Auto generated password for the new login.",
+				Optional:    true,
+				Description: "Password for the new login.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
+					stringplanmodifier.RequiresReplace(),
 				},
 				Sensitive: true,
 			},
@@ -98,7 +100,12 @@ func (r *SQLLoginResource) Create(ctx context.Context, req resource.CreateReques
 		return
 	}
 
-	login := sql.CreateLogin(ctx, connection, name)
+	password := plan.Password.ValueString()
+	if password == "" {
+		password = sql.GeneratePassword(20, 3, 4, 5)
+	}
+
+	login := sql.CreateLogin(ctx, connection, name, password)
 
 	if logging.HasError(ctx) {
 		if login.Id != "" {

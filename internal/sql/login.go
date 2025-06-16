@@ -48,9 +48,7 @@ func ParseLoginId(ctx context.Context, id string) (login Login) {
 	return
 }
 
-func CreateLogin(ctx context.Context, connection Connection, name string) (login Login) {
-	password := generatePassword(20, 3, 4, 5)
-
+func CreateLogin(ctx context.Context, connection Connection, name string, password string) (login Login) {
 	query := fmt.Sprintf("create login %s with password = '%s'", name, password)
 
 	_, err := connection.Connection.ExecContext(ctx, query)

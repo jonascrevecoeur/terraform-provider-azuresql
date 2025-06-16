@@ -32,7 +32,7 @@ func ParseMasterKeyId(ctx context.Context, id string) (masterKey MasterKey) {
 }
 
 func CreateMasterKey(ctx context.Context, connection Connection) (masterKey MasterKey) {
-	password := generatePassword(20, 3, 4, 5)
+	password := GeneratePassword(20, 3, 4, 5)
 
 	query := fmt.Sprintf("create master key encryption by password = '%s'", password)
 
