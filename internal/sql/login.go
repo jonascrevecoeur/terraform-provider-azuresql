@@ -16,6 +16,14 @@ type Login struct {
 	Sid        string
 }
 
+type PasswordProperties struct {
+	Length              int
+	AllowedSpecialChars string
+	MinSpecialChar      int
+	MinNum              int
+	MinUpperCase        int
+}
+
 func loginFormatId(connectionId string, name string, sid string) string {
 	return fmt.Sprintf("%s/login/%s/%s", connectionId, name, sid)
 }
@@ -48,8 +56,18 @@ func ParseLoginId(ctx context.Context, id string) (login Login) {
 	return
 }
 
-func CreateLogin(ctx context.Context, connection Connection, name string) (login Login) {
-	password := generatePassword(20, 3, 4, 5)
+func CreateLogin(
+	ctx context.Context,
+	connection Connection,
+	name string,
+	length int,
+	allowedSpecialChars string,
+	minSpecialChar int,
+	minNum int,
+	minUpperCase int,
+) (login Login) {
+	// password := generatePassword(20, 3, 4, 5)
+	password := generatePassword(length, minSpecialChar, minNum, minUpperCase, allowedSpecialChars)
 
 	query := fmt.Sprintf("create login %s with password = '%s'", name, password)
 
