@@ -152,11 +152,49 @@ func (r *SQLLoginResource) Create(ctx context.Context, req resource.CreateReques
 		return
 	}
 
+	var passwordProperties SQLLoginPasswordPropertiesResourceModel
+	length := passwordProperties.Length.ValueInt32()
+	allowedSpecialChars := passwordProperties.AllowedSpecialChars.ValueString()
+	minSpecialChars := passwordProperties.MinSpecialChars.ValueInt32()
+	minNum := passwordProperties.MinNum.ValueInt32()
+	minUpperCase := passwordProperties.MinUpperCase.ValueInt32()
+
+	if length < 8 {
+		logging.AddError(ctx, "invalid password length", "Login password must be at least 8 characters long")
+		return
+	}
+	if length > 128 {
+		logging.AddError(ctx, "invalid password length", "Login password must not be more than 128 characters long")
+		return
+	}
+
+	if minSpecialChars >= length {
+		logging.AddError(ctx, "invalid password minimum special characters", "Password special characters cannot exceed password length")
+		return
+	}
+	if minNum >= length {
+		logging.AddError(ctx, "invalid password minimum numbers", "Password numbers cannot exceed password length")
+		return
+	}
+	if minUpperCase >= length {
+		logging.AddError(ctx, "invalid password minimum uppercase letters", "Password uppercase letters cannot exceed password length")
+		return
+	}
+
 	if logging.HasError(ctx) {
 		return
 	}
 
-	login := sql.CreateLogin(ctx, connection, name, length, allowedSpecialChars, minSpecialChars, minNum, minUpperCase)
+	login := sql.CreateLogin(
+		ctx,
+		connection,
+		name,
+		int(length),
+		allowedSpecialChars,
+		int(minSpecialChars),
+		int(minNum),
+		int(minUpperCase),
+	)
 
 	if logging.HasError(ctx) {
 		if login.Id != "" {
