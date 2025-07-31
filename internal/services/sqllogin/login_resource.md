@@ -33,8 +33,8 @@ data "azuresql_database" "database" {
 
 # create a new login. A secure password will be generated.
 resource "azuresql_login" "login" {
-    server   = data.azuresql_sqlserver.server.id
-    name     = "mylogin"
+    server = data.azuresql_sqlserver.server.id
+    name   = "mylogin"
 }
 
 resource "azuresql_user" "user" {
