@@ -110,7 +110,6 @@ func extractViewDefintion(ctx context.Context, statement string) (defintion stri
 	split := re.Split(statement, 2)
 
 	if len(split) != 2 {
-		// logging.AddError(ctx, "here's the statement", statement)
 		logging.AddError(ctx, "Failed to parse view definition", fmt.Sprintf("Couldn't find ` as ` indicating the start of the definition %s", statement))
 		return
 	}
