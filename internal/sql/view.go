@@ -105,7 +105,7 @@ func cleanDefinition(definition string) string {
 }
 func extractViewDefintion(ctx context.Context, statement string) (defintion string) {
 	// use regexp for case insensitive split --> important when importing
-	re := regexp.MustCompile("(?i) as ")
+	re := regexp.MustCompile(`(?i)\s+as\s+`)
 
 	split := re.Split(statement, 2)
 
@@ -136,10 +136,10 @@ func GetViewFromNameAndSchema(ctx context.Context, connection Connection, name s
 	schema := ParseSchemaId(ctx, schemaResourceId)
 
 	query := `
-		select obj.object_id, mod.definition, mod.is_schema_bound from sys.objects obj 
+		select obj.object_id, mod.definition, mod.is_schema_bound from sys.objects obj
 		inner join sys.sql_modules mod
 		on obj.object_id = mod.object_id
-		where obj.name = @name and obj.schema_id = @schema_id 
+		where obj.name = @name and obj.schema_id = @schema_id
 		and type = 'V'`
 
 	err := connection.Connection.QueryRowContext(ctx, query, sql.Named("name", name), sql.Named("schema_id", schema.SchemaId)).Scan(&view.ObjectId, &statement, &schemabinding)
@@ -170,7 +170,7 @@ func GetViewFromObjectId(ctx context.Context, connection Connection, objectId in
 	var schemabinding bool
 
 	query := `
-		select obj.schema_id, obj.name, mod.definition, mod.is_schema_bound from sys.objects obj 
+		select obj.schema_id, obj.name, mod.definition, mod.is_schema_bound from sys.objects obj
 		inner join sys.sql_modules mod
 		on obj.object_id = mod.object_id
 		where obj.object_id = @object_id
