@@ -33,8 +33,8 @@ data "azuresql_database" "database" {
 
 # create a new login. A secure password will be generated.
 resource "azuresql_login" "login" {
-    server   = data.azuresql_sqlserver.server.id
-    name     = "mylogin"
+    server = data.azuresql_sqlserver.server.id
+    name   = "mylogin"
 }
 
 resource "azuresql_user" "user" {
@@ -42,6 +42,25 @@ resource "azuresql_user" "user" {
     name            = "myuser"
     authentication  = "SQLLogin"
     login           = azuresql_login.login.id
+}
+```
+
+### Defining your own password
+```terraform
+resource "random_password" "azuresql_login" {
+  length  = 32 # Longer passwords are exponentially difficult to crack
+  special = true
+
+  # Allowed special characters according to MSSQL spec:
+  # https://learn.microsoft.com/en-us/sql/relational-databases/security/password-policy
+  # Advised not to use $ because it can cause issues with your shell
+  override_special = "!#%"
+}
+
+resource "azuresql_login" "login" {
+    server   = data.azuresql_sqlserver.server.id
+    name     = "mylogin"
+    password = random_password.azuresql_login.result
 }
 ```
 
