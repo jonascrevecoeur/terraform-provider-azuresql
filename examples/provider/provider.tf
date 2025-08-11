@@ -4,8 +4,8 @@ provider "azuresql" {
 
 # Use data statements to load the server and database to be managed using the provider
 data "azuresql_sqlserver" "server" {
-  server = "mysqlserver"
-  port   = 1433
+  name = "mysqlserver"
+  port = 1433
 }
 
 data "azuresql_database" "database" {
