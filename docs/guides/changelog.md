@@ -7,6 +7,12 @@ description: |-
 
 # Changelog
 
+## 5.2.1
+
+**Bugfixes:**
+
+* Fix view definition parsing to allow whitespace chacacters beyond spaces.
+
 ## 5.2.0
 
 **Features:**
