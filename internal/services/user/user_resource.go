@@ -75,7 +75,7 @@ func (r *UserResource) Schema(_ context.Context, _ resource.SchemaRequest, resp 
 			"password": schema.StringAttribute{
 				Computed:    true,
 				Optional:    true,
-				Description: "Password for the new user, if creating a DB-scoped User.",
+				Description: "Password for the new user, if creating a DB-scoped user with a password.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 					stringplanmodifier.RequiresReplace(),
