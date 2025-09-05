@@ -20,6 +20,7 @@ type UserResourceModel struct {
 	Database          types.String `tfsdk:"database"`
 	Server            types.String `tfsdk:"server"`
 	Name              types.String `tfsdk:"name"`
+	Password          types.String `tfsdk:"password"`
 	PrincipalId       types.Int64  `tfsdk:"principal_id"`
 	Authentication    types.String `tfsdk:"authentication"`
 	Type              types.String `tfsdk:"type"`
