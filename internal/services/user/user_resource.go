@@ -86,7 +86,7 @@ func (r *UserResource) Schema(_ context.Context, _ resource.SchemaRequest, resp 
 			},
 			"authentication": schema.StringAttribute{
 				Required:    true,
-				Description: "The user authentication mode. Possible values are `AzureAD`, `SQLLogin`, `DBSQLLogin`, and `WithoutLogin`.",
+				Description: "The user authentication mode. Possible values are `AzureAD`, `SQLLogin`, `DBSQLLogin`, or `WithoutLogin`.",
 				Validators: []validator.String{
 					stringvalidator.OneOf([]string{"AzureAD", "SQLLogin", "DBSQLLogin", "WithoutLogin"}...),
 				},
