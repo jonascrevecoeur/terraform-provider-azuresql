@@ -63,6 +63,8 @@ The following arguments are supported:
 
 - `login` (Optional, String) The ID of the `azuresql_login` resource specifying the login credentials. Available only when `authentication=SQLLogin`. 
 
+- `password` (Optional, String) The password of the user. Available only when `authentication=DBSQLLogin`.
+
 - `entraid_identifier` (Optional, String, **Preview**) Provision a user by providing their EntraID identifier. For Entra ID users and groups, use thier object ID; for service principals, use their application (client) ID.  This option is only available for SQL server with `authentication="AzureAD"`.
 
 ### Attributes Reference

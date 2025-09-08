@@ -73,11 +73,9 @@ func (r *UserResource) Schema(_ context.Context, _ resource.SchemaRequest, resp 
 				},
 			},
 			"password": schema.StringAttribute{
-				Computed:    true,
 				Optional:    true,
 				Description: "Password for the new user, if creating a DB-scoped user with a password.",
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
 					stringplanmodifier.RequiresReplace(),
 				},
 				Sensitive: true,
@@ -152,6 +150,12 @@ func (r UserResource) ValidateConfig(ctx context.Context, req resource.ValidateC
 			"password is required when authentication equals `DBSQLLogin`")
 		return
 	}
+
+	if !data.Password.IsNull() && data.Authentication.ValueString() != "DBSQLLogin" {
+		logging.AddAttributeError(ctx, path.Root("login"), "Invalid attribute configuration",
+			"password is only supported when authentication equals `DBSQLLogin`")
+		return
+	}
 }
 
 func (r *UserResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -180,6 +184,12 @@ func (r *UserResource) Create(ctx context.Context, req resource.CreateRequest, r
 	}
 
 	authentication := plan.Authentication.ValueString()
+
+	if authentication == "DBSQLLogin" && connection.Provider == "synapse" {
+		logging.AddError(ctx, "Invalid config", "Database password authentication (`DBSQLLogin`) is not supported for Synapse. Please use `SQLLogin` in combination with an `azuresql_login` resource instead.")
+		return
+	}
+
 	login := plan.Login.ValueString()
 
 	entraid_identifier := plan.EntraIDIdentifier.ValueString()
