@@ -57,7 +57,7 @@ The following arguments are supported:
 -> Exactly one of `database` or `server` should be specified.
 
 - `name` (Required, String) Name of the user. For AzureAD users this name must match the name in AzureAD.
-- `authentication` (Required, String) The user authentication mode. Possible values are `AzureAD`, `SQLLogin` (server-wide login), `DBSQLLogin` (DB-scoped login), and `WithoutLogin`.
+- `authentication` (Required, String) The user authentication mode. Possible values are `AzureAD`, `SQLLogin` (server-wide login), `DBSQLLogin` (DB-scoped login), or `WithoutLogin`.
 
 ~> `authentication="DBSQLLogin"` and `authentication="WithoutLogin"` are not available on serverless Synapse.
 
