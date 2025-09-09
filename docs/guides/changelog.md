@@ -7,6 +7,12 @@ description: |-
 
 # Changelog
 
+## 5.3.0
+
+**Features:**
+
+* `azuresql_user` now supports creating database users with a password.
+
 ## 5.2.1
 
 **Bugfixes:**
