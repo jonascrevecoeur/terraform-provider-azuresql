@@ -236,6 +236,28 @@ func TestUseLoginFromWrongServer(t *testing.T) {
 	})
 }
 
+func TestAccDBSQLLogin(t *testing.T) {
+	acceptance.PreCheck(t)
+	data := acceptance.BuildTestData(t)
+	r := UserResource{}
+
+	connections := []string{
+		data.SQLDatabase_connection,
+	}
+
+	for _, connection := range connections {
+		print(fmt.Sprintf("\n\nRunning test for connection %s\n\n", connection))
+		resource.Test(t, resource.TestCase{
+			Steps: []resource.TestStep{
+				{
+					Config:                   r.user_with_database_login(connection, data.RandomString),
+					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+				},
+			},
+		})
+	}
+}
+
 func (r UserResource) basic_server(connection string, username string, authentication string) string {
 	template := r.template()
 
@@ -323,6 +345,20 @@ func (r UserResource) server_with_login(connection string, random string) string
 		}
 
 		`, template, connection, random)
+}
+
+func (r UserResource) user_with_database_login(connection string, name string) string {
+	return fmt.Sprintf(
+		`
+		%[1]s
+
+		resource "azuresql_user" "test" {
+			database 		= "%[2]s"
+			name           	= "user_database_login_%[3]s"
+			authentication 	= "DBSQLLogin"
+			password 		= "Difficultpassword12!abc13!!"
+		}
+		`, r.template(), connection, name)
 }
 
 func (r UserResource) database_with_login(server string, database string, random string) string {

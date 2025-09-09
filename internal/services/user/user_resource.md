@@ -57,11 +57,13 @@ The following arguments are supported:
 -> Exactly one of `database` or `server` should be specified.
 
 - `name` (Required, String) Name of the user. For AzureAD users this name must match the name in AzureAD.
-- `authentication` (Required, String) The user authentication mode. Possible values are `AzureAD`, `SQLLogin` and `WithoutLogin`.
+- `authentication` (Required, String) The user authentication mode. Possible values are `AzureAD`, `SQLLogin` (server-wide login), `DBSQLLogin` (DB-scoped login), or `WithoutLogin`.
 
-~> `authentication="WithoutLogin"` is not available on serverless Synapse.
+~> `authentication="DBSQLLogin"` and `authentication="WithoutLogin"` are not available on serverless Synapse.
 
 - `login` (Optional, String) The ID of the `azuresql_login` resource specifying the login credentials. Available only when `authentication=SQLLogin`. 
+
+- `password` (Optional, String) The password of the user. Available only when `authentication=DBSQLLogin`.
 
 - `entraid_identifier` (Optional, String, **Preview**) Provision a user by providing their EntraID identifier. For Entra ID users and groups, use thier object ID; for service principals, use their application (client) ID.  This option is only available for SQL server with `authentication="AzureAD"`.
 

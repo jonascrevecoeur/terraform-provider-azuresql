@@ -17,6 +17,7 @@ type User struct {
 	Type           string
 	Authentication string
 	Login          string
+	Password       string
 	Sid            string
 }
 
@@ -76,13 +77,15 @@ func describeAuthentication(ctx context.Context, authentication_type int64) (aut
 		return "AzureAD"
 	case 1:
 		return "SQLLogin"
+	case 2:
+		return "DBSQLLogin"
 	default:
 		logging.AddError(ctx, "Unrecognized authentication type", fmt.Sprintf("Unrecognized authentication type %d", authentication_type))
 		return "Unrecongized"
 	}
 }
 
-func CreateUser(ctx context.Context, connection Connection, name string, authentication string, loginId string, entraid_identifier string) (user User) {
+func CreateUser(ctx context.Context, connection Connection, name string, password string, authentication string, loginId string, entraid_identifier string) (user User) {
 
 	query := fmt.Sprintf("create user [%s]", name)
 
@@ -107,6 +110,8 @@ func CreateUser(ctx context.Context, connection Connection, name string, authent
 		}
 
 		query += fmt.Sprintf(" from login [%s]", login.Name)
+	} else if authentication == "DBSQLLogin" {
+		query += fmt.Sprintf(" with password='%s'", password)
 	} else if authentication == "WithoutLogin" {
 		query += " without login"
 	}

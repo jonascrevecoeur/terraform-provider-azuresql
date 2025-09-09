@@ -72,15 +72,23 @@ func (r *UserResource) Schema(_ context.Context, _ resource.SchemaRequest, resp 
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
+			"password": schema.StringAttribute{
+				Optional:    true,
+				Description: "Password for the new user, if creating a DB-scoped user with a password.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+				Sensitive: true,
+			},
 			"principal_id": schema.Int64Attribute{
 				Computed:    true,
 				Description: "Principal ID of the user in the database.",
 			},
 			"authentication": schema.StringAttribute{
 				Required:    true,
-				Description: "The user authentication mode. Possible values are `AzureAD`, `SQLLogin` and `WithoutLogin`.",
+				Description: "The user authentication mode. Possible values are `AzureAD`, `SQLLogin`, `DBSQLLogin`, or `WithoutLogin`.",
 				Validators: []validator.String{
-					stringvalidator.OneOf([]string{"AzureAD", "SQLLogin", "WithoutLogin"}...),
+					stringvalidator.OneOf([]string{"AzureAD", "SQLLogin", "DBSQLLogin", "WithoutLogin"}...),
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
@@ -130,6 +138,24 @@ func (r UserResource) ValidateConfig(ctx context.Context, req resource.ValidateC
 			"login is required when authentication equals `SQLLogin`")
 		return
 	}
+
+	if data.Database.IsNull() && data.Authentication.ValueString() == "DBSQLLogin" {
+		logging.AddAttributeError(ctx, path.Root("login"), "Invalid attribute configuration",
+			"database is required when authentication equals `DBSQLLogin`")
+		return
+	}
+
+	if data.Password.IsNull() && data.Authentication.ValueString() == "DBSQLLogin" {
+		logging.AddAttributeError(ctx, path.Root("login"), "Invalid attribute configuration",
+			"password is required when authentication equals `DBSQLLogin`")
+		return
+	}
+
+	if !data.Password.IsNull() && data.Authentication.ValueString() != "DBSQLLogin" {
+		logging.AddAttributeError(ctx, path.Root("login"), "Invalid attribute configuration",
+			"password is only supported when authentication equals `DBSQLLogin`")
+		return
+	}
 }
 
 func (r *UserResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -143,6 +169,7 @@ func (r *UserResource) Create(ctx context.Context, req resource.CreateRequest, r
 	}
 
 	name := plan.Name.ValueString()
+	password := plan.Password.ValueString()
 	server := plan.Server.ValueString()
 	database := plan.Database.ValueString()
 	connection := r.ConnectionCache.Connect_server_or_database(ctx, server, database, true)
@@ -157,6 +184,12 @@ func (r *UserResource) Create(ctx context.Context, req resource.CreateRequest, r
 	}
 
 	authentication := plan.Authentication.ValueString()
+
+	if authentication == "DBSQLLogin" && connection.Provider == "synapse" {
+		logging.AddError(ctx, "Invalid config", "Database password authentication (`DBSQLLogin`) is not supported for Synapse. Please use `SQLLogin` in combination with an `azuresql_login` resource instead.")
+		return
+	}
+
 	login := plan.Login.ValueString()
 
 	entraid_identifier := plan.EntraIDIdentifier.ValueString()
@@ -176,7 +209,7 @@ func (r *UserResource) Create(ctx context.Context, req resource.CreateRequest, r
 		return
 	}
 
-	user := sql.CreateUser(ctx, connection, name, authentication, login, entraid_identifier)
+	user := sql.CreateUser(ctx, connection, name, password, authentication, login, entraid_identifier)
 
 	if logging.HasError(ctx) {
 		if user.Id != "" {
