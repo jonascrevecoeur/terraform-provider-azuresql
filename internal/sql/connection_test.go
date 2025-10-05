@@ -1,6 +1,8 @@
 package sql
 
 import (
+	"fmt"
+	"os"
 	"terraform-provider-azuresql/internal/logging"
 	"testing"
 
@@ -65,4 +67,28 @@ func TestParseConnectionId(t *testing.T) {
 
 		logging.ClearDiagnostics(ctx)
 	}
+}
+
+func TestRecoverClosedConnection(t *testing.T) {
+	ctx := logging.GetTestContext()
+	connection_id := fmt.Sprintf("sqlserver::%s:%s", os.Getenv("AZURE_SQL_SERVER"), os.Getenv("AZURE_SQL_SERVER_PORT"))
+
+	fmt.Printf("t: %v\n", connection_id)
+
+	cache := NewCache(
+		os.Getenv("AZURE_SUBSCRIPTION"),
+		false,
+		false,
+	)
+
+	connection := cache.Connect(ctx, connection_id, true, true)
+	var result int64
+	connection.Connection.Close()
+
+	connection = cache.Connect(ctx, connection_id, true, true)
+	err := connection.Connection.QueryRow("select 1 as a").Scan(&result)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
 }
