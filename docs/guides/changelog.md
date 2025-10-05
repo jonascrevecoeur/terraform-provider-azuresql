@@ -7,6 +7,13 @@ description: |-
 
 # Changelog
 
+## 5.3.1
+
+**Fixes:**
+
+* Check cached connections are healthy before reusing them.
+* `azuresql_login` check that a connection was obtained successfully before using it.
+
 ## 5.3.0
 
 **Features:**
