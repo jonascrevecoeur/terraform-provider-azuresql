@@ -20,7 +20,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/synapse/armsynapse"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/kofalt/go-memoize"
+	memoize "github.com/kofalt/go-memoize"
 
 	_ "github.com/microsoft/go-mssqldb/azuread"
 )
@@ -116,7 +116,7 @@ func (cache ConnectionCache) sqlServerExists(ctx context.Context, connection Con
 	token, err := cred.GetToken(ctx, policy)
 	if err != nil {
 		logging.AddError(ctx,
-			fmt.Sprintf(fmt.Sprintf("Failed to request a token for subscriptions/%s/providers/Microsoft.Sql", cache.SubscriptionId)), err)
+			fmt.Sprint(fmt.Sprintf("Failed to request a token for subscriptions/%s/providers/Microsoft.Sql", cache.SubscriptionId)), err)
 		return ConnectionResourceStatusUnknown
 	}
 
@@ -302,6 +302,15 @@ func (cache ConnectionCache) Connect(ctx context.Context, connectionId string, s
 	}
 
 	if cached {
+
+		err := conn.Connection.PingContext(ctx)
+		if err != nil {
+			tflog.Info(ctx, fmt.Sprintf("Cached connection is unhealthy, recreating it: %s", err.Error()))
+			_ = conn.Connection.Close()
+			cache.Cache.Storage.Delete(connectionId)
+			return cache.Connect(ctx, connectionId, server, requiresExist)
+		}
+
 		tflog.Info(ctx, "Succesfully retrieved an existing connection.")
 	} else {
 		tflog.Info(ctx, "Successfully opened a new connection.")
