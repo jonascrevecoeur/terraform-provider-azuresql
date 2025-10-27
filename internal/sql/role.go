@@ -238,23 +238,23 @@ func UpdateRoleOwner(ctx context.Context, connection Connection, id string, owne
 
 func DropRole(ctx context.Context, connection Connection, principalId int64) {
 
-	tflog.Info(ctx, fmt.Sprintf("Dropping role %d", principalId))
+    tflog.Info(ctx, fmt.Sprintf("Dropping role %d", principalId))
 
-	role := GetRoleFromPrincipalId(ctx, connection, principalId, false)
-	if logging.HasError(ctx) || role.Id == "" {
-		return
-	}
+    role := GetRoleFromPrincipalId(ctx, connection, principalId, false)
+    if logging.HasError(ctx) || role.Id == "" {
+        return
+    }
 
-	query := fmt.Sprintf(`
-		IF EXISTS (SELECT 1 FROM sys.database_principals WHERE name = N'[%[1]s]')
-		BEGIN
-			DROP USER [%[1]s];
-		END;
-		`, role.Name)
-	var err error
-	_, err = connection.Connection.ExecContext(ctx, query)
+    query := fmt.Sprintf(`
+        IF EXISTS (SELECT 1 FROM sys.database_principals WHERE name = N'[%[1]s]')
+        BEGIN
+            DROP ROLE [%[1]s];
+        END;
+        `, role.Name)
+    var err error
+    _, err = connection.Connection.ExecContext(ctx, query)
 
-	if err != nil {
-		logging.AddError(ctx, fmt.Sprintf("Dropping role %s failed", role.Name), err)
-	}
+    if err != nil {
+        logging.AddError(ctx, fmt.Sprintf("Dropping role %s failed", role.Name), err)
+    }
 }
