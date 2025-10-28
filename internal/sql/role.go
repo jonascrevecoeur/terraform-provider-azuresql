@@ -245,12 +245,12 @@ func DropRole(ctx context.Context, connection Connection, principalId int64) {
         return
     }
 
-    query := fmt.Sprintf(`
-        IF EXISTS (SELECT 1 FROM sys.database_principals WHERE name = N'[%[1]s]')
-        BEGIN
-            DROP ROLE [%[1]s];
-        END;
-        `, role.Name)
+	query := fmt.Sprintf(`
+		IF EXISTS (SELECT 1 FROM sys.database_principals WHERE name = N'%[1]s')
+		BEGIN
+			DROP ROLE [%[1]s];
+		END;
+		`, role.Name)
     var err error
     _, err = connection.Connection.ExecContext(ctx, query)
 
