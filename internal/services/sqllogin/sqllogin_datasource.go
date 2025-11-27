@@ -69,6 +69,10 @@ func (r *providerConfig) Read(ctx context.Context, req datasource.ReadRequest, r
 	connection := r.ConnectionCache.Connect(ctx, connectionId, true, true)
 	name := state.Name.ValueString()
 
+	if logging.HasError(ctx) {
+		return
+	}
+
 	login := sql.GetLoginFromName(ctx, connection, name)
 
 	if logging.HasError(ctx) {
