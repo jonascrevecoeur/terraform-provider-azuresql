@@ -70,24 +70,24 @@ func CreateRoleAssignment(ctx context.Context, connection Connection, roleResour
 		return
 	}
 
-    var err error
-    if connection.Provider == "synapsededicated" {
-        _, err = connection.Connection.ExecContext(ctx,
-            "EXEC sp_addrolemember @rolename, @membername",
-            sql.Named("rolename", role.Name),
-            sql.Named("membername", principal.Name),
-        )
-    } else if connection.IsServerConnection {
-        query := fmt.Sprintf("alter server role [%s] add member [%s]", role.Name, principal.Name)
-        _, err = connection.Connection.ExecContext(ctx, query)
-    } else {
-        query := fmt.Sprintf("alter role [%s] add member [%s]", role.Name, principal.Name)
-        _, err = connection.Connection.ExecContext(ctx, query)
-    }
-    if err != nil {
-        logging.AddError(ctx, fmt.Sprintf("Failed to assign role %s %s", role.Name, principal.Name), err)
-        return
-    }
+	var err error
+	if connection.Provider == "synapsededicated" {
+		_, err = connection.Connection.ExecContext(ctx,
+			"EXEC sp_addrolemember @rolename, @membername",
+			sql.Named("rolename", role.Name),
+			sql.Named("membername", principal.Name),
+		)
+	} else if connection.IsServerConnection {
+		query := fmt.Sprintf("alter server role [%s] add member [%s]", role.Name, principal.Name)
+		_, err = connection.Connection.ExecContext(ctx, query)
+	} else {
+		query := fmt.Sprintf("alter role [%s] add member [%s]", role.Name, principal.Name)
+		_, err = connection.Connection.ExecContext(ctx, query)
+	}
+	if err != nil {
+		logging.AddError(ctx, fmt.Sprintf("Failed to assign role %s %s", role.Name, principal.Name), err)
+		return
+	}
 
 	return RoleAssignment{
 		Id:              roleAssignmentFormatId(connection.ConnectionId, role.PrincipalId, principal.PrincipalId),
@@ -175,22 +175,22 @@ func DropRoleAssignment(ctx context.Context, connection Connection, roleAssignme
 		return
 	}
 
-    var err error
-    if connection.Provider == "synapsededicated" {
-        _, err = connection.Connection.ExecContext(ctx,
-            "EXEC sp_droprolemember @rolename, @membername",
-            sql.Named("rolename", role.Name),
-            sql.Named("membername", principal.Name),
-        )
-    } else if connection.IsServerConnection {
-        query := fmt.Sprintf("alter server role [%s] drop member [%s]", role.Name, principal.Name)
-        _, err = connection.Connection.ExecContext(ctx, query)
-    } else {
-        query := fmt.Sprintf("alter role [%s] drop member [%s]", role.Name, principal.Name)
-        _, err = connection.Connection.ExecContext(ctx, query)
-    }
-    if err != nil {
-        logging.AddError(ctx, fmt.Sprintf("Failed to remove %s from role %s", principal.Name, role.Name), err)
-        return
-    }
+	var err error
+	if connection.Provider == "synapsededicated" {
+		_, err = connection.Connection.ExecContext(ctx,
+			"EXEC sp_droprolemember @rolename, @membername",
+			sql.Named("rolename", role.Name),
+			sql.Named("membername", principal.Name),
+		)
+	} else if connection.IsServerConnection {
+		query := fmt.Sprintf("alter server role [%s] drop member [%s]", role.Name, principal.Name)
+		_, err = connection.Connection.ExecContext(ctx, query)
+	} else {
+		query := fmt.Sprintf("alter role [%s] drop member [%s]", role.Name, principal.Name)
+		_, err = connection.Connection.ExecContext(ctx, query)
+	}
+	if err != nil {
+		logging.AddError(ctx, fmt.Sprintf("Failed to remove %s from role %s", principal.Name, role.Name), err)
+		return
+	}
 }
