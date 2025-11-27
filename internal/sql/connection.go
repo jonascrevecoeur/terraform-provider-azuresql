@@ -167,14 +167,14 @@ func (cache ConnectionCache) ServerExists(ctx context.Context, connection Connec
 		return ConnectionResourceStatusUnknown
 	}
 
-    if connection.Provider == "synapse" || connection.Provider == "synapsededicated" {
-        return cache.synapseServerExists(ctx, connection)
-    } else if connection.Provider == "sqlserver" {
-        return cache.sqlServerExists(ctx, connection)
-    } else {
-        logging.AddError(ctx, "Existence check not implemented", fmt.Sprintf("Checking existence for provider %s is not implemnted", connection.Provider))
-    }
-    return ConnectionResourceStatusUnknown
+	if connection.Provider == "synapse" || connection.Provider == "synapsededicated" {
+		return cache.synapseServerExists(ctx, connection)
+	} else if connection.Provider == "sqlserver" {
+		return cache.sqlServerExists(ctx, connection)
+	} else {
+		logging.AddError(ctx, "Existence check not implemented", fmt.Sprintf("Checking existence for provider %s is not implemnted", connection.Provider))
+	}
+	return ConnectionResourceStatusUnknown
 }
 
 func (cache ConnectionCache) DatabaseExists(ctx context.Context, connection Connection) (status ConnectionResourceStatus) {
@@ -352,10 +352,10 @@ func ParseConnectionId(ctx context.Context, connectionId string) (connection Con
 	}
 
 	provider := parts[0]
-    if provider != "sqlserver" && provider != "synapse" && provider != "synapsededicated" && provider != "fabric" {
-        logging.AddError(ctx, "Invalid SQL provider in connection id", fmt.Sprintf("SQL provider %s is invalid. Only sqlserver, synapse, synapsededicated and fabric are currently supported.", provider))
-        return
-    }
+	if provider != "sqlserver" && provider != "synapse" && provider != "synapsededicated" && provider != "fabric" {
+		logging.AddError(ctx, "Invalid SQL provider in connection id", fmt.Sprintf("SQL provider %s is invalid. Only sqlserver, synapse, synapsededicated and fabric are currently supported.", provider))
+		return
+	}
 
 	server := parts[2]
 	port, err := strconv.ParseInt(parts[3], 10, 64)
@@ -383,49 +383,49 @@ func ParseConnectionId(ctx context.Context, connectionId string) (connection Con
 				Server:             server,
 			}
 		}
-    } else if provider == "synapse" {
-        if len(parts) == 5 {
-            return Connection{
-                ConnectionId:       connectionId,
-                ConnectionString:   fmt.Sprintf("sqlserver://%s-ondemand.sql.azuresynapse.net:%d?database=%s&fedauth=ActiveDirectoryDefault", server, port, parts[4]),
-                IsServerConnection: false,
-                Provider:           provider,
-                Server:             server,
-                Database:           parts[4],
-            }
-        } else {
-            return Connection{
-                ConnectionId:       connectionId,
-                ConnectionString:   fmt.Sprintf("sqlserver://%s-ondemand.sql.azuresynapse.net:%d?fedauth=ActiveDirectoryDefault", server, port),
-                IsServerConnection: true,
-                Provider:           provider,
-                Server:             server,
-            }
-        }
-    } else if provider == "synapsededicated" {
-        if len(parts) == 5 {
-            return Connection{
-                ConnectionId:       connectionId,
-                ConnectionString:   fmt.Sprintf("sqlserver://%s.sql.azuresynapse.net:%d?database=%s&fedauth=ActiveDirectoryDefault", server, port, parts[4]),
-                IsServerConnection: false,
-                Provider:           provider,
-                Server:             server,
-                Database:           parts[4],
-            }
-        } else {
-            return Connection{
-                ConnectionId:       connectionId,
-                ConnectionString:   fmt.Sprintf("sqlserver://%s.sql.azuresynapse.net:%d?fedauth=ActiveDirectoryDefault", server, port),
-                IsServerConnection: true,
-                Provider:           provider,
-                Server:             server,
-            }
-        }
-    } else {
-        if len(parts) == 5 {
-            return Connection{
-                ConnectionId:       connectionId,
-                ConnectionString:   fmt.Sprintf("sqlserver://%s.datawarehouse.fabric.microsoft.com?database=%s&fedauth=ActiveDirectoryDefault", server, parts[4]),
+	} else if provider == "synapse" {
+		if len(parts) == 5 {
+			return Connection{
+				ConnectionId:       connectionId,
+				ConnectionString:   fmt.Sprintf("sqlserver://%s-ondemand.sql.azuresynapse.net:%d?database=%s&fedauth=ActiveDirectoryDefault", server, port, parts[4]),
+				IsServerConnection: false,
+				Provider:           provider,
+				Server:             server,
+				Database:           parts[4],
+			}
+		} else {
+			return Connection{
+				ConnectionId:       connectionId,
+				ConnectionString:   fmt.Sprintf("sqlserver://%s-ondemand.sql.azuresynapse.net:%d?fedauth=ActiveDirectoryDefault", server, port),
+				IsServerConnection: true,
+				Provider:           provider,
+				Server:             server,
+			}
+		}
+	} else if provider == "synapsededicated" {
+		if len(parts) == 5 {
+			return Connection{
+				ConnectionId:       connectionId,
+				ConnectionString:   fmt.Sprintf("sqlserver://%s.sql.azuresynapse.net:%d?database=%s&fedauth=ActiveDirectoryDefault", server, port, parts[4]),
+				IsServerConnection: false,
+				Provider:           provider,
+				Server:             server,
+				Database:           parts[4],
+			}
+		} else {
+			return Connection{
+				ConnectionId:       connectionId,
+				ConnectionString:   fmt.Sprintf("sqlserver://%s.sql.azuresynapse.net:%d?fedauth=ActiveDirectoryDefault", server, port),
+				IsServerConnection: true,
+				Provider:           provider,
+				Server:             server,
+			}
+		}
+	} else {
+		if len(parts) == 5 {
+			return Connection{
+				ConnectionId:       connectionId,
+				ConnectionString:   fmt.Sprintf("sqlserver://%s.datawarehouse.fabric.microsoft.com?database=%s&fedauth=ActiveDirectoryDefault", server, parts[4]),
 				IsServerConnection: false,
 				Provider:           provider,
 				Server:             server,
