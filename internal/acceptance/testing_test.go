@@ -17,7 +17,6 @@ import (
 
 func TestAzureCLI(t *testing.T) {
 	commandLine := "az --version"
-
 	cliCmd := exec.CommandContext(logging.GetTestContext(), "/bin/sh", "-c", commandLine)
 
 	var stderr bytes.Buffer

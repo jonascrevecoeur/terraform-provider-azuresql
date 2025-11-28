@@ -3,8 +3,9 @@ package schema_test
 import (
 	"fmt"
 	"regexp"
-	"terraform-provider-azuresql/internal/acceptance"
 	"testing"
+
+	"terraform-provider-azuresql/internal/acceptance"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
@@ -12,121 +13,107 @@ import (
 type SchemaResource struct{}
 
 func TestAccCreateSchemaBasic(t *testing.T) {
-	acceptance.PreCheck(t)
-	data := acceptance.BuildTestData(t)
 	r := SchemaResource{}
-
-	connections := []string{
-		data.FabricDatabase_connection,
-		data.SQLDatabase_connection,
-		data.SynapseDatabase_connection,
+	kinds := []acceptance.BackendKind{
+		acceptance.BackendFabric,
+		acceptance.BackendSQLServer,
+		acceptance.BackendSynapseServerless,
+		acceptance.BackendSynapseDedicated,
 	}
 
-	for _, connection := range connections {
-		print(fmt.Sprintf("\n\nRunning test for connection %s\n\n", connection))
+	acceptance.ForEachBackend(t, kinds, func(t *testing.T, backend acceptance.Backend, data acceptance.TestData) {
+		connection := acceptance.DatabaseConnection(t, backend, data)
 		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config:                   r.basic(connection, data.RandomString),
-					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+					Config: r.basic(connection, data.RandomString),
 				},
 				{
-					Config:                   r.basic(connection, data.RandomString),
-					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
-					ResourceName:             "azuresql_schema.test",
-					ImportState:              true,
-					ImportStateVerify:        true,
+					Config:            r.basic(connection, data.RandomString),
+					ResourceName:      "azuresql_schema.test",
+					ImportState:       true,
+					ImportStateVerify: true,
 				},
 			},
 		})
-	}
+	})
 }
 
 func TestAccCreateDuplicateResource(t *testing.T) {
-	acceptance.PreCheck(t)
-	data := acceptance.BuildTestData(t)
 	r := SchemaResource{}
-
-	connections := []string{
-		data.FabricDatabase_connection,
-		data.SQLDatabase_connection,
-		data.SynapseDatabase_connection,
+	kinds := []acceptance.BackendKind{
+		acceptance.BackendFabric,
+		acceptance.BackendSQLServer,
+		acceptance.BackendSynapseServerless,
+		acceptance.BackendSynapseDedicated,
 	}
 
-	for _, connection := range connections {
-		print(fmt.Sprintf("\n\nRunning test for connection %s\n\n", connection))
+	acceptance.ForEachBackend(t, kinds, func(t *testing.T, backend acceptance.Backend, data acceptance.TestData) {
+		connection := acceptance.DatabaseConnection(t, backend, data)
 		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config:                   r.duplicate_schema(connection, data.RandomString),
-					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
-					ExpectError:              regexp.MustCompile("You can import this resource using"),
+					Config:      r.duplicate_schema(connection, data.RandomString),
+					ExpectError: regexp.MustCompile("You can import this resource using"),
 				},
 			},
 		})
-	}
+	})
 }
 
 func TestAccCreateSchemaWithOwner(t *testing.T) {
-	acceptance.PreCheck(t)
-	data := acceptance.BuildTestData(t)
 	r := SchemaResource{}
-
-	connections := []string{
-		data.FabricDatabase_connection,
-		data.SQLDatabase_connection,
-		data.SynapseDatabase_connection,
+	kinds := []acceptance.BackendKind{
+		acceptance.BackendFabric,
+		acceptance.BackendSQLServer,
+		acceptance.BackendSynapseServerless,
+		acceptance.BackendSynapseDedicated,
 	}
 
-	for _, connection := range connections {
-		print(fmt.Sprintf("\n\nRunning test for connection %s\n\n", connection))
+	acceptance.ForEachBackend(t, kinds, func(t *testing.T, backend acceptance.Backend, data acceptance.TestData) {
+		connection := acceptance.DatabaseConnection(t, backend, data)
 		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config:                   r.withOwner(connection, data.RandomString),
-					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+					Config: r.withOwner(connection, data.RandomString),
 				},
 			},
 		})
-	}
+	})
 }
 
 func TestAccUpdateSchemaOwner(t *testing.T) {
-	acceptance.PreCheck(t)
-	data := acceptance.BuildTestData(t)
 	r := SchemaResource{}
-
-	connections := []string{
-		data.FabricDatabase_connection,
-		data.SQLDatabase_connection,
-		data.SynapseDatabase_connection,
+	kinds := []acceptance.BackendKind{
+		acceptance.BackendFabric,
+		acceptance.BackendSQLServer,
+		acceptance.BackendSynapseServerless,
+		acceptance.BackendSynapseDedicated,
 	}
 
-	for _, connection := range connections {
-		print(fmt.Sprintf("\n\nRunning test for connection %s\n\n", connection))
+	acceptance.ForEachBackend(t, kinds, func(t *testing.T, backend acceptance.Backend, data acceptance.TestData) {
+		connection := acceptance.DatabaseConnection(t, backend, data)
 		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config:                   r.updateOwner(connection, data.RandomString, 1),
-					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+					Config: r.updateOwner(connection, data.RandomString, 1),
 					Check: resource.ComposeTestCheckFunc(
-						resource.TestCheckResourceAttrPair(
-							"azuresql_schema.test", "owner",
-							"azuresql_role.owner1", "id"),
+						resource.TestCheckResourceAttrPair("azuresql_schema.test", "owner", "azuresql_role.owner1", "id"),
 					),
 				},
 				{
-					Config:                   r.updateOwner(connection, data.RandomString, 2),
-					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+					Config: r.updateOwner(connection, data.RandomString, 2),
 					Check: resource.ComposeTestCheckFunc(
-						resource.TestCheckResourceAttrPair(
-							"azuresql_schema.test", "owner",
-							"azuresql_role.owner2", "id"),
+						resource.TestCheckResourceAttrPair("azuresql_schema.test", "owner", "azuresql_role.owner2", "id"),
 					),
 				},
 			},
 		})
-	}
+	})
 }
 
 func (r SchemaResource) basic(connection string, name string) string {

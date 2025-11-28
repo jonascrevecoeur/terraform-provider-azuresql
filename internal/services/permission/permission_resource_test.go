@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"terraform-provider-azuresql/internal/acceptance"
 	"testing"
+
+	"terraform-provider-azuresql/internal/acceptance"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -14,34 +15,31 @@ import (
 type PermissionResource struct{}
 
 func TestAccCreatePermissionDatabaseRole(t *testing.T) {
-	acceptance.PreCheck(t)
-	data := acceptance.BuildTestData(t)
 	r := PermissionResource{}
-
-	connections := []string{
-		data.FabricDatabase_connection,
-		data.SQLDatabase_connection,
-		data.SynapseDatabase_connection,
+	kinds := []acceptance.BackendKind{
+		acceptance.BackendFabric,
+		acceptance.BackendSQLServer,
+		acceptance.BackendSynapseServerless,
+		acceptance.BackendSynapseDedicated,
 	}
 
-	for _, connection := range connections {
-		print(fmt.Sprintf("\n\nRunning test for connection %s\n\n", connection))
+	acceptance.ForEachBackend(t, kinds, func(t *testing.T, backend acceptance.Backend, data acceptance.TestData) {
+		connection := acceptance.DatabaseConnection(t, backend, data)
 		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config:                   r.databaseRole(connection, data.RandomString, "create table"),
-					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+					Config: r.databaseRole(connection, data.RandomString, "create table"),
 				},
 				{
-					Config:                   r.databaseRole(connection, data.RandomString, "create table"),
-					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
-					ResourceName:             "azuresql_permission.test",
-					ImportState:              true,
-					ImportStateVerify:        true,
+					Config:            r.databaseRole(connection, data.RandomString, "create table"),
+					ResourceName:      "azuresql_permission.test",
+					ImportState:       true,
+					ImportStateVerify: true,
 				},
 			},
 		})
-	}
+	})
 }
 
 /*func TestAccCreatePermissionServerRole(t *testing.T) {
@@ -67,24 +65,22 @@ func TestAccCreatePermissionDatabaseRole(t *testing.T) {
 }*/
 
 func TestAccCreatePermissionSchemaRole(t *testing.T) {
-	acceptance.PreCheck(t)
-	data := acceptance.BuildTestData(t)
 	r := PermissionResource{}
-
-	connections := []string{
-		data.FabricDatabase_connection,
-		data.SQLDatabase_connection,
-		data.SynapseDatabase_connection,
+	kinds := []acceptance.BackendKind{
+		acceptance.BackendFabric,
+		acceptance.BackendSQLServer,
+		acceptance.BackendSynapseServerless,
+		acceptance.BackendSynapseDedicated,
 	}
 
-	for _, connection := range connections {
-		print(fmt.Sprintf("\n\nRunning test for connection %s\n\n", connection))
+	acceptance.ForEachBackend(t, kinds, func(t *testing.T, backend acceptance.Backend, data acceptance.TestData) {
+		connection := acceptance.DatabaseConnection(t, backend, data)
 
 		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config:                   r.schemaRole(connection, data.RandomString, []string{"select", "delete"}),
-					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+					Config: r.schemaRole(connection, data.RandomString, []string{"select", "delete"}),
 					Check: testAccCheckPermissionId(
 						"azuresql_permission.test.0", "azuresql_schema.test", "schema_id",
 						"azuresql_role.test", "schema", "select",
@@ -92,28 +88,26 @@ func TestAccCreatePermissionSchemaRole(t *testing.T) {
 				},
 			},
 		})
-	}
+	})
 }
 
 func TestAccDenyPermissionSchemaRole(t *testing.T) {
-	acceptance.PreCheck(t)
-	data := acceptance.BuildTestData(t)
 	r := PermissionResource{}
-
-	connections := []string{
-		data.FabricDatabase_connection,
-		data.SQLDatabase_connection,
-		data.SynapseDatabase_connection,
+	kinds := []acceptance.BackendKind{
+		acceptance.BackendFabric,
+		acceptance.BackendSQLServer,
+		acceptance.BackendSynapseServerless,
+		acceptance.BackendSynapseDedicated,
 	}
 
-	for _, connection := range connections {
-		print(fmt.Sprintf("\n\nRunning test for connection %s\n\n", connection))
+	acceptance.ForEachBackend(t, kinds, func(t *testing.T, backend acceptance.Backend, data acceptance.TestData) {
+		connection := acceptance.DatabaseConnection(t, backend, data)
 
 		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config:                   r.schemaRoleDeny(connection, data.RandomString, []string{"select", "delete"}),
-					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+					Config: r.schemaRoleDeny(connection, data.RandomString, []string{"select", "delete"}),
 					Check: testAccCheckPermissionId(
 						"azuresql_permission.test.0", "azuresql_schema.test", "schema_id",
 						"azuresql_role.test", "schema", "select",
@@ -121,7 +115,7 @@ func TestAccDenyPermissionSchemaRole(t *testing.T) {
 				},
 			},
 		})
-	}
+	})
 }
 
 func TestAccCreatePermissionDatabaseScopedCredentialUser(t *testing.T) {
@@ -237,27 +231,25 @@ func TestAccCreatePermissionProcedureRole(t *testing.T) {
 }
 
 func TestAccCreatePermissionViewUser(t *testing.T) {
-	acceptance.PreCheck(t)
-	data := acceptance.BuildTestData(t)
 	r := PermissionResource{}
-
-	connections := []string{
-		data.SQLDatabase_connection,
-		data.SynapseDatabase_connection,
+	kinds := []acceptance.BackendKind{
+		acceptance.BackendSQLServer,
+		acceptance.BackendSynapseServerless,
+		acceptance.BackendSynapseDedicated,
 	}
 
-	for _, connection := range connections {
-		print(fmt.Sprintf("\n\nRunning test for connection %s\n\n", connection))
+	acceptance.ForEachBackend(t, kinds, func(t *testing.T, backend acceptance.Backend, data acceptance.TestData) {
+		connection := acceptance.DatabaseConnection(t, backend, data)
 
 		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config:                   r.viewUser(connection, data.RandomString, "select"),
-					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+					Config: r.viewUser(connection, data.RandomString, "select"),
 				},
 			},
 		})
-	}
+	})
 }
 
 func testAccCheckPermissionId(permission_obj string, target_obj string, target_field string, principal_obj string, permissionType string, permissionString string) resource.TestCheckFunc {

@@ -2,8 +2,9 @@ package database_test
 
 import (
 	"fmt"
-	"terraform-provider-azuresql/internal/acceptance"
 	"testing"
+
+	"terraform-provider-azuresql/internal/acceptance"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
@@ -11,80 +12,72 @@ import (
 type DatabaseResource struct{}
 
 func TestAccCreateDatabase(t *testing.T) {
-	acceptance.PreCheck(t)
-	data := acceptance.BuildTestData(t)
 	r := DatabaseResource{}
-
-	connections := []string{
-		data.SynapseServer_connection,
+	kinds := []acceptance.BackendKind{
+		acceptance.BackendSynapseServerless,
+		acceptance.BackendSynapseDedicated,
 	}
 
-	for _, connection := range connections {
-		print(fmt.Sprintf("\n\nRunning test for connection %s\n\n", connection))
+	acceptance.ForEachBackend(t, kinds, func(t *testing.T, backend acceptance.Backend, data acceptance.TestData) {
+		connection := acceptance.ServerConnection(t, backend, data)
 		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config:                   r.basic(connection, data.RandomString),
-					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+					Config: r.basic(connection, data.RandomString),
 				},
 				{
-					Config:                   r.basic(connection, data.RandomString),
-					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
-					ResourceName:             "azuresql_database.test",
-					ImportState:              true,
-					ImportStateVerify:        true,
+					Config:            r.basic(connection, data.RandomString),
+					ResourceName:      "azuresql_database.test",
+					ImportState:       true,
+					ImportStateVerify: true,
 				},
 			},
 		})
-	}
+	})
 }
 
 func TestAccRenameDatabase(t *testing.T) {
-	acceptance.PreCheck(t)
-	data := acceptance.BuildTestData(t)
 	r := DatabaseResource{}
-
-	connections := []string{
-		data.SynapseServer_connection,
+	kinds := []acceptance.BackendKind{
+		acceptance.BackendSynapseServerless,
+		acceptance.BackendSynapseDedicated,
 	}
 
-	for _, connection := range connections {
-		print(fmt.Sprintf("\n\nRunning test for connection %s\n\n", connection))
+	acceptance.ForEachBackend(t, kinds, func(t *testing.T, backend acceptance.Backend, data acceptance.TestData) {
+		connection := acceptance.ServerConnection(t, backend, data)
 		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config:                   r.basic(connection, data.RandomString),
-					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+					Config: r.basic(connection, data.RandomString),
 				},
 				{
-					Config:                   r.basic(connection, data.RandomString+"2"),
-					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+					Config: r.basic(connection, data.RandomString+"2"),
 				},
 			},
 		})
-	}
+	})
 }
 
 func TestAccCreateSchemaInNewDatabase(t *testing.T) {
-	acceptance.PreCheck(t)
-	data := acceptance.BuildTestData(t)
 	r := DatabaseResource{}
-
-	connections := []string{
-		data.SynapseServer_connection,
+	kinds := []acceptance.BackendKind{
+		acceptance.BackendSynapseServerless,
+		acceptance.BackendSynapseDedicated,
 	}
 
-	for _, connection := range connections {
-		print(fmt.Sprintf("\n\nRunning test for connection %s\n\n", connection))
+	acceptance.ForEachBackend(t, kinds, func(t *testing.T, backend acceptance.Backend, data acceptance.TestData) {
+		connection := acceptance.ServerConnection(t, backend, data)
 		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config:                   r.create_schema_in_new_database(connection, data.RandomString),
-					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+					Config: r.create_schema_in_new_database(connection, data.RandomString),
 				},
 			},
 		})
-	}
+	})
 }
 
 func (r DatabaseResource) basic(server string, name string) string {

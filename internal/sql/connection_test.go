@@ -71,21 +71,34 @@ func TestParseConnectionId(t *testing.T) {
 
 func TestRecoverClosedConnection(t *testing.T) {
 	ctx := logging.GetTestContext()
-	connection_id := fmt.Sprintf("sqlserver::%s:%s", os.Getenv("AZURE_SQL_SERVER"), os.Getenv("AZURE_SQL_SERVER_PORT"))
+	server := os.Getenv("AZURE_SQL_SERVER")
+	port := os.Getenv("AZURE_SQL_SERVER_PORT")
+	subscription := os.Getenv("AZURE_SUBSCRIPTION")
+	if server == "" || port == "" || subscription == "" {
+		t.Skip("AZURE_SQL_SERVER, AZURE_SQL_SERVER_PORT, and AZURE_SUBSCRIPTION must be set for this test")
+	}
+
+	connection_id := fmt.Sprintf("sqlserver::%s:%s", server, port)
 
 	fmt.Printf("t: %v\n", connection_id)
 
 	cache := NewCache(
-		os.Getenv("AZURE_SUBSCRIPTION"),
+		subscription,
 		false,
 		false,
 	)
 
 	connection := cache.Connect(ctx, connection_id, true, true)
+	if connection.Connection == nil {
+		t.Fatalf("failed to establish initial connection; diagnostics: %+v", logging.GetDiagnostics(ctx))
+	}
 	var result int64
 	connection.Connection.Close()
 
 	connection = cache.Connect(ctx, connection_id, true, true)
+	if connection.Connection == nil {
+		t.Fatalf("failed to recover connection; diagnostics: %+v", logging.GetDiagnostics(ctx))
+	}
 	err := connection.Connection.QueryRow("select 1 as a").Scan(&result)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)

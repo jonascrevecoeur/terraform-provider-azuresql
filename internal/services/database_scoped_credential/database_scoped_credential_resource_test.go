@@ -2,8 +2,9 @@ package database_scoped_credential_test
 
 import (
 	"fmt"
-	"terraform-provider-azuresql/internal/acceptance"
 	"testing"
+
+	"terraform-provider-azuresql/internal/acceptance"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
@@ -11,86 +12,78 @@ import (
 type DatabaseScopedCredentialResource struct{}
 
 func TestAccCreateDatabaseScopedCredential(t *testing.T) {
-	acceptance.PreCheck(t)
-	data := acceptance.BuildTestData(t)
 	r := DatabaseScopedCredentialResource{}
-
-	connections := []string{
-		data.SQLDatabase_connection,
-		data.SynapseDatabase_connection,
+	kinds := []acceptance.BackendKind{
+		acceptance.BackendSQLServer,
+		acceptance.BackendSynapseServerless,
+		acceptance.BackendSynapseDedicated,
 	}
 
-	for _, connection := range connections {
-		print(fmt.Sprintf("\n\nRunning test for connection %s\n\n", connection))
+	acceptance.ForEachBackend(t, kinds, func(t *testing.T, backend acceptance.Backend, data acceptance.TestData) {
+		connection := acceptance.DatabaseConnection(t, backend, data)
 		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config:                   r.basic(connection, data.RandomString, "SHARED ACCESS SIGNATURE", "secret"+data.RandomString),
-					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+					Config: r.basic(connection, data.RandomString, "SHARED ACCESS SIGNATURE", "secret"+data.RandomString),
 				},
 			},
 		})
-	}
+	})
 }
 
 func TestAccImportDatabaseScopedCredential(t *testing.T) {
 	// Testing import with a database scoped credential without secret, as the secret is always blank after import
-	acceptance.PreCheck(t)
-	data := acceptance.BuildTestData(t)
 	r := DatabaseScopedCredentialResource{}
-
-	connections := []string{
-		data.SQLDatabase_connection,
-		data.SynapseDatabase_connection,
+	kinds := []acceptance.BackendKind{
+		acceptance.BackendSQLServer,
+		acceptance.BackendSynapseServerless,
+		acceptance.BackendSynapseDedicated,
 	}
 
-	for _, connection := range connections {
-		print(fmt.Sprintf("\n\nRunning test for connection %s\n\n", connection))
+	acceptance.ForEachBackend(t, kinds, func(t *testing.T, backend acceptance.Backend, data acceptance.TestData) {
+		connection := acceptance.DatabaseConnection(t, backend, data)
 		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config:                   r.without_secret(connection, data.RandomString, "SHARED ACCESS SIGNATURE"),
-					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+					Config: r.without_secret(connection, data.RandomString, "SHARED ACCESS SIGNATURE"),
 				},
 				{
-					Config:                   r.without_secret(connection, data.RandomString, "SHARED ACCESS SIGNATURE"),
-					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
-					ResourceName:             "azuresql_database_scoped_credential.test",
-					ImportState:              true,
-					ImportStateVerify:        true,
+					Config:            r.without_secret(connection, data.RandomString, "SHARED ACCESS SIGNATURE"),
+					ResourceName:      "azuresql_database_scoped_credential.test",
+					ImportState:       true,
+					ImportStateVerify: true,
 				},
 			},
 		})
-	}
+	})
 }
 
 func TestAccUpdateCredential(t *testing.T) {
-	acceptance.PreCheck(t)
-	data := acceptance.BuildTestData(t)
 	r := DatabaseScopedCredentialResource{}
-
-	connections := []string{
-		data.SQLDatabase_connection,
-		data.SynapseDatabase_connection,
+	kinds := []acceptance.BackendKind{
+		acceptance.BackendSQLServer,
+		acceptance.BackendSynapseServerless,
+		acceptance.BackendSynapseDedicated,
 	}
 
-	for _, connection := range connections {
-		print(fmt.Sprintf("\n\nRunning test for connection %s\n\n", connection))
+	acceptance.ForEachBackend(t, kinds, func(t *testing.T, backend acceptance.Backend, data acceptance.TestData) {
+		connection := acceptance.DatabaseConnection(t, backend, data)
 		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config:                   r.basic(connection, data.RandomString, "SHARED ACCESS SIGNATURE", "secret"+data.RandomString),
-					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
-					Check:                    resource.TestCheckResourceAttr("azuresql_database_scoped_credential.test", "secret", "secret"+data.RandomString),
+					Config: r.basic(connection, data.RandomString, "SHARED ACCESS SIGNATURE", "secret"+data.RandomString),
+					Check: resource.TestCheckResourceAttr("azuresql_database_scoped_credential.test", "secret", "secret"+data.RandomString),
 				},
 				{
-					Config:                   r.basic(connection, data.RandomString, "SHARED ACCESS SIGNATURE", "secret2"+data.RandomString),
-					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
-					Check:                    resource.TestCheckResourceAttr("azuresql_database_scoped_credential.test", "secret", "secret2"+data.RandomString),
+					Config: r.basic(connection, data.RandomString, "SHARED ACCESS SIGNATURE", "secret2"+data.RandomString),
+					Check: resource.TestCheckResourceAttr("azuresql_database_scoped_credential.test", "secret", "secret2"+data.RandomString),
 				},
 			},
 		})
-	}
+	})
 }
 
 func (r DatabaseScopedCredentialResource) basic(connection string, name string, identity string, secret string) string {

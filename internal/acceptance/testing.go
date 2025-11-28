@@ -2,36 +2,30 @@ package acceptance
 
 import (
 	"log"
-	"os"
 	"strings"
+	"testing"
+
 	"terraform-provider-azuresql/internal/logging"
 	"terraform-provider-azuresql/internal/sql"
-	"testing"
 )
 
-func PreCheck(t *testing.T) {
-	variables := []string{
-		"AZURE_SQL_SERVER",
-		"AZURE_SQL_SERVER_PORT",
-		"AZURE_SQL_DATABASE",
-		"AZURE_SYNAPSE_SERVER",
-		"AZURE_SYNAPSE_DATABASE",
-		"AZURE_SYNAPSE_SERVER_PORT",
-		"AZURE_FABRIC_SERVER",
-		"AZURE_FABRIC_DATABASE",
-		"AZURE_AD_USER",
-		"AZURE_AD_GROUP",
-		"AZURE_SUBSCRIPTION",
-		"AZURE_CLIENT_ID_OPT",
-		"AZURE_CLIENT_SECRET_OPT",
-	}
+var commonEnv = []string{
+	"AZURE_AD_USER",
+	"AZURE_AD_GROUP",
+	"AZURE_SUBSCRIPTION",
+	"AZURE_CLIENT_ID_OPT",
+	"AZURE_CLIENT_SECRET_OPT",
+}
 
-	for _, variable := range variables {
-		value := os.Getenv(variable)
-		if value == "" {
-			t.Fatalf("`%s` must be set for acceptance tests!", variable)
-		}
+func PreCheck(t *testing.T) {
+	for _, backend := range Backends(t) {
+		PreCheckBackend(t, backend)
 	}
+}
+
+func PreCheckBackend(t *testing.T, backend Backend) {
+	requireEnv(t, commonEnv...)
+	requireEnv(t, backend.requiredEnv...)
 }
 
 func ExecuteSQL(connectionId string, query string) {

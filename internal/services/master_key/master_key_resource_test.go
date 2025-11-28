@@ -2,8 +2,9 @@ package master_key_test
 
 import (
 	"fmt"
-	"terraform-provider-azuresql/internal/acceptance"
 	"testing"
+
+	"terraform-provider-azuresql/internal/acceptance"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
@@ -11,27 +12,25 @@ import (
 type MasterKeyResource struct{}
 
 func TestAccCreateMasterKey(t *testing.T) {
-	acceptance.PreCheck(t)
-	data := acceptance.BuildTestData(t)
 	r := MasterKeyResource{}
-
-	connections := []string{
-		data.FabricDatabase_connection,
-		data.SQLDatabase_connection,
-		data.SynapseDatabase_connection,
+	kinds := []acceptance.BackendKind{
+		acceptance.BackendFabric,
+		acceptance.BackendSQLServer,
+		acceptance.BackendSynapseServerless,
+		acceptance.BackendSynapseDedicated,
 	}
 
-	for _, connection := range connections {
-		print(fmt.Sprintf("\n\nRunning test for connection %s\n\n", connection))
+	acceptance.ForEachBackend(t, kinds, func(t *testing.T, backend acceptance.Backend, data acceptance.TestData) {
+		connection := acceptance.DatabaseConnection(t, backend, data)
 		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config:                   r.basic(connection),
-					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+					Config: r.basic(connection),
 				},
 			},
 		})
-	}
+	})
 }
 
 func (r MasterKeyResource) basic(connection string) string {

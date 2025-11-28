@@ -18,6 +18,7 @@ func TestAccReadRole(t *testing.T) {
 		data.SQLServer_connection,
 		data.SQLDatabase_connection,
 		data.SynapseDatabase_connection,
+		data.SynapseDedicatedDatabase_connection,
 	}
 
 	for _, connection := range connections {
