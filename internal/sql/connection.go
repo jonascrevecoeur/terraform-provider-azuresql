@@ -167,7 +167,7 @@ func (cache ConnectionCache) ServerExists(ctx context.Context, connection Connec
 		return ConnectionResourceStatusUnknown
 	}
 
-	if connection.Provider == "synapse" {
+	if connection.Provider == "synapse" || connection.Provider == "synapsededicated" {
 		return cache.synapseServerExists(ctx, connection)
 	} else if connection.Provider == "sqlserver" {
 		return cache.sqlServerExists(ctx, connection)
@@ -352,8 +352,8 @@ func ParseConnectionId(ctx context.Context, connectionId string) (connection Con
 	}
 
 	provider := parts[0]
-	if provider != "sqlserver" && provider != "synapse" && provider != "fabric" {
-		logging.AddError(ctx, "Invalid SQL provider in connection id", fmt.Sprintf("SQL provider %s is invalid. Only sqlserver, synapse and fabric are currently supported.", provider))
+	if provider != "sqlserver" && provider != "synapse" && provider != "synapsededicated" && provider != "fabric" {
+		logging.AddError(ctx, "Invalid SQL provider in connection id", fmt.Sprintf("SQL provider %s is invalid. Only sqlserver, synapse, synapsededicated and fabric are currently supported.", provider))
 		return
 	}
 
@@ -397,6 +397,25 @@ func ParseConnectionId(ctx context.Context, connectionId string) (connection Con
 			return Connection{
 				ConnectionId:       connectionId,
 				ConnectionString:   fmt.Sprintf("sqlserver://%s-ondemand.sql.azuresynapse.net:%d?fedauth=ActiveDirectoryDefault", server, port),
+				IsServerConnection: true,
+				Provider:           provider,
+				Server:             server,
+			}
+		}
+	} else if provider == "synapsededicated" {
+		if len(parts) == 5 {
+			return Connection{
+				ConnectionId:       connectionId,
+				ConnectionString:   fmt.Sprintf("sqlserver://%s.sql.azuresynapse.net:%d?database=%s&fedauth=ActiveDirectoryDefault", server, port, parts[4]),
+				IsServerConnection: false,
+				Provider:           provider,
+				Server:             server,
+				Database:           parts[4],
+			}
+		} else {
+			return Connection{
+				ConnectionId:       connectionId,
+				ConnectionString:   fmt.Sprintf("sqlserver://%s.sql.azuresynapse.net:%d?fedauth=ActiveDirectoryDefault", server, port),
 				IsServerConnection: true,
 				Provider:           provider,
 				Server:             server,

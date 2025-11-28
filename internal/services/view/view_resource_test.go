@@ -2,8 +2,9 @@ package view_test
 
 import (
 	"fmt"
-	"terraform-provider-azuresql/internal/acceptance"
 	"testing"
+
+	"terraform-provider-azuresql/internal/acceptance"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
@@ -11,91 +12,82 @@ import (
 type ViewResource struct{}
 
 func TestAccCreateViewBasic(t *testing.T) {
-	acceptance.PreCheck(t)
-	data := acceptance.BuildTestData(t)
 	r := ViewResource{}
-
-	connections := []string{
-		data.SQLDatabase_connection,
-		data.SynapseDatabase_connection,
+	kinds := []acceptance.BackendKind{
+		acceptance.BackendSQLServer,
+		acceptance.BackendSynapseServerless,
+		acceptance.BackendSynapseDedicated,
 	}
 
-	for _, connection := range connections {
-		print(fmt.Sprintf("\n\nRunning test for connection %s\n\n", connection))
+	acceptance.ForEachBackend(t, kinds, func(t *testing.T, backend acceptance.Backend, data acceptance.TestData) {
+		connection := acceptance.DatabaseConnection(t, backend, data)
 
 		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config:                   r.basic(connection, data.RandomString),
-					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+					Config: r.basic(connection, data.RandomString),
 				},
 				{
-					Config:                   r.basic(connection, data.RandomString),
-					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
-					ResourceName:             "azuresql_view.test",
-					ImportState:              true,
-					ImportStateVerify:        true,
+					Config:            r.basic(connection, data.RandomString),
+					ResourceName:      "azuresql_view.test",
+					ImportState:       true,
+					ImportStateVerify: true,
 				},
 			},
 		})
-	}
+	})
 }
 
 func TestAccCreateViewWithOptions(t *testing.T) {
-	acceptance.PreCheck(t)
-	data := acceptance.BuildTestData(t)
 	r := ViewResource{}
-
-	connections := []string{
-		data.SQLDatabase_connection,
+	kinds := []acceptance.BackendKind{
+		acceptance.BackendSQLServer,
 	}
 
-	for _, connection := range connections {
-		print(fmt.Sprintf("\n\nRunning test for connection %s\n\n", connection))
+	acceptance.ForEachBackend(t, kinds, func(t *testing.T, backend acceptance.Backend, data acceptance.TestData) {
+		connection := acceptance.DatabaseConnection(t, backend, data)
 
 		acceptance.ExecuteSQL(connection, fmt.Sprintf("create table dbo.tftable_%s (col1 int)", data.RandomString))
 		defer acceptance.ExecuteSQL(connection, fmt.Sprintf("DROP table dbo.tftable_%s", data.RandomString))
 
 		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config:                   r.with_options(connection, data.RandomString),
-					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+					Config: r.with_options(connection, data.RandomString),
 				},
 				{
-					Config:                   r.with_options(connection, data.RandomString),
-					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
-					ResourceName:             "azuresql_view.test",
-					ImportState:              true,
-					ImportStateVerify:        true,
+					Config:            r.with_options(connection, data.RandomString),
+					ResourceName:      "azuresql_view.test",
+					ImportState:       true,
+					ImportStateVerify: true,
 				},
 			},
 		})
-	}
+	})
 }
 
 func TestAccCreateViewWithEOT(t *testing.T) {
-	acceptance.PreCheck(t)
-	data := acceptance.BuildTestData(t)
 	r := ViewResource{}
-
-	connections := []string{
-		data.SQLDatabase_connection,
-		data.SynapseDatabase_connection,
+	kinds := []acceptance.BackendKind{
+		acceptance.BackendSQLServer,
+		acceptance.BackendSynapseServerless,
+		acceptance.BackendSynapseDedicated,
 	}
 
-	for _, connection := range connections {
-		print(fmt.Sprintf("\n\nRunning test for connection %s\n\n", connection))
+	acceptance.ForEachBackend(t, kinds, func(t *testing.T, backend acceptance.Backend, data acceptance.TestData) {
+		connection := acceptance.DatabaseConnection(t, backend, data)
 
 		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config:                   r.with_eot(connection, data.RandomString),
-					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+					Config: r.with_eot(connection, data.RandomString),
 				},
 			},
 		})
-	}
+	})
 }
 
 func (r ViewResource) basic(connection string, name string) string {

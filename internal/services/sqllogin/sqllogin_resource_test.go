@@ -2,8 +2,9 @@ package login_test
 
 import (
 	"fmt"
-	"terraform-provider-azuresql/internal/acceptance"
 	"testing"
+
+	"terraform-provider-azuresql/internal/acceptance"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
@@ -11,86 +12,86 @@ import (
 type SQLLoginResource struct{}
 
 func TestAccCreateLogin(t *testing.T) {
-	acceptance.PreCheck(t)
-	data := acceptance.BuildTestData(t)
 	r := SQLLoginResource{}
-
-	connections := []string{
-		data.SQLServer_connection,
-		data.SynapseServer_connection,
+	kinds := []acceptance.BackendKind{
+		acceptance.BackendSQLServer,
+		acceptance.BackendSynapseServerless,
+		acceptance.BackendSynapseDedicated,
 	}
 
-	for _, connection := range connections {
+	acceptance.ForEachBackend(t, kinds, func(t *testing.T, backend acceptance.Backend, data acceptance.TestData) {
+		connection := acceptance.ServerConnection(t, backend, data)
 		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config:                   r.basic(connection, "tftest_"+data.RandomString),
-					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+					Config: r.basic(connection, "tftest_"+data.RandomString),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("azuresql_login.test", "name", "tftest_"+data.RandomString),
 					),
 				},
 				{
-					Config:                   r.basic(connection, "tftest_"+data.RandomString),
-					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
-					ResourceName:             "azuresql_login.test",
-					ImportState:              true,
-					// No ImportStateVerify since password cannot be imported
+					Config:            r.basic(connection, "tftest_"+data.RandomString),
+					ResourceName:      "azuresql_login.test",
+					ImportState:       true,
+					ImportStateVerify: false,
 				},
 			},
 		})
-	}
+	})
 }
 
 func TestAccCreateLoginWithPassword(t *testing.T) {
-	acceptance.PreCheck(t)
-	data := acceptance.BuildTestData(t)
 	r := SQLLoginResource{}
-
-	connections := []string{
-		data.SQLServer_connection,
-		data.SynapseServer_connection,
+	kinds := []acceptance.BackendKind{
+		acceptance.BackendSQLServer,
+		acceptance.BackendSynapseServerless,
+		acceptance.BackendSynapseDedicated,
 	}
-
 	password := "password12345!$"
 
-	for _, connection := range connections {
+	acceptance.ForEachBackend(t, kinds, func(t *testing.T, backend acceptance.Backend, data acceptance.TestData) {
+		connection := acceptance.ServerConnection(t, backend, data)
 		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config:                   r.with_password(connection, "tftest_"+data.RandomString, password),
-					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+					Config: r.with_password(connection, "tftest_"+data.RandomString, password),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("azuresql_login.test", "name", "tftest_"+data.RandomString),
 					),
 				},
 				{
-					Config:                   r.with_password(connection, "tftest_"+data.RandomString, password),
-					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
-					ResourceName:             "azuresql_login.test",
-					ImportState:              true,
-					// No ImportStateVerify since password cannot be imported
+					Config:            r.with_password(connection, "tftest_"+data.RandomString, password),
+					ResourceName:      "azuresql_login.test",
+					ImportState:       true,
+					ImportStateVerify: false,
 				},
 			},
 		})
-	}
+	})
 }
 
 func TestAccSynapseServerCreateLogin(t *testing.T) {
-	acceptance.PreCheck(t)
-	data := acceptance.BuildTestData(t)
 	r := SQLLoginResource{}
-	resource.Test(t, resource.TestCase{
-		Steps: []resource.TestStep{
-			{
-				// use a dynamic configuration with the random name from above
-				Config:                   r.basic(data.SynapseServer_connection, "tftest_"+data.RandomString),
-				ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("azuresql_login.test", "name", "tftest_"+data.RandomString),
-				),
+	kinds := []acceptance.BackendKind{
+		acceptance.BackendSynapseServerless,
+		acceptance.BackendSynapseDedicated,
+	}
+
+	acceptance.ForEachBackend(t, kinds, func(t *testing.T, backend acceptance.Backend, data acceptance.TestData) {
+		connection := acceptance.ServerConnection(t, backend, data)
+		resource.Test(t, resource.TestCase{
+			ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: r.basic(connection, "tftest_"+data.RandomString),
+					Check: resource.ComposeTestCheckFunc(
+						resource.TestCheckResourceAttr("azuresql_login.test", "name", "tftest_"+data.RandomString),
+					),
+				},
 			},
-		},
+		})
 	})
 }
 
