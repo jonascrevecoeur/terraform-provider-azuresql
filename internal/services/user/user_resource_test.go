@@ -178,32 +178,36 @@ func TestAccSynapseServerCreateADGroup(t *testing.T) {
 	acceptance.PreCheck(t)
 	data := acceptance.BuildTestData(t)
 	r := UserResource{}
-	resource.Test(t, resource.TestCase{
-		Steps: []resource.TestStep{
-			{
-				Config:                   r.basic_server(data.SynapseServer_connection, os.Getenv("AZURE_AD_GROUP"), "AzureAD"),
-				ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
-				ExpectError:              regexp.MustCompile("In Synapse users cannot be created at server level"),
+	for _, connection := range []string{data.SynapseServer_connection, data.SynapseDedicatedServer_connection} {
+		resource.Test(t, resource.TestCase{
+			Steps: []resource.TestStep{
+				{
+					Config:                   r.basic_server(connection, os.Getenv("AZURE_AD_GROUP"), "AzureAD"),
+					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+					ExpectError:              regexp.MustCompile("In Synapse users cannot be created at server level"),
+				},
 			},
-		},
-	})
+		})
+	}
 }
 
 func TestAccSynapseDatabaseCreateADGroup(t *testing.T) {
 	acceptance.PreCheck(t)
 	data := acceptance.BuildTestData(t)
 	r := UserResource{}
-	resource.Test(t, resource.TestCase{
-		Steps: []resource.TestStep{
-			{
-				Config:                   r.basic_database(data.SynapseDatabase_connection, os.Getenv("AZURE_AD_GROUP"), "AzureAD"),
-				ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("azuresql_user.test", "type", "AD group"),
-				),
+	for _, connection := range []string{data.SynapseDatabase_connection, data.SynapseDedicatedDatabase_connection} {
+		resource.Test(t, resource.TestCase{
+			Steps: []resource.TestStep{
+				{
+					Config:                   r.basic_database(connection, os.Getenv("AZURE_AD_GROUP"), "AzureAD"),
+					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+					Check: resource.ComposeTestCheckFunc(
+						resource.TestCheckResourceAttr("azuresql_user.test", "type", "AD group"),
+					),
+				},
 			},
-		},
-	})
+		})
+	}
 }
 
 func TestAccSQLServerCannotCreateDuplicateUser(t *testing.T) {
@@ -225,15 +229,17 @@ func TestUseLoginFromWrongServer(t *testing.T) {
 	acceptance.PreCheck(t)
 	data := acceptance.BuildTestData(t)
 	r := UserResource{}
-	resource.Test(t, resource.TestCase{
-		Steps: []resource.TestStep{
-			{
-				Config:                   r.login_server_mismatch(data.SynapseServer_connection, data.SQLServer_connection, data.RandomString),
-				ExpectError:              regexp.MustCompile("Login from .* is incompatible"),
-				ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+	for _, synapse := range []string{data.SynapseServer_connection, data.SynapseDedicatedServer_connection} {
+		resource.Test(t, resource.TestCase{
+			Steps: []resource.TestStep{
+				{
+					Config:                   r.login_server_mismatch(synapse, data.SQLServer_connection, data.RandomString),
+					ExpectError:              regexp.MustCompile("Login from .* is incompatible"),
+					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+				},
 			},
-		},
-	})
+		})
+	}
 }
 
 func TestAccDBSQLLogin(t *testing.T) {

@@ -18,6 +18,7 @@ func TestAccCreateViewBasic(t *testing.T) {
 	connections := []string{
 		data.SQLDatabase_connection,
 		data.SynapseDatabase_connection,
+		data.SynapseDedicatedDatabase_connection,
 	}
 
 	for _, connection := range connections {
