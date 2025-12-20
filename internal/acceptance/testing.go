@@ -3,13 +3,26 @@ package acceptance
 import (
 	"log"
 	"os"
+	"path/filepath"
+	"runtime"
 	"strings"
 	"terraform-provider-azuresql/internal/logging"
 	"terraform-provider-azuresql/internal/sql"
 	"testing"
+
+	"github.com/joho/godotenv"
 )
 
 func PreCheck(t *testing.T) {
+	_, filename, _, ok := runtime.Caller(0)
+	if !ok {
+		t.Fatal("Could not get current file path")
+	}
+	err := godotenv.Overload(filepath.Join(filepath.Dir(filename), "../../.env"))
+	if err != nil {
+		t.Fatal("No .env file found")
+	}
+
 	variables := []string{
 		"AZURE_SQL_SERVER",
 		"AZURE_SQL_SERVER_PORT",
