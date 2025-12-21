@@ -10,9 +10,9 @@ description: |-
 
 Manage database user defined procedures.
 
-**Supported**: `SQL Database`, `Synapse serverless database`, `Synapse dedicated database`, `Fabric` 
+**Supported**: `SQL Database`, `Synapse serverless database`, `Fabric` 
 
-**Not supported**: 
+**Not supported**: `Synapse dedicated database`
 
 
 ## Example Usage

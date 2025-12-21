@@ -71,19 +71,16 @@ func CreateRoleAssignment(ctx context.Context, connection Connection, roleResour
 	}
 
 	var err error
+	var query string
 	if connection.Provider == "synapsededicated" {
-		_, err = connection.Connection.ExecContext(ctx,
-			"EXEC sp_addrolemember @rolename, @membername",
-			sql.Named("rolename", role.Name),
-			sql.Named("membername", principal.Name),
-		)
+		query = fmt.Sprintf("EXEC sp_addrolemember [%s], [%s]", role.Name, principal.Name)
 	} else if connection.IsServerConnection {
-		query := fmt.Sprintf("alter server role [%s] add member [%s]", role.Name, principal.Name)
-		_, err = connection.Connection.ExecContext(ctx, query)
+		query = fmt.Sprintf("alter role [%s] add member [%s]", role.Name, principal.Name)
 	} else {
-		query := fmt.Sprintf("alter role [%s] add member [%s]", role.Name, principal.Name)
-		_, err = connection.Connection.ExecContext(ctx, query)
+		query = fmt.Sprintf("alter role [%s] add member [%s]", role.Name, principal.Name)
 	}
+
+	_, err = connection.Connection.ExecContext(ctx, query)
 	if err != nil {
 		logging.AddError(ctx, fmt.Sprintf("Failed to assign role %s %s", role.Name, principal.Name), err)
 		return
@@ -116,7 +113,7 @@ func GetRoleAssignmentFromId(ctx context.Context, connection Connection, roleAss
 	var query string
 	if connection.IsServerConnection {
 		query = `
-			select principals.type from sys.server_role_members role
+			select principals.type from sys.database_role_members role
 			left join sys.database_principals principals on role.member_principal_id = principals.principal_id
 			where role.role_principal_id = @role_id and role.member_principal_id = @principal_id
 			`
@@ -176,19 +173,17 @@ func DropRoleAssignment(ctx context.Context, connection Connection, roleAssignme
 	}
 
 	var err error
+	var query string
 	if connection.Provider == "synapsededicated" {
-		_, err = connection.Connection.ExecContext(ctx,
-			"EXEC sp_droprolemember @rolename, @membername",
-			sql.Named("rolename", role.Name),
-			sql.Named("membername", principal.Name),
-		)
+		query = fmt.Sprintf("EXEC sp_droprolemember [%s], [%s]", role.Name, principal.Name)
 	} else if connection.IsServerConnection {
-		query := fmt.Sprintf("alter server role [%s] drop member [%s]", role.Name, principal.Name)
+		query = fmt.Sprintf("alter role [%s] drop member [%s]", role.Name, principal.Name)
 		_, err = connection.Connection.ExecContext(ctx, query)
 	} else {
-		query := fmt.Sprintf("alter role [%s] drop member [%s]", role.Name, principal.Name)
-		_, err = connection.Connection.ExecContext(ctx, query)
+		query = fmt.Sprintf("alter role [%s] drop member [%s]", role.Name, principal.Name)
 	}
+
+	_, err = connection.Connection.ExecContext(ctx, query)
 	if err != nil {
 		logging.AddError(ctx, fmt.Sprintf("Failed to remove %s from role %s", principal.Name, role.Name), err)
 		return

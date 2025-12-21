@@ -158,7 +158,7 @@ func TestAccCreatePermissionTableRole(t *testing.T) {
 	connections := []string{
 		data.FabricDatabase_connection,
 		data.SQLDatabase_connection,
-		//data.SynapseDatabase_connection,
+		data.SynapseDatabase_connection,
 	}
 
 	for _, connection := range connections {
@@ -189,7 +189,7 @@ func TestAccCreatePermissionFunctionRole(t *testing.T) {
 
 	connections := []string{
 		data.SQLDatabase_connection,
-		//data.SynapseDatabase_connection,
+		data.SynapseDatabase_connection,
 	}
 
 	for _, connection := range connections {
@@ -218,7 +218,7 @@ func TestAccCreatePermissionProcedureRole(t *testing.T) {
 	connections := []string{
 		data.FabricDatabase_connection,
 		data.SQLDatabase_connection,
-		//data.SynapseDatabase_connection,
+		data.SynapseDatabase_connection,
 	}
 
 	for _, connection := range connections {

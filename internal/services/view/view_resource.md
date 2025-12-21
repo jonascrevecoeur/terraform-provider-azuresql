@@ -10,10 +10,9 @@ description: |-
 
 Manage database views.
 
-**Supported**: `SQL Database`, `Synapse serverless database`, `Synapse dedicated database`
+**Supported**: `SQL Database`, `Synapse serverless database`
 
-**Not supported**: 
-
+**Not supported**: `Synapse dedicated database`
 
 ## Example Usage
 

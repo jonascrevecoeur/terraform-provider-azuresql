@@ -86,12 +86,7 @@ func DropDatabase(ctx context.Context, connection Connection, name string) {
 		return
 	}
 
-	query = fmt.Sprintf(`
-		IF EXISTS (SELECT 1 FROM sys.databases WHERE name = N'%[1]s')
-		BEGIN
-			DROP DATABASE [%[1]s];
-		END;
-		`, name)
+	query = fmt.Sprintf("drop database if exists [%s]", name)
 	_, err = connection.Connection.ExecContext(ctx, query)
 
 	if err != nil {

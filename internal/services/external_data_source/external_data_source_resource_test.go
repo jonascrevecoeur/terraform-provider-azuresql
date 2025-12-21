@@ -82,7 +82,7 @@ func (r ExternalDataSourceResource) basic(database string, name string) string {
 		resource "azuresql_external_data_source" "test" {
 			database	= "%[2]s"
 			name		= "tfdatasource_%[3]s"
-			location	= "%[3]s"
+			location	= "abfs://test"
 		}
 		`, template, database, name)
 }
@@ -109,7 +109,7 @@ func (r ExternalDataSourceResource) withCredential(database string, name string)
 		resource "azuresql_external_data_source" "test" {
 			database	= "%[2]s"
 			name		= "tfdatasource_%[3]s"
-			location	= "%[3]s"
+			location	= "abfs://test"
 			credential  = azuresql_database_scoped_credential.test.id
 		}
 		`, template, database, name)

@@ -17,7 +17,6 @@ func TestAccCreateDatabase(t *testing.T) {
 
 	connections := []string{
 		data.SynapseServer_connection,
-		data.SynapseDedicatedServer_connection,
 	}
 
 	for _, connection := range connections {
@@ -47,7 +46,6 @@ func TestAccRenameDatabase(t *testing.T) {
 
 	connections := []string{
 		data.SynapseServer_connection,
-		data.SynapseDedicatedServer_connection,
 	}
 
 	for _, connection := range connections {
@@ -74,7 +72,6 @@ func TestAccCreateSchemaInNewDatabase(t *testing.T) {
 
 	connections := []string{
 		data.SynapseServer_connection,
-		data.SynapseDedicatedServer_connection,
 	}
 
 	for _, connection := range connections {

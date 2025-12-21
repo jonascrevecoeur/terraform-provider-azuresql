@@ -246,7 +246,7 @@ func DropUser(ctx context.Context, connection Connection, principalId int64) {
 	}
 
 	query := fmt.Sprintf(`
-		IF EXISTS (SELECT 1 FROM sys.database_principals WHERE name = [%[1]s])
+		IF EXISTS (SELECT 1 FROM sys.database_principals WHERE name = '%[1]s')
 		BEGIN
 			DROP USER [%[1]s];
 		END;

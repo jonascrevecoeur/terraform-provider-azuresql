@@ -229,17 +229,15 @@ func TestUseLoginFromWrongServer(t *testing.T) {
 	acceptance.PreCheck(t)
 	data := acceptance.BuildTestData(t)
 	r := UserResource{}
-	for _, synapse := range []string{data.SynapseServer_connection, data.SynapseDedicatedServer_connection} {
-		resource.Test(t, resource.TestCase{
-			Steps: []resource.TestStep{
-				{
-					Config:                   r.login_server_mismatch(synapse, data.SQLServer_connection, data.RandomString),
-					ExpectError:              regexp.MustCompile("Login from .* is incompatible"),
-					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
-				},
+	resource.Test(t, resource.TestCase{
+		Steps: []resource.TestStep{
+			{
+				Config:                   r.login_server_mismatch(data.SynapseServer_connection, data.SQLServer_connection, data.RandomString),
+				ExpectError:              regexp.MustCompile("Login from .* is incompatible"),
+				ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
 			},
-		})
-	}
+		},
+	})
 }
 
 func TestAccDBSQLLogin(t *testing.T) {

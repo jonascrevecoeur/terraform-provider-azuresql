@@ -38,3 +38,12 @@ resource "azurerm_synapse_firewall_rule" "allow_all" {
   start_ip_address     = "0.0.0.0"
   end_ip_address       = "255.255.255.255"
 }
+
+resource "azurerm_synapse_sql_pool" "dedicated" {
+  name                      = "dedicated"
+  synapse_workspace_id      = azurerm_synapse_workspace.this.id
+  sku_name                  = "DW100c"
+  create_mode               = "Default"
+  storage_account_type      = "LRS"
+  geo_backup_policy_enabled = false
+}

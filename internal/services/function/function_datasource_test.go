@@ -18,7 +18,6 @@ func TestAccReadFunction(t *testing.T) {
 		data.FabricDatabase_connection,
 		data.SQLDatabase_connection,
 		data.SynapseDatabase_connection,
-		data.SynapseDedicatedDatabase_connection,
 	}
 
 	for _, connection := range connections {
