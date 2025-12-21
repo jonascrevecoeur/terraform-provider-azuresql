@@ -83,7 +83,7 @@ func (r *SecurityPolicyResource) Create(ctx context.Context, req resource.Create
 		return
 	}
 
-	if connection.Provider == "synapse" {
+	if (connection.Provider == "synapse" || connection.Provider == "synapsededicated") {
 		logging.AddError(ctx, "Invalid config", "Security policies are not supported on Synapse.")
 		return
 	}

@@ -110,6 +110,12 @@ func (r *ViewResource) Create(ctx context.Context, req resource.CreateRequest, r
 		return
 	}
 
+	if connection.Provider == "synapsededicated" {
+		logging.AddError(ctx, "Invalid config",
+			"`azuresql_view` resource is not support on Synapse dedicated.")
+		return
+	}
+
 	view := sql.CreateViewFromDefinition(ctx, connection, name, plan.Schema.ValueString(), plan.Definition.ValueString(), plan.Schemabinding.ValueBool(), plan.CheckOption.ValueBool())
 
 	if logging.HasError(ctx) {

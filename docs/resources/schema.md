@@ -10,9 +10,9 @@ description: |-
 
 Manage database schemas.
 
-**Supported**: `SQL Database`, `Synapse serverless database`, `Fabric` 
+**Supported**: `SQL Database`, `Synapse serverless database`, `Synapse dedicated database`, `Fabric` 
 
-**Not supported**: `Synapse dedicated database`
+**Not supported**: 
 
 ## Example Usage
 
