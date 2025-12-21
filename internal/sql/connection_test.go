@@ -3,9 +3,12 @@ package sql
 import (
 	"fmt"
 	"os"
+	"path/filepath"
+	"runtime"
 	"terraform-provider-azuresql/internal/logging"
 	"testing"
 
+	"github.com/joho/godotenv"
 	_ "github.com/microsoft/go-mssqldb/azuread"
 )
 
@@ -70,6 +73,15 @@ func TestParseConnectionId(t *testing.T) {
 }
 
 func TestRecoverClosedConnection(t *testing.T) {
+	_, filename, _, ok := runtime.Caller(0)
+	if !ok {
+		t.Fatal("Could not get current file path")
+	}
+	err := godotenv.Overload(filepath.Join(filepath.Dir(filename), "../../.env"))
+	if err != nil {
+		t.Fatal("No .env file found")
+	}
+
 	ctx := logging.GetTestContext()
 	connection_id := fmt.Sprintf("sqlserver::%s:%s", os.Getenv("AZURE_SQL_SERVER"), os.Getenv("AZURE_SQL_SERVER_PORT"))
 
@@ -86,7 +98,7 @@ func TestRecoverClosedConnection(t *testing.T) {
 	connection.Connection.Close()
 
 	connection = cache.Connect(ctx, connection_id, true, true)
-	err := connection.Connection.QueryRow("select 1 as a").Scan(&result)
+	err = connection.Connection.QueryRow("select 1 as a").Scan(&result)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
