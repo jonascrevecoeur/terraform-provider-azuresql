@@ -10,9 +10,7 @@ description: |-
 
 Read SQL database views.
 
-**Supported**: `SQL Database`, `Synapse serverless database` 
-
-**Not supported**: `Synapse dedicated database`
+**Supported**: `SQL Database`, `Synapse serverless database`, `Synapse dedicated database`
 
 
 ```terraform
