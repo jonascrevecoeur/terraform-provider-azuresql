@@ -108,15 +108,14 @@ func (p *azuresql_provider) Configure(ctx context.Context, req provider.Configur
 
 // DataSources defines the data sources implemented in the provider.
 func (p *azuresql_provider) DataSources(_ context.Context) []func() datasource.DataSource {
-    return []func() datasource.DataSource{
-        sqlserver.NewServerDataSource,
-        synapseserver.NewSynapseServerDataSource,
-        synapseserver.NewSynapseServerDedicatedDataSource,
-        login.NewSQLLoginDataSource,
-        user.NewUserDataSource,
-        role.NewRoleDataSource,
-        dbschema.NewSchemaDataSource,
-        database.NewDatabaseDataSource,
+	return []func() datasource.DataSource{
+		sqlserver.NewServerDataSource,
+		synapseserver.NewSynapseServerDataSource,
+		login.NewSQLLoginDataSource,
+		user.NewUserDataSource,
+		role.NewRoleDataSource,
+		dbschema.NewSchemaDataSource,
+		database.NewDatabaseDataSource,
 		permission.NewPermissionDataSource,
 		function.NewFunctionDataSource,
 		table.NewTableDataSource,
