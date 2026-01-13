@@ -74,7 +74,7 @@ func CreateExternalDataSource(ctx context.Context, connection Connection, name s
 		credential_arg = ""
 	}
 
-	if connection.Provider == "synapse" {
+	if connection.Provider == "synapse" || connection.Provider == "synapsededicated" {
 		type_arg = ""
 	} else {
 		type_arg = ", type = BLOB_STORAGE"

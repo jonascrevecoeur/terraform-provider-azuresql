@@ -245,7 +245,12 @@ func DropUser(ctx context.Context, connection Connection, principalId int64) {
 		return
 	}
 
-	query := fmt.Sprintf("drop user if exists [%s]", user.Name)
+	query := fmt.Sprintf(`
+		IF EXISTS (SELECT 1 FROM sys.database_principals WHERE name = '%[1]s')
+		BEGIN
+			DROP USER [%[1]s];
+		END;
+		`, user.Name)
 	var err error
 	_, err = connection.Connection.ExecContext(ctx, query)
 

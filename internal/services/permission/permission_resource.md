@@ -10,9 +10,9 @@ description: |-
 
 Manage database and server permissions.
 
-**Supported**: `SQL Server`, `SQL Database`, `Synapse serverless server`, `Synapse serverless database`, `Fabric` 
+**Supported**: `SQL Server`, `SQL Database`, `Synapse serverless server`, `Synapse serverless database`, `Synapse dedicated server`, `Synapse dedicated database`, `Fabric` 
 
-**Not supported**: `Synapse dedicated server`, `Synapse dedicated database`
+**Not supported**: 
 
 ## Example Usage
 

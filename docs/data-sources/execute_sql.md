@@ -10,9 +10,9 @@ description: |-
 
 Executes an SQL query without returning any results. This resource acts as an escape hatch for operations that are not supported by this provider.
 
-**Supported**: `SQL Server`, `SQL database`, `Synapse serverless server`, `Synapse serverless database`, `Fabric` 
+**Supported**: `SQL Server`, `SQL database`, `Synapse serverless server`, `Synapse serverless database`,`Synapse dedicated server`, `Synapse dedicated database`, `Fabric`, 
 
-**Not supported**: `Synapse dedicated server`, `Synapse dedicated database`
+**Not supported**: 
 
 ```terraform
 provider "azuresql" {

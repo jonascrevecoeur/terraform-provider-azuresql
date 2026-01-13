@@ -10,10 +10,7 @@ description: |-
 
 Read database user defined procedures.
 
-**Supported**: `SQL Database`, `Synapse serverless database`, `Fabric` 
-
-**Not supported**: `Synapse dedicated database`
-
+**Supported**: `SQL Database`, `Synapse serverless database`, `Synapse dedicated database`, `Fabric` 
 
 ## Example Usage
 

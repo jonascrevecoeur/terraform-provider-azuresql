@@ -197,6 +197,12 @@ func (r *ProcedureResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
+	if connection.Provider == "synapsededicated" {
+		logging.AddError(ctx, "Invalid config",
+			"`azuresql_procedure` resource is not support on Synapse dedicated.")
+		return
+	}
+
 	var procedure sql.Procedure
 	if plan.Properites.IsNull() || plan.Properites.IsUnknown() {
 		procedure = sql.CreateProcedureFromRaw(ctx, connection, name, plan.Schema.ValueString(), plan.Raw.ValueString())

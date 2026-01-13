@@ -16,9 +16,8 @@ func TestAccAssignRoletoUser(t *testing.T) {
 	r := RoleAssignmentResource{}
 
 	connections := []string{
+		data.SQLServer_connection,
 		data.SQLDatabase_connection,
-		// data.SQLServer_connection,
-		//data.SynapseDatabase_connection,
 	}
 
 	for _, connection := range connections {
