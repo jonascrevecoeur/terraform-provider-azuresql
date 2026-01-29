@@ -7,6 +7,16 @@ description: |-
 
 # Changelog
 
+## 5.4.0
+
+**Features:**
+
+* Add support for Synapse dedicated via the `synapseserver` datasource.
+
+**Changed:**
+
+* Updates queries checking for resource existence to be compatible with both Synapse server and all other supported azuresql servers.
+
 ## 5.3.1
 
 **Fixes:**
