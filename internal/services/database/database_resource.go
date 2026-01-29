@@ -84,6 +84,12 @@ func (r *DatabaseResource) Create(ctx context.Context, req resource.CreateReques
 		return
 	}
 
+	if connection.Provider == "synapsededicated" {
+		logging.AddError(ctx, "Invalid config",
+			"`azuresql_database` does not support creating databases in Synapse dedicated servers.")
+		return
+	}
+
 	if connection.Provider == "fabric" {
 		logging.AddError(ctx, "Invalid config",
 			"`azuresql_database` does not support creating Fabric databases.")

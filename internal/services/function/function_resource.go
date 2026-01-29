@@ -214,9 +214,17 @@ func (r *FunctionResource) Create(ctx context.Context, req resource.CreateReques
 		return
 	}
 
+	if connection.Provider == "synapsededicated" {
+		logging.AddError(ctx, "Invalid config",
+			"`azuresql_function` resource is not support on Synapse dedicated.")
+		return
+	}
+
 	var function sql.Function
+	var raw string
 	if plan.Properites.IsNull() || plan.Properites.IsUnknown() {
 		function = sql.CreateFunctionFromRaw(ctx, connection, name, plan.Schema.ValueString(), plan.Raw.ValueString())
+		raw = plan.Raw.ValueString()
 	} else {
 		var planProps FunctionPropertiesResourceModel
 		diags := req.Plan.GetAttribute(ctx, path.Root("properties"), &planProps)
@@ -225,6 +233,7 @@ func (r *FunctionResource) Create(ctx context.Context, req resource.CreateReques
 			return
 		}
 		function = sql.CreateFunctionFromProperties(ctx, connection, name, plan.Schema.ValueString(), GetFunctionProps(&planProps))
+		raw = function.Raw
 	}
 
 	if logging.HasError(ctx) {
@@ -239,7 +248,7 @@ func (r *FunctionResource) Create(ctx context.Context, req resource.CreateReques
 
 	plan.Id = types.StringValue(function.Id)
 	plan.ObjectId = types.Int64Value(function.ObjectId)
-	plan.Raw = types.StringValue(function.Raw)
+	plan.Raw = types.StringValue(raw)
 
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)

@@ -20,7 +20,3 @@ provider "azuread" {
   tenant_id = local.tenant_id
   use_cli   = true
 }
-
-provider "azuresql" {
-
-}

@@ -178,14 +178,14 @@ func (r *UserResource) Create(ctx context.Context, req resource.CreateRequest, r
 		return
 	}
 
-	if connection.IsServerConnection && connection.Provider == "synapse" {
+	if connection.IsServerConnection && (connection.Provider == "synapse" || connection.Provider == "synapsededicated") {
 		logging.AddError(ctx, "Invalid config", "In Synapse users cannot be created at server level. Try creating a database user instead.")
 		return
 	}
 
 	authentication := plan.Authentication.ValueString()
 
-	if authentication == "DBSQLLogin" && connection.Provider == "synapse" {
+	if authentication == "DBSQLLogin" && (connection.Provider == "synapse" || connection.Provider == "synapsededicated") {
 		logging.AddError(ctx, "Invalid config", "Database password authentication (`DBSQLLogin`) is not supported for Synapse. Please use `SQLLogin` in combination with an `azuresql_login` resource instead.")
 		return
 	}

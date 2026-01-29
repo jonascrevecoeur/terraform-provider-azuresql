@@ -68,6 +68,7 @@ func TestAccExecuteSQLCreateLogin(t *testing.T) {
 	connections := []string{
 		data.SQLServer_connection,
 		data.SynapseServer_connection,
+		data.SynapseDedicatedServer_connection,
 	}
 
 	for _, connection := range connections {

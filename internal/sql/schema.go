@@ -191,7 +191,13 @@ func DropSchema(ctx context.Context, connection Connection, schemaId int64) {
 		return
 	}
 
-	query := fmt.Sprintf("drop schema if exists [%s]", schema.Name)
+	query := fmt.Sprintf(`
+		IF SCHEMA_ID('%[1]s') IS NOT NULL
+		BEGIN
+			DROP SCHEMA [%[1]s]
+		END
+	`, schema.Name)
+
 	var err error
 	_, err = connection.Connection.ExecContext(ctx, query)
 

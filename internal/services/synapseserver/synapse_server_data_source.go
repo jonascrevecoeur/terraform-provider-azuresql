@@ -46,6 +46,10 @@ func (d *providerConfig) Schema(_ context.Context, _ datasource.SchemaRequest, r
 				Optional:    true,
 				Description: "Port through which to connect to the synapse server (default 1433)",
 			},
+			"serverless": schema.BoolAttribute{
+				Optional:    true,
+				Description: "Use the serverless compute (default true)",
+			},
 		},
 	}
 }
@@ -59,6 +63,7 @@ func (d *providerConfig) Read(ctx context.Context, req datasource.ReadRequest, r
 
 	var server string
 	var port int64
+	var serverless bool
 
 	server = state.Name.ValueString()
 
@@ -69,7 +74,18 @@ func (d *providerConfig) Read(ctx context.Context, req datasource.ReadRequest, r
 		port = state.Port.ValueInt64()
 	}
 
-	state.ConnectionId = types.StringValue(fmt.Sprintf("synapse::%s:%d", server, port))
+	if state.Serverless.IsNull() {
+		serverless = true
+		state.Serverless = types.BoolValue(true)
+	} else {
+		serverless = state.Serverless.ValueBool()
+	}
+
+	if serverless {
+		state.ConnectionId = types.StringValue(fmt.Sprintf("synapse::%s:%d", server, port))
+	} else {
+		state.ConnectionId = types.StringValue(fmt.Sprintf("synapsededicated::%s:%d", server, port))
+	}
 
 	diags := resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)

@@ -20,6 +20,7 @@ func TestAccCreateSchemaBasic(t *testing.T) {
 		data.FabricDatabase_connection,
 		data.SQLDatabase_connection,
 		data.SynapseDatabase_connection,
+		data.SynapseDedicatedDatabase_connection,
 	}
 
 	for _, connection := range connections {
@@ -51,6 +52,7 @@ func TestAccCreateDuplicateResource(t *testing.T) {
 		data.FabricDatabase_connection,
 		data.SQLDatabase_connection,
 		data.SynapseDatabase_connection,
+		data.SynapseDedicatedDatabase_connection,
 	}
 
 	for _, connection := range connections {
@@ -76,6 +78,7 @@ func TestAccCreateSchemaWithOwner(t *testing.T) {
 		data.FabricDatabase_connection,
 		data.SQLDatabase_connection,
 		data.SynapseDatabase_connection,
+		data.SynapseDedicatedDatabase_connection,
 	}
 
 	for _, connection := range connections {
@@ -100,6 +103,7 @@ func TestAccUpdateSchemaOwner(t *testing.T) {
 		data.FabricDatabase_connection,
 		data.SQLDatabase_connection,
 		data.SynapseDatabase_connection,
+		data.SynapseDedicatedDatabase_connection,
 	}
 
 	for _, connection := range connections {

@@ -33,18 +33,20 @@ func TestAccSynapseServerReadLogin(t *testing.T) {
 	acceptance.PreCheck(t)
 	data := acceptance.BuildTestData(t)
 	r := SQLLoginDatasource{}
-	resource.Test(t, resource.TestCase{
-		Steps: []resource.TestStep{
-			{
-				// use a dynamic configuration with the random name from above
-				Config:                   r.basic(data.SynapseServer_connection, "tftest_"+data.RandomString),
-				ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.azuresql_login.test", "name", "tftest_"+data.RandomString),
-				),
+	for _, connection := range []string{data.SynapseServer_connection, data.SynapseDedicatedServer_connection} {
+		resource.Test(t, resource.TestCase{
+			Steps: []resource.TestStep{
+				{
+					// use a dynamic configuration with the random name from above
+					Config:                   r.basic(connection, "tftest_"+data.RandomString),
+					ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+					Check: resource.ComposeTestCheckFunc(
+						resource.TestCheckResourceAttr("data.azuresql_login.test", "name", "tftest_"+data.RandomString),
+					),
+				},
 			},
-		},
-	})
+		})
+	}
 }
 
 func TestAccSQLServerReadNonExistentLogin(t *testing.T) {
