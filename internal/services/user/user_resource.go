@@ -38,6 +38,35 @@ func (r *UserResource) Metadata(_ context.Context, req resource.MetadataRequest,
 	resp.TypeName = req.ProviderTypeName + "_user"
 }
 
+type replaceIfSetOrChanged struct{}
+
+func (m replaceIfSetOrChanged) Description(ctx context.Context) string {
+	return "Setting or changing entraid_identifier forces replacement."
+}
+
+func (m replaceIfSetOrChanged) MarkdownDescription(ctx context.Context) string {
+	return m.Description(ctx)
+}
+
+func (m replaceIfSetOrChanged) PlanModifyString(
+	ctx context.Context,
+	req planmodifier.StringRequest,
+	resp *planmodifier.StringResponse,
+) {
+
+	if req.PlanValue.IsUnknown() || req.StateValue.IsUnknown() {
+		return
+	}
+
+	if req.PlanValue.IsNull() {
+		return
+	}
+
+	if req.StateValue.IsNull() || !req.PlanValue.Equal(req.StateValue) {
+		resp.RequiresReplace = true
+	}
+}
+
 func (r *UserResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description: fmt.Sprintf("SQL database or server user. %s", docu.Supported(true, true, true, true)),
@@ -107,8 +136,10 @@ func (r *UserResource) Schema(_ context.Context, _ resource.SchemaRequest, resp 
 			},
 			"entraid_identifier": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
+					stringplanmodifier.UseStateForUnknown(),
+					replaceIfSetOrChanged{},
 				},
 			},
 			"sid": schema.StringAttribute{
@@ -378,6 +409,14 @@ func (r *UserResource) ImportState(ctx context.Context, req resource.ImportState
 		PrincipalId:    types.Int64Value(user.PrincipalId),
 		Authentication: types.StringValue(user.Authentication),
 		Type:           types.StringValue(user.Type),
+	}
+
+	if user.Authentication == "AzureAD" && connection.Provider == "sqlserver" {
+		state.EntraIDIdentifier = types.StringValue(sql.GetEntraIDIdentifierFromPrincipalId(ctx, connection, user.PrincipalId))
+
+		if logging.HasError(ctx) {
+			return
+		}
 	}
 
 	if user.Login != "" {

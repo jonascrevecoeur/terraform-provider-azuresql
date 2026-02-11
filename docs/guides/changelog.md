@@ -7,6 +7,12 @@ description: |-
 
 # Changelog
 
+## 5.4.1
+
+**Fixes:**
+
+* Prevent replacement of `azuresql_user` on import when `entraid_identifier` is set.
+
 ## 5.4.0
 
 **Features:**

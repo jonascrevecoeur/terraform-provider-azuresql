@@ -235,7 +235,29 @@ func GetUserFromPrincipalId(ctx context.Context, connection Connection, principa
 		Authentication: describeAuthentication(ctx, authentication_type),
 		Sid:            sid,
 	}
+}
 
+func GetEntraIDIdentifierFromPrincipalId(ctx context.Context, connection Connection, principalId int64) string {
+
+	var entraid_identifier string
+
+	query := `
+		select LOWER(CONVERT(uniqueidentifier, sid)) as entraid_identifier
+		from sys.database_principals
+		where principal_id = @id and type != 'R'
+		`
+
+	err := (connection.
+		Connection.
+		QueryRowContext(ctx, query, sql.Named("id", principalId)).
+		Scan(&entraid_identifier))
+
+	if err != nil {
+		logging.AddError(ctx, "Reading entraid_identifier failed", err)
+		return ""
+	}
+
+	return entraid_identifier
 }
 
 func DropUser(ctx context.Context, connection Connection, principalId int64) {
