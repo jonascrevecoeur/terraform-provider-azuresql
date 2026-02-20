@@ -53,8 +53,7 @@ func (m replaceIfSetOrChanged) PlanModifyString(
 	req planmodifier.StringRequest,
 	resp *planmodifier.StringResponse,
 ) {
-
-	if req.PlanValue.IsUnknown() || req.StateValue.IsUnknown() {
+	if req.PlanValue.IsUnknown() || req.StateValue.IsUnknown() || req.StateValue.IsNull() {
 		return
 	}
 
@@ -256,6 +255,10 @@ func (r *UserResource) Create(ctx context.Context, req resource.CreateRequest, r
 	plan.PrincipalId = types.Int64Value(user.PrincipalId)
 	plan.Type = types.StringValue(user.Type)
 	plan.Sid = types.StringValue(user.Sid)
+
+	if plan.EntraIDIdentifier.IsUnknown() {
+		plan.EntraIDIdentifier = types.StringNull()
+	}
 
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)

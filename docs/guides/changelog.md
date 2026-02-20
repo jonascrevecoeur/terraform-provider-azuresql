@@ -7,6 +7,12 @@ description: |-
 
 # Changelog
 
+## 5.4.2
+
+**Fixes:**
+
+* Fix error in `azuresql_user` when `entraid_identifier` is not set.
+
 ## 5.4.1
 
 **Fixes:**
