@@ -302,13 +302,14 @@ func (cache ConnectionCache) Connect(ctx context.Context, connectionId string, s
 	}
 
 	if cached {
-
-		err := conn.Connection.PingContext(ctx)
-		if err != nil {
-			tflog.Info(ctx, fmt.Sprintf("Cached connection is unhealthy, recreating it: %s", err.Error()))
-			_ = conn.Connection.Close()
-			cache.Cache.Storage.Delete(connectionId)
-			return cache.Connect(ctx, connectionId, server, requiresExist)
+		if conn.ConnectionResourceStatus != ConnectionResourceStatusNotFound {
+			err := conn.Connection.PingContext(ctx)
+			if err != nil {
+				tflog.Info(ctx, fmt.Sprintf("Cached connection is unhealthy, recreating it: %s", err.Error()))
+				_ = conn.Connection.Close()
+				cache.Cache.Storage.Delete(connectionId)
+				return cache.Connect(ctx, connectionId, server, requiresExist)
+			}
 		}
 
 		tflog.Info(ctx, "Succesfully retrieved an existing connection.")
