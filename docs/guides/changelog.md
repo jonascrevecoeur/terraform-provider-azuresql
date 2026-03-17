@@ -7,6 +7,12 @@ description: |-
 
 # Changelog
 
+## 5.4.3
+
+**Fixes:**
+
+* Provider crash when a database deleted outside of Terraform is still referenced by multiple resources
+
 ## 5.4.2
 
 **Fixes:**
