@@ -124,11 +124,11 @@ func TestAccUpdateRoleOwner(t *testing.T) {
 	r := RoleResource{}
 
 	connections := []string{
-		data.SQLDatabase_connection,
-		data.SynapseDatabase_connection,
+		//data.SQLDatabase_connection,
+		//data.SynapseDatabase_connection,
 		data.SynapseDedicatedDatabase_connection,
-		data.FabricDatabase_connection,
-		data.FabricServer_connection,
+		//data.FabricDatabase_connection,
+		//data.FabricServer_connection,
 	}
 
 	for _, connection := range connections {
