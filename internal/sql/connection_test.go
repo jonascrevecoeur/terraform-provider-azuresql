@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/joho/godotenv"
+	mssql "github.com/microsoft/go-mssqldb"
 	_ "github.com/microsoft/go-mssqldb/azuread"
 )
 
@@ -103,4 +104,37 @@ func TestRecoverClosedConnection(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
+}
+
+func TestIsDatabaseUnavailableError(t *testing.T) {
+	tests := []struct {
+		name     string
+		err      error
+		expected bool
+	}{
+		{
+			name:     "mssql error 40613 returns true",
+			err:      mssql.Error{Number: 40613},
+			expected: true,
+		},
+		{
+			name:     "mssql error 18456 returns false",
+			err:      mssql.Error{Number: 18456},
+			expected: false,
+		},
+		{
+			name:     "non-mssql error returns false",
+			err:      fmt.Errorf("some other error"),
+			expected: false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			actual := isDatabaseUnavailableError(tc.err)
+			if actual != tc.expected {
+				t.Errorf("isDatabaseUnavailableError(%v) = %v, want %v", tc.err, actual, tc.expected)
+			}
+		})
+	}
 }
