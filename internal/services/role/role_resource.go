@@ -99,9 +99,9 @@ func (r RoleResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanReq
 	database := state.Database.ValueString()
 	connection := r.ConnectionCache.Connect_server_or_database(ctx, server, database, false)
 
-	// in Synapse serverless alter authorization cannot be used
+	// ALTER AUTHORIZATION ON ROLE:: is not supported on Synapse serverless or dedicated
 	// -> a replace is required when owner changes
-	if connection.Provider == "synapse" {
+	if connection.Provider == "synapse" || connection.Provider == "synapsededicated" {
 		resp.RequiresReplace.Append(path.Root("owner"))
 	}
 }
