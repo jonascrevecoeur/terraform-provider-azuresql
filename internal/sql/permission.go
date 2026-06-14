@@ -324,14 +324,15 @@ func GetPermissionFromId(ctx context.Context, connection Connection, permissionR
 	var principalType, state string
 	query := `
 		select principals.type, permissions.state from sys.database_permissions permissions
-		left join sys.database_principals principals 
+		left join sys.database_principals principals
 		on permissions.grantee_principal_id = principals.principal_id
 		where permissions.major_id = @scope_id and permissions.grantee_principal_id=@principal_id
+		and upper(permissions.permission_name) = upper(@permission_name)
 		`
 
 	err := (connection.
 		Connection.
-		QueryRowContext(ctx, query, sql.Named("scope_id", permission.ScopeId), sql.Named("principal_id", permission.PrincipalId)).
+		QueryRowContext(ctx, query, sql.Named("scope_id", permission.ScopeId), sql.Named("principal_id", permission.PrincipalId), sql.Named("permission_name", permission.Permission)).
 		Scan(&principalType, &state))
 
 	switch {

@@ -184,6 +184,21 @@ func (cache ConnectionCache) DatabaseExists(ctx context.Context, connection Conn
 	serverConnection := cache.Connect(ctx, serverConnectionId, true, false)
 
 	if logging.HasError(ctx) {
+		logging.AddError(ctx,
+			"Database existence check requires access to the master database",
+			fmt.Sprintf("Connecting to %s to verify that database %s exists failed. "+
+				"The existence check queries sys.databases on the master database. "+
+				"Access only to %s is not sufficient.\n"+
+				"Fix options:\n"+
+				"(1) have the Microsoft Entra admin run `CREATE USER [<your-identity>] "+
+				"FROM EXTERNAL PROVIDER` in master on the target server. public role is "+
+				"enough, since sys.databases will show any database that you "+
+				"have access to;\n"+
+				"(2) use an identity that is (in the group that is) the Microsoft "+
+				"Entra admin of the server;\n"+
+				"(3) set `check_database_exists = false` on the azuresql provider to skip "+
+				"this check entirely.",
+				serverConnectionId, connection.ConnectionId, connection.ConnectionId))
 		return ConnectionResourceStatusUnknown
 	}
 
