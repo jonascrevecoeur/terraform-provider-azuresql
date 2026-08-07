@@ -13,8 +13,9 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"terraform-provider-azuresql/internal/logging"
 	"time"
+
+	"terraform-provider-azuresql/internal/logging"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
@@ -179,7 +180,6 @@ func (cache ConnectionCache) ServerExists(ctx context.Context, connection Connec
 }
 
 func (cache ConnectionCache) DatabaseExists(ctx context.Context, connection Connection) (status ConnectionResourceStatus) {
-
 	serverConnectionId := strings.TrimSuffix(connection.ConnectionId, ":"+connection.Database)
 	serverConnection := cache.Connect(ctx, serverConnectionId, true, false)
 
@@ -216,7 +216,7 @@ func (cache ConnectionCache) DatabaseExists(ctx context.Context, connection Conn
 func retrySynapsePoolWarmup(ctx context.Context, connection *sql.DB) (err error) {
 	// Try connecting again after 2, 15, 60, 180 seconds
 	// delay contains the diff of these delays
-	var delay = []int{
+	delay := []int{
 		3, 12, 45, 120,
 	}
 
@@ -245,7 +245,7 @@ func retryDatabaseResume(ctx context.Context, connection *sql.DB) (err error) {
 	// The first connection after auto-pause triggers a resume but returns error 40613.
 	// Microsoft docs state resume latency is generally in the order of one minute.
 	// Backoff delays: 5, 10, 15, 20, 30, 40 seconds (~120s total).
-	var delay = []int{5, 10, 15, 20, 30, 40}
+	delay := []int{5, 10, 15, 20, 30, 40}
 
 	for _, wait := range delay {
 		tflog.Info(ctx, fmt.Sprintf("Database is resuming from auto-pause. Waiting %d seconds before retry.", wait))
@@ -262,7 +262,6 @@ func retryDatabaseResume(ctx context.Context, connection *sql.DB) (err error) {
 // Convert a connectionId into an actual SQL connection
 // The connectionId is a required parameter of each azuresql terraform resource
 func (cache ConnectionCache) Connect(ctx context.Context, connectionId string, server bool, requiresExist bool) Connection {
-
 	tflog.Info(ctx, fmt.Sprintf("Fetching connection to %s", connectionId))
 
 	connection, err, cached := cache.Cache.Memoize(
@@ -297,7 +296,6 @@ func (cache ConnectionCache) Connect(ctx context.Context, connectionId string, s
 			if err == nil {
 				tflog.Debug(ctx, "Pinging database")
 				err = connection.Connection.PingContext(ctx)
-
 				if err != nil {
 					tflog.Info(ctx, fmt.Sprintf("Pinging database failed with error: %s", err.Error()))
 				}
@@ -370,7 +368,6 @@ func (cache ConnectionCache) Connect(ctx context.Context, connectionId string, s
 }
 
 func (cache ConnectionCache) Connect_server_or_database(ctx context.Context, server string, database string, requiresExist bool) (connection Connection) {
-
 	if server != "" && database != "" {
 		logging.AddError(ctx, "Connection failed", "Server and database cannot be both specified when making an SQL connection")
 		return
@@ -483,5 +480,4 @@ func ParseConnectionId(ctx context.Context, connectionId string) (connection Con
 			}
 		}
 	}
-
 }
