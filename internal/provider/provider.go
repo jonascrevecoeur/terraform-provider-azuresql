@@ -21,6 +21,7 @@ import (
 	"terraform-provider-azuresql/internal/services/synapseserver"
 	"terraform-provider-azuresql/internal/services/table"
 	"terraform-provider-azuresql/internal/services/user"
+	"terraform-provider-azuresql/internal/services/user_default_schema"
 	"terraform-provider-azuresql/internal/services/view"
 	"terraform-provider-azuresql/internal/sql"
 
@@ -131,6 +132,7 @@ func (p *azuresql_provider) DataSources(_ context.Context) []func() datasource.D
 func (p *azuresql_provider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		user.NewUserResource,
+		user_default_schema.NewUserDefaultSchemaResource,
 		login.NewSQLLoginResource,
 		role.NewRoleResource,
 		dbschema.NewSchemaResource,
