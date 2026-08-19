@@ -60,7 +60,7 @@ resource "azuresql_user" "schema_user" {
   database       = data.azuresql_database.database.id
   name           = "my-schema-user"
   authentication = "WithoutLogin"
-  default_schema = data.azuresql_schema.example.id
+  default_schema = azuresql_schema.example.id
 }
 
 resource "azuresql_schema" "example" {
