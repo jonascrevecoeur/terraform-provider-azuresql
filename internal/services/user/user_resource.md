@@ -55,6 +55,19 @@ resource "azuresql_user" "spuser" {
   authentication     = "AzureAD"
   entraid_identifier = data.azuread_service_principal.app.object_id
 }
+
+# map an Azure AD group to a SQL user, tracking its identity
+data "azuread_group" "group" {
+  display_name = "my-azure-ad-group"
+}
+
+resource "azuresql_user" "groupuser" {
+  database           = data.azuresql_database.database.id
+  name               = data.azuread_group.group.display_name
+  authentication     = "AzureAD"
+  entraid_identifier = data.azuread_group.group.object_id
+  type               = "AD group"
+}
 ```
 
 ~> When `authentication="AzureAD"` is used without `entraid_identifier`, the SQL user is created via `FROM EXTERNAL PROVIDER` and the identity is resolved by name at creation time. If the underlying Entra ID identity is later destroyed and recreated with the same name (e.g., an App Registration reprovisioned in another Terraform stack), the SQL user will retain the old object ID and become stale. To detect this drift, set `entraid_identifier` to the object ID of the Entra ID identity, preferably by referencing an `azuread_service_principal` or `azuread_user` data source. This ensures that when the identity is recreated, Terraform detects the changed object ID and replaces the SQL user.
@@ -79,14 +92,15 @@ The following arguments are supported:
 
 - `password` (Optional, String) The password of the user. Available only when `authentication=DBSQLLogin`.
 
-- `entraid_identifier` (Optional, String, **Preview**) Provision a user by providing their EntraID identifier. For Entra ID users and groups, use thier object ID; for service principals, use their application (client) ID.  This option is only available for SQL server with `authentication="AzureAD"`.
+- `entraid_identifier` (Optional, String, **Preview**) Provision a user by providing their EntraID identifier. For Entra ID users and groups, use thier object ID; for service principals, use their application (client) ID.  This option is only available for SQL server with `authentication="AzureAD"`. When provisioning a group, also set `type="AD group"`.
+
+- `type` (Optional, String) Database/Server user type. Possible values `SQL user`, `AD group`, `AD user`. Can only be set when `entraid_identifier` is specified, to choose between provisioning an `AD user` (the default) or an `AD group`.
 
 ### Attributes Reference
 In addition to the arguments listed above, the following read only attributes are exported:
 
 - `id` (String) The azuresql ID of the user resource.
 - `principal_id` (Number) Principal ID of the user in the database.
-- `type` (String) Database/Server user type. Possible values `SQL user`, `AD group`, `AD user`. 
 - `sid` (string) SID assigned to the principal in the database.
   
 ## ID structure

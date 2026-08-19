@@ -7,6 +7,12 @@ description: |-
 
 # Changelog
 
+## 5.4.5
+
+**Features:**
+
+* The `type` attribute of `azuresql_user` can now be set to `AD group` to provision an Entra ID group via `entraid_identifier`. Previously the user type was hardcoded to `E` (AD user).
+
 ## 5.4.4
 
 **Fixes:**

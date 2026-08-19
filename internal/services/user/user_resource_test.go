@@ -174,6 +174,42 @@ func TestAccSQLDatabaseCreateUserWithEntraIDIdentity(t *testing.T) {
 	})
 }
 
+func TestAccSQLDatabaseCreateGroupWithEntraIDIdentity(t *testing.T) {
+	acceptance.PreCheck(t)
+	data := acceptance.BuildTestData(t)
+	r := UserResource{}
+	resource.Test(t, resource.TestCase{
+		Steps: []resource.TestStep{
+			{
+				Config: r.entraid_identity_database_with_type(
+					data.SQLDatabase_connection,
+					"azuresql-group-sid",
+					"22222222-2222-2222-2222-222222222222",
+					"AD group"),
+				ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("azuresql_user.test", "type", "AD group"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccUserTypeRequiresEntraIDIdentifier(t *testing.T) {
+	acceptance.PreCheck(t)
+	data := acceptance.BuildTestData(t)
+	r := UserResource{}
+	resource.Test(t, resource.TestCase{
+		Steps: []resource.TestStep{
+			{
+				Config:                   r.database_with_type(data.SQLDatabase_connection, os.Getenv("AZURE_AD_GROUP"), "AD group"),
+				ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+				ExpectError:              regexp.MustCompile("type can only be set when entraid_identifier is specified"),
+			},
+		},
+	})
+}
+
 func TestAccSynapseServerCreateADGroup(t *testing.T) {
 	acceptance.PreCheck(t)
 	data := acceptance.BuildTestData(t)
@@ -306,6 +342,39 @@ func (r UserResource) entraid_identity_database(connection string, username stri
 			authentication 		= "AzureAD"
 		}
 		`, template, connection, username, entraid_identifier)
+}
+
+func (r UserResource) entraid_identity_database_with_type(connection string, username string, entraid_identifier string, userType string) string {
+	template := r.template()
+
+	return fmt.Sprintf(
+		`
+		%[1]s
+
+		resource "azuresql_user" "test" {
+			database  	   		= "%[2]s"
+			name           		= "%[3]s"
+			entraid_identifier 	= "%[4]s"
+			authentication 		= "AzureAD"
+			type				= "%[5]s"
+		}
+		`, template, connection, username, entraid_identifier, userType)
+}
+
+func (r UserResource) database_with_type(connection string, username string, userType string) string {
+	template := r.template()
+
+	return fmt.Sprintf(
+		`
+		%[1]s
+
+		resource "azuresql_user" "test" {
+			database  	   	= "%[2]s"
+			name           	= "%[3]s"
+			authentication 	= "AzureAD"
+			type			= "%[4]s"
+		}
+		`, template, connection, username, userType)
 }
 
 func (r UserResource) basic_server_duplicate(connection string, username string, authentication string) string {

@@ -69,6 +69,21 @@ func describeUserType(ctx context.Context, userType string) (userTypeLong string
 	}
 }
 
+// Inverse of describeUserType for the types which can be chosen
+// when creating a user via an entraid_identifier.
+func userTypeCode(ctx context.Context, userType string) string {
+	switch userType {
+	case "", "AD user":
+		return "E"
+	case "AD group":
+		return "X"
+	default:
+		logging.AddError(ctx, "Invalid user type",
+			fmt.Sprintf("User type %s cannot be used when creating a user via entraid_identifier. Possible values are `AD user` and `AD group`.", userType))
+		return ""
+	}
+}
+
 func describeAuthentication(ctx context.Context, authentication_type int64) (authentication string) {
 	switch authentication_type {
 	case 0:
@@ -85,7 +100,7 @@ func describeAuthentication(ctx context.Context, authentication_type int64) (aut
 	}
 }
 
-func CreateUser(ctx context.Context, connection Connection, name string, password string, authentication string, loginId string, entraid_identifier string) (user User) {
+func CreateUser(ctx context.Context, connection Connection, name string, password string, authentication string, loginId string, entraid_identifier string, userType string) (user User) {
 
 	query := fmt.Sprintf("create user [%s]", name)
 
@@ -94,10 +109,11 @@ func CreateUser(ctx context.Context, connection Connection, name string, passwor
 			query += " from external provider"
 		} else {
 			sid := ObjectIDToDatabaseSID(ctx, entraid_identifier)
+			typeCode := userTypeCode(ctx, userType)
 			if logging.HasError(ctx) {
 				return
 			}
-			query += " with sid=" + sid + ", type=E"
+			query += " with sid=" + sid + ", type=" + typeCode
 		}
 	} else if authentication == "SQLLogin" {
 		login := ParseLoginId(ctx, loginId)
