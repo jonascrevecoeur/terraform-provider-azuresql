@@ -55,6 +55,18 @@ resource "azuresql_user" "spuser" {
   authentication     = "AzureAD"
   entraid_identifier = data.azuread_service_principal.app.object_id
 }
+
+resource "azuresql_user" "schema_user" {
+  database       = data.azuresql_database.database.id
+  name           = "my-schema-user"
+  authentication = "WithoutLogin"
+  default_schema = data.azuresql_schema.example.id
+}
+
+resource "azuresql_schema" "example" {
+  database = data.azuresql_database.database.id
+  name     = "example"
+}
 ```
 
 ~> When `authentication="AzureAD"` is used without `entraid_identifier`, the SQL user is created via `FROM EXTERNAL PROVIDER` and the identity is resolved by name at creation time. If the underlying Entra ID identity is later destroyed and recreated with the same name (e.g., an App Registration reprovisioned in another Terraform stack), the SQL user will retain the old object ID and become stale. To detect this drift, set `entraid_identifier` to the object ID of the Entra ID identity, preferably by referencing an `azuread_service_principal` or `azuread_user` data source. This ensures that when the identity is recreated, Terraform detects the changed object ID and replaces the SQL user.
@@ -80,6 +92,7 @@ The following arguments are supported:
 - `password` (Optional, String) The password of the user. Available only when `authentication=DBSQLLogin`.
 
 - `entraid_identifier` (Optional, String, **Preview**) Provision a user by providing their EntraID identifier. For Entra ID users and groups, use thier object ID; for service principals, use their application (client) ID.  This option is only available for SQL server with `authentication="AzureAD"`.
+- `default_schema` (Optional, String) ID of the `azuresql_schema` used as the user's default schema. This option is available for database users.
 
 ### Attributes Reference
 In addition to the arguments listed above, the following read only attributes are exported:
@@ -88,6 +101,7 @@ In addition to the arguments listed above, the following read only attributes ar
 - `principal_id` (Number) Principal ID of the user in the database.
 - `type` (String) Database/Server user type. Possible values `SQL user`, `AD group`, `AD user`. 
 - `sid` (string) SID assigned to the principal in the database.
+- `default_schema` (String) ID of the user's default `azuresql_schema`.
   
 ## ID structure
 

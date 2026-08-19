@@ -72,6 +72,10 @@ func (d *providerConfig) Schema(_ context.Context, _ datasource.SchemaRequest, r
 			"sid": schema.StringAttribute{
 				Computed: true,
 			},
+			"default_schema": schema.StringAttribute{
+				Computed:    true,
+				Description: "ID of the user's default azuresql_schema.",
+			},
 		},
 	}
 }
@@ -113,6 +117,13 @@ func (r *providerConfig) Read(ctx context.Context, req datasource.ReadRequest, r
 	state.Type = types.StringValue(user.Type)
 	state.Authentication = types.StringValue(user.Authentication)
 	state.Sid = types.StringValue(user.Sid)
+	if user.DefaultSchema != "" {
+		defaultSchema := sql.GetSchemaFromName(ctx, connection, user.DefaultSchema, true)
+		if logging.HasError(ctx) {
+			return
+		}
+		state.DefaultSchema = types.StringValue(defaultSchema.Id)
+	}
 
 	state.Id = types.StringValue(user.Id)
 

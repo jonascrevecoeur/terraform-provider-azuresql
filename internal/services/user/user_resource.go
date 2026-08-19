@@ -141,6 +141,11 @@ func (r *UserResource) Schema(_ context.Context, _ resource.SchemaRequest, resp 
 					replaceIfSetOrChanged{},
 				},
 			},
+			"default_schema": schema.StringAttribute{
+				Optional:    true,
+				Computed:    true,
+				Description: "ID of the azuresql_schema used as the user's default schema.",
+			},
 			"sid": schema.StringAttribute{
 				Computed: true,
 			},
@@ -185,6 +190,11 @@ func (r UserResource) ValidateConfig(ctx context.Context, req resource.ValidateC
 		logging.AddAttributeError(ctx, path.Root("login"), "Invalid attribute configuration",
 			"password is only supported when authentication equals `DBSQLLogin`")
 		return
+	}
+
+	if !data.DefaultSchema.IsNull() && data.Database.IsNull() {
+		logging.AddAttributeError(ctx, path.Root("default_schema"), "Invalid attribute configuration",
+			"default_schema requires a database user")
 	}
 }
 
@@ -255,6 +265,20 @@ func (r *UserResource) Create(ctx context.Context, req resource.CreateRequest, r
 	plan.PrincipalId = types.Int64Value(user.PrincipalId)
 	plan.Type = types.StringValue(user.Type)
 	plan.Sid = types.StringValue(user.Sid)
+	if !plan.DefaultSchema.IsNull() && !plan.DefaultSchema.IsUnknown() {
+		sql.SetUserDefaultSchema(ctx, connection, user.Name, plan.DefaultSchema.ValueString())
+		if logging.HasError(ctx) {
+			return
+		}
+		user = sql.GetUserFromPrincipalId(ctx, connection, user.PrincipalId)
+		if logging.HasError(ctx) {
+			return
+		}
+	}
+	plan.DefaultSchema = r.defaultSchemaState(ctx, connection, user.DefaultSchema)
+	if logging.HasError(ctx) {
+		return
+	}
 
 	if plan.EntraIDIdentifier.IsUnknown() {
 		plan.EntraIDIdentifier = types.StringNull()
@@ -315,6 +339,10 @@ func (r *UserResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	state.Type = types.StringValue(user.Type)
 	state.Authentication = types.StringValue(user.Authentication)
 	state.Sid = types.StringValue(user.Sid)
+	state.DefaultSchema = r.defaultSchemaState(ctx, connection, user.DefaultSchema)
+	if logging.HasError(ctx) {
+		return
+	}
 
 	state.Id = types.StringValue(user.Id)
 
@@ -353,7 +381,56 @@ func (r *UserResource) Configure(_ context.Context, req resource.ConfigureReques
 }
 
 func (r *UserResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	// Never triggered as a replace is always required
+	ctx = logging.WithDiagnostics(ctx, &resp.Diagnostics)
+
+	var state, plan UserResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	connection := r.ConnectionCache.Connect(ctx, state.Database.ValueString(), false, true)
+	if logging.HasError(ctx) {
+		return
+	}
+
+	user := sql.GetUserFromPrincipalId(ctx, connection, state.PrincipalId.ValueInt64())
+	if logging.HasError(ctx) || user.Id == "" {
+		return
+	}
+
+	if plan.DefaultSchema.IsNull() {
+		sql.SetUserDefaultSchemaName(ctx, connection, user.Name, "dbo")
+	} else if !plan.DefaultSchema.IsUnknown() {
+		sql.SetUserDefaultSchema(ctx, connection, user.Name, plan.DefaultSchema.ValueString())
+	}
+	if logging.HasError(ctx) {
+		return
+	}
+
+	user = sql.GetUserFromPrincipalId(ctx, connection, state.PrincipalId.ValueInt64())
+	if logging.HasError(ctx) {
+		return
+	}
+	state.DefaultSchema = r.defaultSchemaState(ctx, connection, user.DefaultSchema)
+	if logging.HasError(ctx) {
+		return
+	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+}
+
+func (r *UserResource) defaultSchemaState(ctx context.Context, connection sql.Connection, name string) types.String {
+	if name == "" || connection.IsServerConnection {
+		return types.StringNull()
+	}
+
+	schema := sql.GetSchemaFromName(ctx, connection, name, true)
+	if logging.HasError(ctx) {
+		return types.StringNull()
+	}
+
+	return types.StringValue(schema.Id)
 }
 
 func (r *UserResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -437,6 +514,10 @@ func (r *UserResource) ImportState(ctx context.Context, req resource.ImportState
 		state.Server = types.StringValue(user.Connection)
 	} else {
 		state.Database = types.StringValue(user.Connection)
+		state.DefaultSchema = r.defaultSchemaState(ctx, connection, user.DefaultSchema)
+		if logging.HasError(ctx) {
+			return
+		}
 	}
 
 	diags := resp.State.Set(ctx, &state)

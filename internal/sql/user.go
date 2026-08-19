@@ -19,6 +19,7 @@ type User struct {
 	Login          string
 	Password       string
 	Sid            string
+	DefaultSchema  string
 }
 
 func userFormatId(connectionId string, userPrincipalId int64) string {
@@ -144,10 +145,10 @@ COMMIT;		`, name, name)
 func GetUserFromName(ctx context.Context, connection Connection, name string) (user User) {
 
 	var id, authentication_type int64
-	var userType, sid string
+	var userType, sid, defaultSchema string
 
 	query := `
-		select principal_id, type, authentication_type, sid
+		select principal_id, type, authentication_type, sid, default_schema_name
 		from sys.database_principals
 		where name = @name and type != 'R'
 		`
@@ -155,7 +156,7 @@ func GetUserFromName(ctx context.Context, connection Connection, name string) (u
 	err := (connection.
 		Connection.
 		QueryRowContext(ctx, query, sql.Named("name", name)).
-		Scan(&id, &userType, &authentication_type, &sid))
+		Scan(&id, &userType, &authentication_type, &sid, &defaultSchema))
 
 	switch {
 	case err == sql.ErrNoRows:
@@ -174,6 +175,7 @@ func GetUserFromName(ctx context.Context, connection Connection, name string) (u
 		Type:           describeUserType(ctx, userType),
 		Authentication: describeAuthentication(ctx, authentication_type),
 		Sid:            sid,
+		DefaultSchema:  defaultSchema,
 	}
 
 }
@@ -203,11 +205,11 @@ func GetUserFromId(ctx context.Context, connection Connection, id string, requir
 
 func GetUserFromPrincipalId(ctx context.Context, connection Connection, principalId int64) (user User) {
 
-	var name, userType, sid string
+	var name, userType, sid, defaultSchema string
 	var authentication_type int64
 
 	query := `
-		select name, type, authentication_type, sid
+		select name, type, authentication_type, sid, default_schema_name
 		from sys.database_principals
 		where principal_id = @id and type != 'R'
 		`
@@ -215,7 +217,7 @@ func GetUserFromPrincipalId(ctx context.Context, connection Connection, principa
 	err := (connection.
 		Connection.
 		QueryRowContext(ctx, query, sql.Named("id", principalId)).
-		Scan(&name, &userType, &authentication_type, &sid))
+		Scan(&name, &userType, &authentication_type, &sid, &defaultSchema))
 
 	switch {
 	case err == sql.ErrNoRows:
@@ -234,7 +236,33 @@ func GetUserFromPrincipalId(ctx context.Context, connection Connection, principa
 		Type:           describeUserType(ctx, userType),
 		Authentication: describeAuthentication(ctx, authentication_type),
 		Sid:            sid,
+		DefaultSchema:  defaultSchema,
 	}
+}
+
+func SetUserDefaultSchema(ctx context.Context, connection Connection, userName string, schemaResourceId string) {
+	schema := GetSchemaFromId(ctx, connection, schemaResourceId, true)
+	if logging.HasError(ctx) {
+		return
+	}
+
+	SetUserDefaultSchemaName(ctx, connection, userName, schema.Name)
+}
+
+func SetUserDefaultSchemaName(ctx context.Context, connection Connection, userName string, defaultSchema string) {
+	if strings.TrimSpace(userName) == "" || strings.TrimSpace(defaultSchema) == "" {
+		logging.AddError(ctx, "Invalid user default schema", "user name and default schema must not be empty")
+		return
+	}
+
+	query := fmt.Sprintf("ALTER USER %s WITH DEFAULT_SCHEMA = %s", quoteIdentifier(userName), quoteIdentifier(defaultSchema))
+	if _, err := connection.Connection.ExecContext(ctx, query); err != nil {
+		logging.AddError(ctx, fmt.Sprintf("Setting default schema for user %s failed", userName), err)
+	}
+}
+
+func quoteIdentifier(identifier string) string {
+	return "[" + strings.ReplaceAll(identifier, "]", "]]") + "]"
 }
 
 func GetEntraIDIdentifierFromPrincipalId(ctx context.Context, connection Connection, principalId int64) string {
