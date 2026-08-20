@@ -41,7 +41,7 @@ func (r *UserResource) Metadata(_ context.Context, req resource.MetadataRequest,
 type replaceIfSetOrChanged struct{}
 
 func (m replaceIfSetOrChanged) Description(ctx context.Context) string {
-	return "Setting or changing entraid_identifier forces replacement."
+	return "Setting or changing this attribute forces replacement."
 }
 
 func (m replaceIfSetOrChanged) MarkdownDescription(ctx context.Context) string {
@@ -123,8 +123,17 @@ func (r *UserResource) Schema(_ context.Context, _ resource.SchemaRequest, resp 
 				},
 			},
 			"type": schema.StringAttribute{
-				Computed:    true,
-				Description: "Type of the user in the database. Possible types are TODO.",
+				Optional: true,
+				Computed: true,
+				Description: "Type of the user in the database. Possible values are `SQL user`, `AD user` and `AD group`. " +
+					"Can only be set when `entraid_identifier` is specified, to choose between creating an `AD user` (the default) or an `AD group`.",
+				Validators: []validator.String{
+					stringvalidator.OneOf("AD user", "AD group"),
+				},
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+					replaceIfSetOrChanged{},
+				},
 			},
 			"login": schema.StringAttribute{
 				Optional:    true,
@@ -186,6 +195,12 @@ func (r UserResource) ValidateConfig(ctx context.Context, req resource.ValidateC
 			"password is only supported when authentication equals `DBSQLLogin`")
 		return
 	}
+
+	if !data.Type.IsNull() && data.EntraIDIdentifier.IsNull() {
+		logging.AddAttributeError(ctx, path.Root("type"), "Invalid attribute configuration",
+			"type can only be set when entraid_identifier is specified")
+		return
+	}
 }
 
 func (r *UserResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -239,7 +254,14 @@ func (r *UserResource) Create(ctx context.Context, req resource.CreateRequest, r
 		return
 	}
 
-	user := sql.CreateUser(ctx, connection, name, password, authentication, login, entraid_identifier)
+	userType := plan.Type.ValueString()
+
+	if userType != "" && entraid_identifier == "" {
+		logging.AddError(ctx, "Invalid config", "type can only be set when entraid_identifier is specified")
+		return
+	}
+
+	user := sql.CreateUser(ctx, connection, name, password, authentication, login, entraid_identifier, userType)
 
 	if logging.HasError(ctx) {
 		if user.Id != "" {
