@@ -92,7 +92,7 @@ The following arguments are supported:
 - `password` (Optional, String) The password of the user. Available only when `authentication=DBSQLLogin`.
 
 - `entraid_identifier` (Optional, String, **Preview**) Provision a user by providing their EntraID identifier. For Entra ID users and groups, use thier object ID; for service principals, use their application (client) ID.  This option is only available for SQL server with `authentication="AzureAD"`.
-- `default_schema` (Optional, String) ID of the `azuresql_schema` used as the user's default schema. This option is available for database users. Defaults to `dbo` when not set.
+- `default_schema` (Optional, String) ID of the `azuresql_schema` used as the user's default schema. This option is available for database users. When not set, SQL Server uses `dbo` as the default schema.
 
 ### Attributes Reference
 In addition to the arguments listed above, the following read only attributes are exported:

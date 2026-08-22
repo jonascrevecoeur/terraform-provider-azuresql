@@ -4,4 +4,3 @@ resource "azurerm_resource_group" "this" {
 }
 
 data "azuread_client_config" "me" {}
-
