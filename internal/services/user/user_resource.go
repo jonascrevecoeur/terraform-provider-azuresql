@@ -143,8 +143,7 @@ func (r *UserResource) Schema(_ context.Context, _ resource.SchemaRequest, resp 
 			},
 			"default_schema": schema.StringAttribute{
 				Optional:    true,
-				Computed:    true,
-				Description: "ID of the azuresql_schema used as the user's default schema.",
+				Description: "ID of the azuresql_schema used as the user's default schema. Defaults to `dbo` when not set.",
 			},
 			"sid": schema.StringAttribute{
 				Computed: true,
@@ -265,7 +264,10 @@ func (r *UserResource) Create(ctx context.Context, req resource.CreateRequest, r
 	plan.PrincipalId = types.Int64Value(user.PrincipalId)
 	plan.Type = types.StringValue(user.Type)
 	plan.Sid = types.StringValue(user.Sid)
-	if !plan.DefaultSchema.IsNull() && !plan.DefaultSchema.IsUnknown() {
+	// dbo is already the server-side default for newly created users, so only act
+	// when the user explicitly configured a default_schema. Leave it null in state
+	// otherwise, rather than filling in the resolved (dbo) schema id.
+	if !plan.DefaultSchema.IsNull() {
 		sql.SetUserDefaultSchema(ctx, connection, user.Name, plan.DefaultSchema.ValueString())
 		if logging.HasError(ctx) {
 			return
@@ -274,10 +276,10 @@ func (r *UserResource) Create(ctx context.Context, req resource.CreateRequest, r
 		if logging.HasError(ctx) {
 			return
 		}
-	}
-	plan.DefaultSchema = r.defaultSchemaState(ctx, connection, user.DefaultSchema)
-	if logging.HasError(ctx) {
-		return
+		plan.DefaultSchema = r.defaultSchemaState(ctx, connection, user.DefaultSchema)
+		if logging.HasError(ctx) {
+			return
+		}
 	}
 
 	if plan.EntraIDIdentifier.IsUnknown() {
@@ -339,9 +341,13 @@ func (r *UserResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	state.Type = types.StringValue(user.Type)
 	state.Authentication = types.StringValue(user.Authentication)
 	state.Sid = types.StringValue(user.Sid)
-	state.DefaultSchema = r.defaultSchemaState(ctx, connection, user.DefaultSchema)
-	if logging.HasError(ctx) {
-		return
+	// Only refresh default_schema when it was previously configured. Otherwise leave it
+	// null so a user relying on the implicit dbo default doesn't get it filled into state.
+	if !state.DefaultSchema.IsNull() {
+		state.DefaultSchema = r.defaultSchemaState(ctx, connection, user.DefaultSchema)
+		if logging.HasError(ctx) {
+			return
+		}
 	}
 
 	state.Id = types.StringValue(user.Id)
@@ -402,20 +408,24 @@ func (r *UserResource) Update(ctx context.Context, req resource.UpdateRequest, r
 
 	if plan.DefaultSchema.IsNull() {
 		sql.SetUserDefaultSchemaName(ctx, connection, user.Name, "dbo")
-	} else if !plan.DefaultSchema.IsUnknown() {
+		if logging.HasError(ctx) {
+			return
+		}
+		// Not configured: keep it null in state rather than filling in the resolved dbo schema id.
+		state.DefaultSchema = types.StringNull()
+	} else {
 		sql.SetUserDefaultSchema(ctx, connection, user.Name, plan.DefaultSchema.ValueString())
-	}
-	if logging.HasError(ctx) {
-		return
-	}
-
-	user = sql.GetUserFromPrincipalId(ctx, connection, state.PrincipalId.ValueInt64())
-	if logging.HasError(ctx) {
-		return
-	}
-	state.DefaultSchema = r.defaultSchemaState(ctx, connection, user.DefaultSchema)
-	if logging.HasError(ctx) {
-		return
+		if logging.HasError(ctx) {
+			return
+		}
+		user = sql.GetUserFromPrincipalId(ctx, connection, state.PrincipalId.ValueInt64())
+		if logging.HasError(ctx) {
+			return
+		}
+		state.DefaultSchema = r.defaultSchemaState(ctx, connection, user.DefaultSchema)
+		if logging.HasError(ctx) {
+			return
+		}
 	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }

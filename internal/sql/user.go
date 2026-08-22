@@ -145,7 +145,8 @@ COMMIT;		`, name, name)
 func GetUserFromName(ctx context.Context, connection Connection, name string) (user User) {
 
 	var id, authentication_type int64
-	var userType, sid, defaultSchema string
+	var userType, sid string
+	var defaultSchema sql.NullString
 
 	query := `
 		select principal_id, type, authentication_type, sid, default_schema_name
@@ -175,7 +176,7 @@ func GetUserFromName(ctx context.Context, connection Connection, name string) (u
 		Type:           describeUserType(ctx, userType),
 		Authentication: describeAuthentication(ctx, authentication_type),
 		Sid:            sid,
-		DefaultSchema:  defaultSchema,
+		DefaultSchema:  parseNullString(defaultSchema),
 	}
 
 }
@@ -205,7 +206,8 @@ func GetUserFromId(ctx context.Context, connection Connection, id string, requir
 
 func GetUserFromPrincipalId(ctx context.Context, connection Connection, principalId int64) (user User) {
 
-	var name, userType, sid, defaultSchema string
+	var name, userType, sid string
+	var defaultSchema sql.NullString
 	var authentication_type int64
 
 	query := `
@@ -236,7 +238,7 @@ func GetUserFromPrincipalId(ctx context.Context, connection Connection, principa
 		Type:           describeUserType(ctx, userType),
 		Authentication: describeAuthentication(ctx, authentication_type),
 		Sid:            sid,
-		DefaultSchema:  defaultSchema,
+		DefaultSchema:  parseNullString(defaultSchema),
 	}
 }
 
