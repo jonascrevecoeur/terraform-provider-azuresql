@@ -7,6 +7,12 @@ description: |-
 
 # Changelog
 
+## 5.5.0
+
+**Features:**
+
+* Add property `default_schema` to  `azuresql_user` resources 
+
 ## 5.4.4
 
 **Fixes:**
