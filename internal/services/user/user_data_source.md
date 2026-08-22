@@ -64,6 +64,7 @@ In addition to the arguments listed above, the following read only attributes ar
 - `principal_id` (Number) Principal ID of the user in the database.
 - `type` (String) Database/Server user type. Possible values `SQL user`, `AD group`, `AD user`. 
 - `sid` (string) SID assigned to the principal in the database.
+- `default_schema` (String) ID of the user's default `azuresql_schema`.
   
 ## ID structure
 

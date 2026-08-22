@@ -37,6 +37,37 @@ func TestAccSQLServerCreateUserWithoutLogin(t *testing.T) {
 	})
 }
 
+func TestAccSQLDatabaseCreateUserWithDefaultSchema(t *testing.T) {
+	acceptance.PreCheck(t)
+	data := acceptance.BuildTestData(t)
+	r := UserResource{}
+	resource.Test(t, resource.TestCase{
+		Steps: []resource.TestStep{
+			{
+				Config:                   r.database_with_default_schema(data.SQLDatabase_connection, data.RandomString, false),
+				ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPair("azuresql_user.test", "default_schema", "azuresql_schema.test", "id"),
+				),
+			},
+			{
+				Config:                   r.database_with_default_schema(data.SQLDatabase_connection, data.RandomString, true),
+				ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPair("azuresql_user.test", "default_schema", "data.azuresql_schema.dbo", "id"),
+				),
+			},
+			{
+				Config:                   r.database_with_default_schema(data.SQLDatabase_connection, data.RandomString, true),
+				ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+				ResourceName:             "azuresql_user.test",
+				ImportState:              true,
+				ImportStateVerify:        true,
+			},
+		},
+	})
+}
+
 func TestAccUseEnvironmentCredentials(t *testing.T) {
 	t.Setenv("AZURE_CLIENT_SECRET", os.Getenv("AZURE_CLIENT_SECRET_OPT"))
 	t.Setenv("AZURE_CLIENT_ID", os.Getenv("AZURE_CLIENT_ID_OPT"))
@@ -290,6 +321,35 @@ func (r UserResource) basic_database(connection string, username string, authent
 			authentication = "%[4]s"
 		}
 		`, template, connection, username, authentication)
+}
+
+func (r UserResource) database_with_default_schema(connection string, random string, useDbo bool) string {
+	defaultSchema := "azuresql_schema.test.id"
+	if useDbo {
+		defaultSchema = "data.azuresql_schema.dbo.id"
+	}
+
+	return fmt.Sprintf(
+		`
+		%[1]s
+
+		resource "azuresql_schema" "test" {
+			database = "%[2]s"
+			name     = "schema_%[3]s"
+		}
+
+		data "azuresql_schema" "dbo" {
+			database = "%[2]s"
+			name     = "dbo"
+		}
+
+		resource "azuresql_user" "test" {
+			database       = "%[2]s"
+			name           = "user_default_schema_%[3]s"
+			authentication = "WithoutLogin"
+			default_schema = %[4]s
+		}
+		`, r.template(), connection, random, defaultSchema)
 }
 
 func (r UserResource) entraid_identity_database(connection string, username string, entraid_identifier string) string {

@@ -13,6 +13,7 @@ type UserDataSourceModel struct {
 	Authentication types.String `tfsdk:"authentication"`
 	Type           types.String `tfsdk:"type"`
 	Sid            types.String `tfsdk:"sid"`
+	DefaultSchema  types.String `tfsdk:"default_schema"`
 }
 
 type UserResourceModel struct {
@@ -26,5 +27,6 @@ type UserResourceModel struct {
 	Type              types.String `tfsdk:"type"`
 	Login             types.String `tfsdk:"login"`
 	EntraIDIdentifier types.String `tfsdk:"entraid_identifier"`
+	DefaultSchema     types.String `tfsdk:"default_schema"`
 	Sid               types.String `tfsdk:"sid"`
 }
