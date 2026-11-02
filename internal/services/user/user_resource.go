@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -41,7 +42,7 @@ func (r *UserResource) Metadata(_ context.Context, req resource.MetadataRequest,
 type replaceIfSetOrChanged struct{}
 
 func (m replaceIfSetOrChanged) Description(ctx context.Context) string {
-	return "Setting or changing entraid_identifier forces replacement."
+	return "Setting or changing this attribute forces replacement. A null prior state, as after an import, does not."
 }
 
 func (m replaceIfSetOrChanged) MarkdownDescription(ctx context.Context) string {
@@ -73,6 +74,9 @@ func (r *UserResource) Schema(_ context.Context, _ resource.SchemaRequest, resp 
 			"id": schema.StringAttribute{
 				Computed:    true,
 				Description: "Unique identifier for terraform used to import the resource.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"database": schema.StringAttribute{
 				Optional:    true,
@@ -104,13 +108,16 @@ func (r *UserResource) Schema(_ context.Context, _ resource.SchemaRequest, resp 
 				Optional:    true,
 				Description: "Password for the new user, if creating a DB-scoped user with a password.",
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
+					replaceIfSetOrChanged{},
 				},
 				Sensitive: true,
 			},
 			"principal_id": schema.Int64Attribute{
 				Computed:    true,
 				Description: "Principal ID of the user in the database.",
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.UseStateForUnknown(),
+				},
 			},
 			"authentication": schema.StringAttribute{
 				Required:    true,
@@ -125,6 +132,9 @@ func (r *UserResource) Schema(_ context.Context, _ resource.SchemaRequest, resp 
 			"type": schema.StringAttribute{
 				Computed:    true,
 				Description: "Type of the user in the database. Possible types are TODO.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"login": schema.StringAttribute{
 				Optional:    true,
@@ -427,6 +437,9 @@ func (r *UserResource) Update(ctx context.Context, req resource.UpdateRequest, r
 			return
 		}
 	}
+
+	state.Password = plan.Password
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
