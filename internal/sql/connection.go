@@ -10,12 +10,14 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
 	"terraform-provider-azuresql/internal/logging"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/synapse/armsynapse"
@@ -24,6 +26,7 @@ import (
 
 	mssql "github.com/microsoft/go-mssqldb"
 	_ "github.com/microsoft/go-mssqldb/azuread"
+	"github.com/microsoft/go-mssqldb/msdsn"
 )
 
 // The azuresql provider instantiates a single ConnectionCache
@@ -35,6 +38,9 @@ type ConnectionCache struct {
 	SubscriptionId      string
 	CheckDatabaseExists bool
 	CheckServerExists   bool
+	// Credential used to obtain Entra ID tokens. When nil, the connections use
+	// the driver's ActiveDirectoryDefault authentication (default credential chain).
+	Credential azcore.TokenCredential
 }
 
 type ConnectionResourceStatus int
@@ -71,8 +77,17 @@ func NewCache(subscriptionId string, check_server_exists bool, check_database_ex
 	}
 }
 
+// credential returns the configured credential or, when none is configured,
+// the Azure default credential chain.
+func (cache ConnectionCache) credential() (azcore.TokenCredential, error) {
+	if cache.Credential != nil {
+		return cache.Credential, nil
+	}
+	return azidentity.NewDefaultAzureCredential(nil)
+}
+
 func (cache ConnectionCache) synapseServerExists(ctx context.Context, connection Connection) (status ConnectionResourceStatus) {
-	cred, err := azidentity.NewDefaultAzureCredential(nil)
+	cred, err := cache.credential()
 	if err != nil {
 		logging.AddError(ctx, "Failed to obtain a credential", err)
 		return ConnectionResourceStatusUnknown
@@ -107,7 +122,7 @@ func (cache ConnectionCache) synapseServerExists(ctx context.Context, connection
 }
 
 func (cache ConnectionCache) sqlServerExists(ctx context.Context, connection Connection) (status ConnectionResourceStatus) {
-	cred, err := azidentity.NewDefaultAzureCredential(nil)
+	cred, err := cache.credential()
 	if err != nil {
 		logging.AddError(ctx, "Failed to obtain a credential", err)
 		return ConnectionResourceStatusUnknown
@@ -292,7 +307,7 @@ func (cache ConnectionCache) Connect(ctx context.Context, connectionId string, s
 			}
 
 			tflog.Debug(ctx, fmt.Sprintf("Connection string: %s", connection.ConnectionString))
-			con, err := sql.Open("azuresql", connection.ConnectionString)
+			con, err := cache.open(connection.ConnectionString)
 			connection.Connection = con
 			if err == nil {
 				tflog.Debug(ctx, "Pinging database")
@@ -367,6 +382,54 @@ func (cache ConnectionCache) Connect(ctx context.Context, connectionId string, s
 	}
 
 	return conn
+}
+
+// open creates the database handle for a connection string.
+//
+// Without a configured credential the connection string is used as is and the
+// driver authenticates with ActiveDirectoryDefault. With a configured credential
+// the fedauth parameter is removed and tokens are supplied by the credential
+// through a connector, so tokens never become part of the connection string.
+func (cache ConnectionCache) open(connectionString string) (*sql.DB, error) {
+	if cache.Credential == nil {
+		return sql.Open("azuresql", connectionString)
+	}
+
+	config, err := msdsn.Parse(withoutFedAuth(connectionString))
+	if err != nil {
+		return nil, err
+	}
+
+	connector, err := mssql.NewActiveDirectoryTokenConnector(config, mssql.FedAuthADALWorkflowPassword,
+		func(ctx context.Context, serverSPN, _ string) (string, error) {
+			// the scope announced by the server, as used by the driver's own Entra ID authentication
+			scope := serverSPN
+			if !strings.HasSuffix(scope, "/.default") {
+				scope = strings.TrimSuffix(scope, "/") + "/.default"
+			}
+			token, err := cache.Credential.GetToken(ctx, policy.TokenRequestOptions{Scopes: []string{scope}})
+			if err != nil {
+				return "", err
+			}
+			return token.Token, nil
+		})
+	if err != nil {
+		return nil, err
+	}
+
+	return sql.OpenDB(connector), nil
+}
+
+// withoutFedAuth removes the fedauth parameter from a connection string.
+func withoutFedAuth(connectionString string) string {
+	u, err := url.Parse(connectionString)
+	if err != nil {
+		return connectionString
+	}
+	q := u.Query()
+	q.Del("fedauth")
+	u.RawQuery = q.Encode()
+	return u.String()
 }
 
 func (cache ConnectionCache) Connect_server_or_database(ctx context.Context, server string, database string, requiresExist bool) (connection Connection) {
