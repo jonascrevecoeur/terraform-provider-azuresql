@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 )
 
 type UserResource struct{}
@@ -291,6 +292,47 @@ func TestAccDBSQLLogin(t *testing.T) {
 			},
 		})
 	}
+}
+
+func TestAccDBSQLLoginImportPassword(t *testing.T) {
+	acceptance.PreCheck(t)
+	data := acceptance.BuildTestData(t)
+	r := UserResource{}
+
+	resource.Test(t, resource.TestCase{
+		Steps: []resource.TestStep{
+			{
+				Config:                   r.user_with_database_login(data.SQLDatabase_connection, data.RandomString),
+				ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+			},
+			{
+				Config:                   r.user_with_database_login(data.SQLDatabase_connection, data.RandomString),
+				ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+				ResourceName:             "azuresql_user.test",
+				ImportState:              true,
+				ImportStatePersist:       true,
+				ImportStateVerify:        true,
+				ImportStateVerifyIgnore:  []string{"password"},
+			},
+			{
+				Config:                   r.user_with_database_login(data.SQLDatabase_connection, data.RandomString),
+				ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction("azuresql_user.test", plancheck.ResourceActionUpdate),
+					},
+				},
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("azuresql_user.test", "password", "Difficultpassword12!abc13!!"),
+				),
+			},
+			{
+				Config:                   r.user_with_database_login(data.SQLDatabase_connection, data.RandomString),
+				ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+				PlanOnly:                 true,
+			},
+		},
+	})
 }
 
 func (r UserResource) basic_server(connection string, username string, authentication string) string {
