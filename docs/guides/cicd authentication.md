@@ -4,6 +4,8 @@ The `azuresql` provider uses the [Azure Default Credential Chain](https://learn.
 
 In non-interactive environments such as CI/CD pipelines, it is typically necessary to manually provide credentials via environment variables.
 
+Alternatively, configure an authentication method on the provider or through the `ARM_*` environment variables, see the [provider documentation](../index.md#authentication). With `use_oidc = true` in Azure DevOps and GitHub Actions, the provider requests the OIDC token from the platform itself, refreshes it during long runs and needs no additional pipeline steps. In Azure DevOps this works with the environment the `TerraformTask` prepares for a workload identity federation service connection.
+
 ## Authentication Using Client ID and Client Secret
 
 To authenticate using a service principal (client ID and client secret), set the following environment variables:

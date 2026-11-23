@@ -7,6 +7,17 @@ description: |-
 
 # Changelog
 
+## Unreleased
+
+**Features:**
+
+* Add client secret, client certificate, OIDC (workload identity federation) and managed identity authentication through the `client_id`, `tenant_id`, `client_secret`, `client_certificate`, `client_certificate_path`, `client_certificate_password`, `use_oidc` and `use_msi` provider arguments, with fallback to the corresponding `ARM_*` environment variables. Provider aliases can authenticate as different identities in different tenants.
+* OIDC tokens can be supplied directly or as a file (any issuer, e.g. Kubernetes or Keycloak), or requested from Azure DevOps pipelines and GitHub Actions, where they are refreshed during long runs.
+
+**Changed:**
+
+* When `ARM_CLIENT_SECRET`, `ARM_CLIENT_CERTIFICATE`, `ARM_CLIENT_CERTIFICATE_PATH`, `ARM_USE_OIDC=true` or `ARM_USE_MSI=true` is set, the provider authenticates with that method, using `ARM_CLIENT_ID` and `ARM_TENANT_ID`, instead of the Azure default credential chain. Without these variables the behaviour is unchanged.
+
 ## 5.4.4
 
 **Fixes:**

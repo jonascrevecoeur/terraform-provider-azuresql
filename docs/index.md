@@ -55,3 +55,51 @@ The following arguments are supported:
 
 - `check_database_exists` (Optional, Bool) Allow the provider to check whether a database exists within a server. This is necessary for the provider to correctly cleanup resources after a manual deletion of the database. This requires the provider to have permission to execute SQL queries at the server level. Default is true.
 
+### Authentication
+
+By default, the provider authenticates using the Azure default credential chain. Alternatively, one of the following authentication methods can be configured. Every argument can also be set through the listed environment variable; values set in the provider block take precedence.
+
+- `client_id` (Optional, String) The client (application) ID to authenticate as. Environment variable: `ARM_CLIENT_ID`, only read when an authentication method is configured.
+
+- `tenant_id` (Optional, String) The Entra ID tenant to authenticate against. Required for client secret, client certificate and OIDC authentication. Environment variable: `ARM_TENANT_ID`, only read when an authentication method is configured.
+
+- `client_secret` (Optional, String, Sensitive) Authenticate as a service principal using a client secret. Environment variable: `ARM_CLIENT_SECRET`.
+
+- `client_certificate` (Optional, String, Sensitive) Authenticate as a service principal using a base64 encoded PKCS#12 client certificate. Environment variable: `ARM_CLIENT_CERTIFICATE`.
+
+- `client_certificate_path` (Optional, String) Authenticate as a service principal using the PKCS#12 client certificate at this path. Environment variable: `ARM_CLIENT_CERTIFICATE_PATH`.
+
+- `client_certificate_password` (Optional, String, Sensitive) The password of the client certificate. Environment variable: `ARM_CLIENT_CERTIFICATE_PASSWORD`.
+
+- `use_oidc` (Optional, Bool) Authenticate using OIDC (workload identity federation), see [OIDC authentication](#oidc-authentication). Environment variable: `ARM_USE_OIDC`. Default is false.
+
+- `use_msi` (Optional, Bool) Authenticate using a managed identity. Set `client_id` to select a user-assigned identity. Environment variable: `ARM_USE_MSI`. Default is false.
+
+When several methods are configured, they are used in this order: client certificate, client secret, OIDC, managed identity. Set `use_oidc = false` or `use_msi = false` in the provider block to ignore `ARM_USE_OIDC` or `ARM_USE_MSI`. The environment variables are the same ones the `azurerm` provider reads.
+
+Using provider aliases, servers in different tenants or with different identities can be managed in the same run:
+
+```terraform
+provider "azuresql" {
+  alias     = "customer"
+  use_oidc  = true
+  client_id = "00000000-0000-0000-0000-000000000000"
+  tenant_id = "11111111-1111-1111-1111-111111111111"
+}
+```
+
+#### OIDC authentication
+
+With `use_oidc = true`, the provider exchanges an OIDC token issued by an external identity provider for an Entra ID token of `client_id` in `tenant_id`. Any issuer works for which `client_id` has a federated credential matching the token's issuer and subject, for example Azure DevOps, GitHub Actions, Kubernetes or Keycloak.
+
+The OIDC token is read from the following environment variables, in this order:
+
+| Source | Environment variables | Token refresh |
+|---|---|---|
+| Token | `ARM_OIDC_TOKEN` | no |
+| Token file, e.g. a Kubernetes service account token | `ARM_OIDC_TOKEN_FILE_PATH` | no, read when the provider is configured |
+| Azure DevOps pipelines | `ARM_OIDC_REQUEST_URL` or `SYSTEM_OIDCREQUESTURI`, `ARM_OIDC_REQUEST_TOKEN` or `SYSTEM_ACCESSTOKEN`, `ARM_ADO_PIPELINE_SERVICE_CONNECTION_ID` or `ARM_OIDC_AZURE_SERVICE_CONNECTION_ID` | yes, requested for every new Entra ID token |
+| GitHub Actions | `ARM_OIDC_REQUEST_URL` or `ACTIONS_ID_TOKEN_REQUEST_URL`, `ARM_OIDC_REQUEST_TOKEN` or `ACTIONS_ID_TOKEN_REQUEST_TOKEN` | yes, requested for every new Entra ID token |
+
+In Azure DevOps, the `TerraformTask` sets these variables for a service connection using workload identity federation. In GitHub Actions, they are set when the workflow has the `id-token: write` permission.
+

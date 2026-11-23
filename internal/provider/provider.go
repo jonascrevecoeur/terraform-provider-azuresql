@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"terraform-provider-azuresql/internal/auth"
 	"terraform-provider-azuresql/internal/services/database"
 	"terraform-provider-azuresql/internal/services/database_scoped_credential"
 	"terraform-provider-azuresql/internal/services/execute_sql"
@@ -61,7 +62,8 @@ func (p *azuresql_provider) Metadata(_ context.Context, _ provider.MetadataReque
 func (p *azuresql_provider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description: "The azuresql provider can be used to configure SQL resources in `Azure SQL server`, `Azure SQL database` and in `AzureSynapse serverless pool`." +
-			" azuresql authenticates using the [Azure default credential chain](https://learn.microsoft.com/en-us/dotnet/api/azure.identity.defaultazurecredential)." +
+			" azuresql authenticates using the [Azure default credential chain](https://learn.microsoft.com/en-us/dotnet/api/azure.identity.defaultazurecredential)," +
+			" unless a client secret, client certificate, OIDC or managed identity authentication is configured." +
 			" By authentiation to Azure instead of a specific database/server instance, the provider can be used to manage multiple SQL databases/servers at once." +
 			"\\\n\\\n" +
 			"The identitiy using this providers requires full control on the database/server to be configured.",
@@ -80,6 +82,45 @@ func (p *azuresql_provider) Schema(_ context.Context, _ provider.SchemaRequest, 
 			"check_database_exists": schema.BoolAttribute{
 				Optional: true,
 			},
+			"client_id": schema.StringAttribute{
+				Optional:    true,
+				Description: "The client (application) ID to authenticate as. Environment variable: `ARM_CLIENT_ID`, only read when an authentication method is configured.",
+			},
+			"tenant_id": schema.StringAttribute{
+				Optional:    true,
+				Description: "The Entra ID tenant to authenticate against. Environment variable: `ARM_TENANT_ID`, only read when an authentication method is configured.",
+			},
+			"client_secret": schema.StringAttribute{
+				Optional:    true,
+				Sensitive:   true,
+				Description: "Authenticate as a service principal using a client secret. Environment variable: `ARM_CLIENT_SECRET`.",
+			},
+			"client_certificate": schema.StringAttribute{
+				Optional:    true,
+				Sensitive:   true,
+				Description: "Authenticate as a service principal using a base64 encoded PKCS#12 client certificate. Environment variable: `ARM_CLIENT_CERTIFICATE`.",
+			},
+			"client_certificate_path": schema.StringAttribute{
+				Optional:    true,
+				Description: "Authenticate as a service principal using the PKCS#12 client certificate at this path. Environment variable: `ARM_CLIENT_CERTIFICATE_PATH`.",
+			},
+			"client_certificate_password": schema.StringAttribute{
+				Optional:    true,
+				Sensitive:   true,
+				Description: "The password of the client certificate. Environment variable: `ARM_CLIENT_CERTIFICATE_PASSWORD`.",
+			},
+			"use_oidc": schema.BoolAttribute{
+				Optional: true,
+				Description: "Authenticate using OIDC (workload identity federation): an OIDC token issued by an external identity provider is exchanged for an Entra ID token." +
+					" The OIDC token is read from the environment: supplied directly (`ARM_OIDC_TOKEN`) or as a file (`ARM_OIDC_TOKEN_FILE_PATH`), for example a Kubernetes service account token," +
+					" or requested from a token endpoint (`ARM_OIDC_REQUEST_URL`, `ACTIONS_ID_TOKEN_REQUEST_URL` or `SYSTEM_OIDCREQUESTURI`," +
+					" with `ARM_OIDC_REQUEST_TOKEN`, `ACTIONS_ID_TOKEN_REQUEST_TOKEN` or `SYSTEM_ACCESSTOKEN`) in Azure DevOps pipelines" +
+					" (with `ARM_ADO_PIPELINE_SERVICE_CONNECTION_ID` or `ARM_OIDC_AZURE_SERVICE_CONNECTION_ID`) and GitHub Actions. Environment variable: `ARM_USE_OIDC`.",
+			},
+			"use_msi": schema.BoolAttribute{
+				Optional:    true,
+				Description: "Authenticate using a managed identity. Set `client_id` to select a user-assigned identity. Environment variable: `ARM_USE_MSI`.",
+			},
 		},
 	}
 }
@@ -97,10 +138,26 @@ func (p *azuresql_provider) Configure(ctx context.Context, req provider.Configur
 		check_database_exists = config.CheckDatabaseExists.ValueBool()
 	}
 
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	authCfg, err := authConfig(config)
+	if err != nil {
+		resp.Diagnostics.AddError("Invalid authentication configuration", err.Error())
+		return
+	}
+	credential, err := auth.NewCredential(ctx, authCfg)
+	if err != nil {
+		resp.Diagnostics.AddError("Invalid authentication configuration", err.Error())
+		return
+	}
+
 	cache := sql.NewCache(
 		config.SubscriptionId.ValueString(),
 		config.CheckServerExists.ValueBool(),
 		check_database_exists)
+	cache.Credential = credential
 
 	resp.DataSourceData = &cache
 	resp.ResourceData = &cache
